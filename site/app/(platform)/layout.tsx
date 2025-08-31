@@ -3,5 +3,6 @@ export default function PlatformLayout({
 }: {
   children: React.ReactNode;
 }) {
+  //TODO: Design and add the main navbar
   return <>{children}</>;
 }
