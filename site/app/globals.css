@@ -85,21 +85,18 @@
   /* Gradients & Shadows */
   --gradient-primary: linear-gradient(
     135deg,
-    oklch(var(--primary)),
-    oklch(var(--primary-light))
+    var(--primary),
+    var(--primary-light)
   );
   --gradient-hero: linear-gradient(
     135deg,
-    oklch(var(--primary)) 0%,
-    oklch(var(--primary-light)) 100%
+    var(--primary) 0%,
+    var(--primary-light) 100%
   );
-  --gradient-card: linear-gradient(
-    145deg,
-    oklch(var(--card)) 0%,
-    oklch(var(--accent)) 100%
-  );
-  --shadow-elegant: 0 10px 30px -10px oklch(var(--primary) / 0.2);
-  --shadow-glow: 0 0 40px oklch(var(--primary-glow) / 0.3);
+  --gradient-card: linear-gradient(145deg, var(--card) 0%, var(--accent) 100%);
+  --shadow-elegant: 0 10px 30px -10px color-mix(in oklch, var(--primary) 20%, transparent);
+  --shadow-glow: 0 0 40px
+    color-mix(in oklch, var(--primary-glow) 30%, transparent);
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   --sidebar: oklch(0.98 0 0);
