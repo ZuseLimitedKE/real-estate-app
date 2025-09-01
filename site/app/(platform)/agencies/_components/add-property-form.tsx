@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LocationPicker } from "./location-picker";
+import { UploadDropzone } from "@/utils/uploadthing";
 import { toast } from "sonner";
 export const addPropertySchema = z.object({
   name: z.string().min(3, "Property title is required"),
@@ -54,7 +55,7 @@ export function AddPropertyForm() {
         city: "Nairobi",
         country: "Kenya",
       },
-      images: ["https://some-random-url.com"],
+      images: [],
       totalValue: 0,
       fractionPrice: 0,
       totalFractions: 0,
@@ -279,6 +280,29 @@ export function AddPropertyForm() {
           </CardHeader>
           <CardContent>
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+              <UploadDropzone
+                endpoint="imageUploader"
+                onClientUploadComplete={(res) => {
+                  // Extract URLs from the response and add to form
+                  const newImageUrls =
+                    res?.map((file) => file.ufsUrl).filter(Boolean) || [];
+
+                  // Update the images array in the form
+                  const currentImages = form.getValues("images");
+                  const updatedImages = [...currentImages, ...newImageUrls];
+                  form.setValue("images", updatedImages);
+                  toast.success(
+                    `${newImageUrls.length > 1 ? "images" : "image"} uploaded successfully`,
+                  );
+                }}
+                onUploadError={(error: Error) => {
+                  // Do something with the error.
+                  toast.error(`upload Failed! ${error.message}`);
+                }}
+                onUploadBegin={(fileName) => {
+                  toast.info(`Uploading ${fileName}...`);
+                }}
+              />
               <p className="text-muted-foreground">
                 Image upload will be implemented with UploadThing
               </p>
