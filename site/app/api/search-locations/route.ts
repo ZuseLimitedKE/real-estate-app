@@ -1,4 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server";
+/**
+ * Handle GET requests to search locations using Google Places Autocomplete and Details APIs.
+ *
+ * Validates the `query` search parameter and the `GOOGLE_PLACES_API_KEY` env var, then calls
+ * the Places Autocomplete API (restricted to country=ke) and up to the first 5 place detail
+ * lookups (fields: geometry, formatted_address) to return enriched results.
+ *
+ * Response shapes:
+ * - 200: { results: Array<{ display_name: string; formatted_address: string; lat: number; lng: number; place_id: string }> }
+ * - 200: { results: [] } when Google returns no valid predictions
+ * - 400: { error: "Query parameter is required" } when `query` is missing
+ * - 500: { error: "Google Places API key not configured" } when env var is missing
+ * - 500: { error: "Search failed" } on unexpected failures
+ *
+ * Notes:
+ * - Limits detailed place lookups to the top 5 autocomplete predictions.
+ * - Uses `encodeURIComponent` on the query and requests only geometry + formatted_address from Details API.
+ */
 export async function GET(request: NextRequest) {
   //TODO: auth check
   const searchParams = request.nextUrl.searchParams;

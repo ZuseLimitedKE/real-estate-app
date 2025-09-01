@@ -60,6 +60,16 @@ export const addPropertySchema = z.object({
 
 // Create a type for the form data
 type AddPropertyFormData = z.infer<typeof addPropertySchema>;
+/**
+ * Renders a client-side form for creating a new property and manages its validation and state.
+ *
+ * The form uses React Hook Form with a Zod resolver (addPropertySchema) to validate fields such as
+ * basic info, location (including coordinates via LocationPicker), financial details, agency ID,
+ * verification status, and images (upload UI is a placeholder). Submitting the form currently logs
+ * the validated AddPropertyFormData to the console. A Reset button restores the configured default values.
+ *
+ * @returns A JSX element containing the full multi-section Add Property form.
+ */
 export function AddPropertyForm() {
   const form = useForm<AddPropertyFormData>({
     resolver: zodResolver(addPropertySchema),

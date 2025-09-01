@@ -2,6 +2,14 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Presentational input component that renders a styled native <input>.
+ *
+ * Renders an <input> element with a comprehensive default set of utility classes (merged with any `className` passed),
+ * sets `data-slot="input"`, and forwards all remaining props to the underlying element.
+ *
+ * @returns A JSX element for a styled HTML input.
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input

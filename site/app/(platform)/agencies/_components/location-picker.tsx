@@ -4,6 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { MapPin, Search } from "lucide-react";
+/**
+ * A React component that lets the user search for and select a geographic location, returning latitude/longitude to the parent.
+ *
+ * The component queries the server endpoint `/api/search-locations?query=...` for matches, displays results, allows selecting one result
+ * (which updates the selected coordinates and calls `onCoordinatesChange`), and supports clearing the selection.
+ *
+ * @param onCoordinatesChange - Callback invoked when the selected coordinates change. Receives `{ lat, lng }` for a selection or `null` when cleared.
+ * @param initialCoordinates - Optional initial coordinates to pre-populate the selection.
+ * @returns A JSX element rendering the location search UI.
+ */
 export function LocationPicker({
   onCoordinatesChange,
   initialCoordinates,
