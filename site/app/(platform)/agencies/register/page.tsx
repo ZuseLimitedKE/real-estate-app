@@ -1,3 +1,9 @@
+import { AddPropertyForm } from "../_components/add-property-form";
+
 export default function RegisterPropertyPage() {
-  return <div>Register property</div>;
+  return (
+    <div>
+      <AddPropertyForm />
+    </div>
+  );
 }
