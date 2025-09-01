@@ -2,9 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   //TODO: auth check
   const searchParams = request.nextUrl.searchParams;
-  const query = searchParams.get("query");
-
-  if (!query) {
+  const query = (searchParams.get("query") ?? "").trim();
+  if (query.length === 0) {
     return NextResponse.json(
       { error: "Query parameter is required" },
       { status: 400 },
