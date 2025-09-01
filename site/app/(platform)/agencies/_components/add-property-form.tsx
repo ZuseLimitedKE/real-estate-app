@@ -7,20 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { LocationPicker } from "./location-picker";
+import { toast } from "sonner";
 export const addPropertySchema = z.object({
   name: z.string().min(3, "Property title is required"),
   description: z
     .string()
     .min(10, "Description should be at least 10 characters"),
-
   location: z.object({
     address: z.string().min(5, "Address is required"),
     city: z.string().min(2, "City is required"),
@@ -32,28 +25,18 @@ export const addPropertySchema = z.object({
       })
       .optional(),
   }),
-
   images: z
     .array(z.url({ protocol: /^https$/ }))
     .min(1, "At least one image is required"),
-
   totalValue: z.number().positive("Total value must be greater than 0"),
   fractionPrice: z.number().positive("Fraction price must be greater than 0"),
   totalFractions: z
     .number()
     .int()
     .positive("Total fractions must be greater than 0"),
-
   agencyId: z.string("Invalid agency ID"),
-
-  verificationStatus: z.enum(["pending", "verified", "rejected"]),
-
   rentPerMonth: z.number().positive("Monthly rent must be greater than 0"),
   serviceFeePercent: z.number().min(0).max(100),
-
-  // tokenAddress: z.string().optional(),
-  // chain: z.string().optional(),
-
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -71,12 +54,11 @@ export function AddPropertyForm() {
         city: "Nairobi",
         country: "Kenya",
       },
-      images: [],
+      images: ["https://some-random-url.com"],
       totalValue: 0,
       fractionPrice: 0,
       totalFractions: 0,
       agencyId: "",
-      verificationStatus: "pending",
       rentPerMonth: 0,
       serviceFeePercent: 10,
       createdAt: new Date(),
@@ -86,6 +68,9 @@ export function AddPropertyForm() {
 
   const onSubmit = (data: AddPropertyFormData) => {
     console.log("Form submitted:", data);
+    toast.success(
+      "The property is under review , we will get back to your shortly",
+    );
   };
 
   return (
@@ -202,7 +187,7 @@ export function AddPropertyForm() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className=" space-y-2">
-                <Label htmlFor="totalValue">Total Value ($)</Label>
+                <Label htmlFor="totalValue">Total Value (KSH)</Label>
                 <Input
                   id="totalValue"
                   type="number"
@@ -218,7 +203,7 @@ export function AddPropertyForm() {
               </div>
 
               <div className=" space-y-2">
-                <Label htmlFor="fractionPrice">Fraction Price ($)</Label>
+                <Label htmlFor="fractionPrice">Fraction Price (KSH)</Label>
                 <Input
                   id="fractionPrice"
                   type="number"
@@ -251,7 +236,7 @@ export function AddPropertyForm() {
               </div>
 
               <div className=" space-y-2">
-                <Label htmlFor="rentPerMonth">Monthly Rent ($)</Label>
+                <Label htmlFor="rentPerMonth">Monthly Rent (KSH)</Label>
                 <Input
                   id="rentPerMonth"
                   type="number"
@@ -283,50 +268,6 @@ export function AddPropertyForm() {
                   {form.formState.errors.serviceFeePercent.message}
                 </p>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Agency & Verification */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Agency & Verification</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className=" space-y-2">
-              <Label htmlFor="agencyId">Agency ID</Label>
-              <Input
-                id="agencyId"
-                {...form.register("agencyId")}
-                placeholder="Enter agency UUID"
-              />
-              {form.formState.errors.agencyId && (
-                <p className="text-sm text-red-500 mt-1">
-                  {form.formState.errors.agencyId.message}
-                </p>
-              )}
-            </div>
-
-            <div className=" space-y-2">
-              <Label htmlFor="verificationStatus">Verification Status</Label>
-              <Select
-                value={form.watch("verificationStatus")}
-                onValueChange={(value) =>
-                  form.setValue(
-                    "verificationStatus",
-                    value as "pending" | "verified" | "rejected",
-                  )
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="verified">Verified</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>

@@ -51,10 +51,14 @@ export function LocationPicker({
   };
 
   const selectLocation = (result: any) => {
-    const coords = {
-      lat: Number(result.lat),
-      lng: Number(result.lng),
-    };
+    const lat = Number(result.lat);
+    const lng = Number(result.lng);
+    //finite check to avoid propagating NaN
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      setError("Invalid coordinates from search result");
+      return;
+    }
+    const coords = { lat, lng };
     setCoordinates(coords);
     onCoordinatesChange(coords);
     setSearchResults([]);
