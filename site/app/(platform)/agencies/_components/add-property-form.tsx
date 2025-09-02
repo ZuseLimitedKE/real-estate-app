@@ -288,8 +288,6 @@ export function AddPropertyForm() {
                 allowedContent: "text-gray-500 text-sm",
                 button:
                   "bg-primary hover:bg-primary/90 ut-ready:bg-primary ut-uploading:bg-primary/50 ut-readying:bg-primary/70 focus:outline-primary  transition-all duration-200",
-                // Override any remaining default styles
-                // dropzone: "border-gray-300 hover:border-primary bg-gray-50/50 hover:bg-gray-50",
               }}
               content={{
                 uploadIcon: ({ ready, isUploading }) => {
@@ -330,6 +328,14 @@ export function AddPropertyForm() {
                 toast.info(`Uploading ${fileName}...`);
               }}
             />
+            {/* TODO: Display selected images */}
+
+            {/* Show form validation error for images */}
+            {form.formState.errors.images && (
+              <p className="text-sm text-red-500 mt-1">
+                {form.formState.errors.images.message}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
