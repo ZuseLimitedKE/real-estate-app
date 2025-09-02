@@ -273,43 +273,63 @@ export function AddPropertyForm() {
           </CardContent>
         </Card>
 
-        {/* TODO: WORK ON IMAGE UPLOADS*/}
         <Card>
           <CardHeader>
-            <CardTitle>Images</CardTitle>
+            <CardTitle>Property Images</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-              <UploadDropzone
-                endpoint="imageUploader"
-                onClientUploadComplete={(res) => {
-                  // Extract URLs from the response and add to form
-                  const newImageUrls =
-                    res?.map((file) => file.ufsUrl).filter(Boolean) || [];
+            <UploadDropzone
+              endpoint="imageUploader"
+              appearance={{
+                container:
+                  "w-full p-8  border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors duration-200",
+                uploadIcon: "text-gray-400",
+                label: "text-gray-600 font-medium hover:text-primary",
+                allowedContent: "text-gray-500 text-sm",
+                button:
+                  "bg-primary hover:bg-primary/90 ut-ready:bg-primary ut-uploading:bg-primary/50 ut-readying:bg-primary/70 focus:outline-primary  transition-all duration-200",
+                // Override any remaining default styles
+                // dropzone: "border-gray-300 hover:border-primary bg-gray-50/50 hover:bg-gray-50",
+              }}
+              content={{
+                uploadIcon: ({ ready, isUploading }) => {
+                  if (isUploading) return "📤";
+                  if (ready) return "📁";
+                  return "⏳";
+                },
+                label: ({ ready, isUploading }) => {
+                  if (isUploading) return "Uploading...";
+                  if (ready) return "Choose files or drag and drop";
+                  return "Getting ready...";
+                },
+                allowedContent: ({ ready, fileTypes, isUploading }) => {
+                  if (isUploading) return "Please wait...";
+                  if (!ready) return "Preparing...";
+                  return `Allowed: ${fileTypes.join(", ")}`;
+                },
+              }}
+              className="ut-button:bg-primary ut-button:ut-readying:bg-primary/70 ut-button:ut-uploading:bg-primary/50 ut-uploading:ut-button:bg-primary/50 ut-button:hover:bg-primary/90"
+              onClientUploadComplete={(res) => {
+                // Extract URLs from the response and add to form
+                const newImageUrls =
+                  res?.map((file) => file.ufsUrl).filter(Boolean) || [];
 
-                  // Update the images array in the form
-                  const currentImages = form.getValues("images");
-                  const updatedImages = [...currentImages, ...newImageUrls];
-                  form.setValue("images", updatedImages);
-                  toast.success(
-                    `${newImageUrls.length > 1 ? "images" : "image"} uploaded successfully`,
-                  );
-                }}
-                onUploadError={(error: Error) => {
-                  // Do something with the error.
-                  toast.error(`upload Failed! ${error.message}`);
-                }}
-                onUploadBegin={(fileName) => {
-                  toast.info(`Uploading ${fileName}...`);
-                }}
-              />
-              <p className="text-muted-foreground">
-                Image upload will be implemented with UploadThing
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Still working on this - Anthony
-              </p>
-            </div>
+                // Update the images array in the form
+                const currentImages = form.getValues("images");
+                const updatedImages = [...currentImages, ...newImageUrls];
+                form.setValue("images", updatedImages);
+                toast.success(
+                  `${newImageUrls.length > 1 ? "images" : "image"} uploaded successfully`,
+                );
+              }}
+              onUploadError={(error: Error) => {
+                // Do something with the error.
+                toast.error(`upload Failed! ${error.message}`);
+              }}
+              onUploadBegin={(fileName) => {
+                toast.info(`Uploading ${fileName}...`);
+              }}
+            />
           </CardContent>
         </Card>
       </div>
