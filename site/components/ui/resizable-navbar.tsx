@@ -6,6 +6,8 @@ import {
   useScroll,
   useMotionValueEvent,
 } from "motion/react";
+import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import React, { useRef, useState } from "react";
@@ -99,7 +101,7 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         damping: 50,
       }}
       style={{
-        minWidth: "800px",
+        minWidth: "min(100%, 800px)",
       }}
       className={cn(
         "relative z-[60] mx-auto hidden w-full max-w-7xl flex-row items-center justify-between self-start rounded-full bg-transparent px-4 py-2 lg:flex dark:bg-transparent",
@@ -124,12 +126,13 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
       )}
     >
       {items.map((item, idx) => (
-        <a
+        <Link
           onMouseEnter={() => setHovered(idx)}
           onClick={onItemClick}
           className="relative px-4 py-2 text-neutral-600 dark:text-neutral-300"
           key={`link-${idx}`}
           href={item.link}
+          aria-current={pathname === item.link ? "page" : undefined}
         >
           {hovered === idx && (
             <motion.div
@@ -143,7 +146,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
           >
             {item.name}
           </span>
-        </a>
+        </Link>
       ))}
     </motion.div>
   );
@@ -199,7 +202,7 @@ export const MobileNavMenu = ({
   children,
   className,
   isOpen,
-  // onClose,
+  onClose,
 }: MobileNavMenuProps) => {
   return (
     <AnimatePresence>
@@ -212,6 +215,10 @@ export const MobileNavMenu = ({
             "absolute inset-x-0 top-16 z-50 flex w-full flex-col items-start justify-start gap-4 rounded-lg bg-white px-4 py-8 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] dark:bg-neutral-950",
             className,
           )}
+          role="dialog"
+          tabIndex={-1}
+          onKeyDown={(e) => e.key === "Escape" && onClose?.()}
+          aria-modal={true}
         >
           {children}
         </motion.div>
@@ -227,20 +234,30 @@ export const MobileNavToggle = ({
   isOpen: boolean;
   onClick: () => void;
 }) => {
-  return isOpen ? (
-    <IconX className="text-black dark:text-white" onClick={onClick} />
-  ) : (
-    <IconMenu2 className="text-black dark:text-white" onClick={onClick} />
+  return (
+    <button
+      type="button"
+      aria-expanded={isOpen}
+      aria-label={isOpen ? "Close menu" : "Open menu"}
+      onClick={onClick}
+      className="p-2"
+    >
+      {isOpen ? (
+        <IconX className="text-black dark:text-white" />
+      ) : (
+        <IconMenu2 className="text-black dark:text-white" />
+      )}
+    </button>
   );
 };
 
 export const NavbarLogo = () => {
   return (
-    <a
-      href="#"
+    <Link
+      href="/"
       className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
     >
-      <img
+      <Image
         src="https://assets.aceternity.com/logo-dark.png"
         alt="logo"
         width={30}
@@ -249,7 +266,7 @@ export const NavbarLogo = () => {
       <span className="font-medium text-black dark:text-white">
         Real Estate App
       </span>
-    </a>
+    </Link>
   );
 };
 
