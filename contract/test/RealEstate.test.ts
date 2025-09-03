@@ -19,7 +19,22 @@ describe("RealEstateManager Contract", function () {
         )).to.be.revertedWithCustomError(realEstate, "Unauthorized");
     });
 
-    it("should throw error if property already exists", async () => {
+    it("should revert if invalid inputs are given", async () => {
+        const [owner] = await ethers.getSigners();
+        const realEstate = await ethers.deployContract("RealEstateManager");
+         await expect(realEstate.registerProperty(
+            "test",
+            "",
+            "test",
+            100n,
+            owner,
+            100n,
+            "Test road",
+            10n
+        )).to.be.revertedWithCustomError(realEstate, "InvalidInput");
+    })
+
+    it("should revert if property already exists", async () => {
         const [owner] = await ethers.getSigners();
         const realEstate = await ethers.deployContract("RealEstateManager");
         const samePropertyID = "test";
