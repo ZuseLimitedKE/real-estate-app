@@ -8,9 +8,11 @@ import { MyError, Errors } from "@/constants/errors";
 export class MongoDatabase {
   async AddProperty(args: Properties) {
     try {
-      await PROPERTIES_COLLECTION.insertOne(args);
+      const now = new Date();
+      const doc = { ...args, createdAt: args.createdAt ?? now, updatedAt: now };
+      await PROPERTIES_COLLECTION.insertOne(doc as Properties);
     } catch (err) {
-      console.error("Error adding property", err);
+      console.error("Error adding property", { cause: err });
       throw new MyError(Errors.NOT_ADD_PROPERTY);
     }
   }
@@ -20,7 +22,7 @@ export class MongoDatabase {
       const properties = await PROPERTIES_COLLECTION.find({}).toArray();
       return properties;
     } catch (err) {
-      console.error("Error fetching properties", err);
+      console.error("Error fetching properties", { cause: err });
       throw new MyError(Errors.NOT_GET_PROPERTIES);
     }
   }
@@ -28,7 +30,7 @@ export class MongoDatabase {
     try {
       await AGENCIES_COLLECTION.insertOne(args);
     } catch (err) {
-      console.error("Error adding agency", err);
+      console.error("Error adding agency", { cause: err });
       throw new MyError(Errors.NOT_ADD_AGENCY);
     }
   }
@@ -37,7 +39,7 @@ export class MongoDatabase {
       const agencies = await AGENCIES_COLLECTION.find({}).toArray();
       return agencies;
     } catch (err) {
-      console.error("Error fetching agencies", err);
+      console.error("Error fetching agencies", { cause: err });
       throw new MyError(Errors.NOT_GET_AGENCIES);
     }
   }
