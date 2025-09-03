@@ -9,13 +9,41 @@ describe("RealEstateManager Contract", function () {
         const realEstate = await ethers.deployContract("RealEstateManager");
         await expect(realEstate.connect(otherAddress).registerProperty(
             "test",
+            "TST",
             "test",
             100n,
             owner,
             100n,
             "Test road",
-            100n,
             10n
         )).to.be.revertedWithCustomError(realEstate, "Unauthorized");
+    });
+
+    it("should throw error if property already exists", async () => {
+        const [owner] = await ethers.getSigners();
+        const realEstate = await ethers.deployContract("RealEstateManager");
+        const samePropertyID = "test";
+
+        await realEstate.registerProperty(
+            samePropertyID,
+            "TST",
+            "test",
+            100n,
+            owner,
+            100n,
+            "Test road",
+            10n
+        );
+
+        await expect(realEstate.registerProperty(
+            samePropertyID,
+            "TST",
+            "test",
+            100n,
+            owner,
+            100n,
+            "Test road",
+            10n
+        )).to.be.revertedWithCustomError(realEstate, "PropertyAlreadyExists");
     })
 })
