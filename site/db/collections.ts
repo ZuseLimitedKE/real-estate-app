@@ -45,7 +45,7 @@ export interface Properties {
   updatedAt: Date;
 }
 export interface Agencies {
-  _id: ObjectId;
+  _id?: ObjectId;
   name: string;
   location: string;
   listed_properties: string[];
