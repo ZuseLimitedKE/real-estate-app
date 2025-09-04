@@ -52,6 +52,8 @@ export interface Agencies {
   approvalStatus: "approved" | "suspended" | "not reviewed";
   address: string;
   managementPricePercentage: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 export const AGENCIES_COLLECTION =
   database.collection<Agencies>(agenciesCollection);

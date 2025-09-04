@@ -1,16 +1,16 @@
-import { MongoClient, W } from "mongodb";
+import { MongoClient, MongoClientOptions } from "mongodb";
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
 }
 
 const mongodb_uri = process.env.MONGODB_URI;
-const options = {
+const options: MongoClientOptions = {
   serverSelectionTimeoutMS: 7000, // Timeout after 7s
   socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
   maxPoolSize: 10, // Maintain up to 10 socket connections
   retryWrites: true, // Retry failed writes
-  w: "majority" as W, // Write concern
+  writeConcern: { w: "majority" }, // Write concern
 };
 
 let client: MongoClient;
