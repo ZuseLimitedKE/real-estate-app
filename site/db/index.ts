@@ -5,12 +5,14 @@ import {
   Properties,
 } from "./collections";
 import { MyError, Errors } from "@/constants/errors";
-export class MongoDatabase {
+class MongoDatabase {
   async AddProperty(args: Properties) {
     try {
       const now = new Date();
       const doc = { ...args, createdAt: args.createdAt ?? now, updatedAt: now };
-      await PROPERTIES_COLLECTION.insertOne(doc as Properties);
+
+      const res = await PROPERTIES_COLLECTION.insertOne(doc as Properties);
+      return res.insertedId;
     } catch (err) {
       console.error("Error adding property", { cause: err });
       throw new MyError(Errors.NOT_ADD_PROPERTY);
@@ -19,7 +21,9 @@ export class MongoDatabase {
   async GetProperties(): Promise<Properties[]> {
     try {
       //TODO: Pagination
-      const properties = await PROPERTIES_COLLECTION.find({}).toArray();
+      const properties = await PROPERTIES_COLLECTION.find({})
+        .sort({ time_listed_on_site: -1, _id: -1 })
+        .toArray();
       return properties;
     } catch (err) {
       console.error("Error fetching properties", { cause: err });
@@ -28,7 +32,8 @@ export class MongoDatabase {
   }
   async AddAgency(args: Agencies) {
     try {
-      await AGENCIES_COLLECTION.insertOne(args);
+      const res = await AGENCIES_COLLECTION.insertOne(args);
+      return res.insertedId;
     } catch (err) {
       console.error("Error adding agency", { cause: err });
       throw new MyError(Errors.NOT_ADD_AGENCY);
@@ -44,3 +49,5 @@ export class MongoDatabase {
     }
   }
 }
+const database = new MongoDatabase();
+export default database;

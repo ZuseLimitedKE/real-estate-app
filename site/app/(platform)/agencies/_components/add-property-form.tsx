@@ -1,7 +1,6 @@
 "use client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,41 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LocationPicker } from "./location-picker";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { toast } from "sonner";
-export const addPropertySchema = z.object({
-  name: z.string().min(3, "Property title is required"),
-  description: z
-    .string()
-    .min(10, "Description should be at least 10 characters"),
-  location: z.object({
-    address: z.string().min(5, "Address is required"),
-    city: z.string().min(2, "City is required"),
-    country: z.string().min(2, "Country is required"),
-    coordinates: z
-      .object({
-        lat: z.number().min(-90).max(90),
-        lng: z.number().min(-180).max(180),
-      })
-      .optional(),
-  }),
-  images: z
-    .array(z.url({ protocol: /^https$/ }))
-    .min(1, "At least one image is required"),
-  totalValue: z.number().positive("Total value must be greater than 0"),
-  fractionPrice: z.number().positive("Fraction price must be greater than 0"),
-  totalFractions: z
-    .number()
-    .int()
-    .positive("Total fractions must be greater than 0"),
-  agencyId: z.string().min(1, "Invalid agency ID"),
-  rentPerMonth: z.number().positive("Monthly rent must be greater than 0"),
-  serviceFeePercent: z.number().min(0).max(100),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-// Create a type for the form data
-type AddPropertyFormData = z.infer<typeof addPropertySchema>;
+import type { AddPropertyFormData } from "@/types/zod";
+import { addPropertySchema } from "@/types/zod";
+import { AddProperty } from "@/server-actions/property/add-property";
+import { useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 export function AddPropertyForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<AddPropertyFormData>({
     resolver: zodResolver(addPropertySchema),
     defaultValues: {
@@ -54,24 +25,45 @@ export function AddPropertyForm() {
         address: "",
         city: "Nairobi",
         country: "Kenya",
+        coordinates: {
+          lat: -1.286389,
+          lng: 36.817223,
+        },
       },
       images: [],
-      totalValue: 0,
-      fractionPrice: 0,
-      totalFractions: 0,
-      agencyId: "",
-      rentPerMonth: 0,
+      totalFractions: 100,
+      agencyId: "randomId",
+      token_address: "randomAddress",
+      proposedRentPerMonth: 0,
       serviceFeePercent: 10,
+      property_value: 0,
+      gross_property_size: 0,
+      price: 0,
+      tenant: undefined,
+      time_listed_on_site: Date.now(),
+      property_owners: [],
+      secondary_market_listings: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     },
   });
 
-  const onSubmit = (data: AddPropertyFormData) => {
-    console.log("Form submitted:", data);
-    toast.success(
-      "The property is under review , we will get back to your shortly",
-    );
+  const onSubmit = async (data: AddPropertyFormData) => {
+    setIsSubmitting(true);
+    try {
+      await AddProperty(data);
+      toast.success(
+        "The property is under review, we will get back to you shortly",
+      );
+      form.reset();
+    } catch (err) {
+      toast.error(
+        "Unable to submit this property for review. Please try again later",
+      );
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -86,7 +78,7 @@ export function AddPropertyForm() {
             <CardTitle>Basic Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className=" space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="name">Property Name</Label>
               <Input
                 id="name"
@@ -100,7 +92,7 @@ export function AddPropertyForm() {
               )}
             </div>
 
-            <div className=" space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
@@ -114,6 +106,28 @@ export function AddPropertyForm() {
                 </p>
               )}
             </div>
+
+            <div className="grid">
+              <div className="space-y-2">
+                <Label htmlFor="gross_property_size">
+                  Property Size (sq ft)
+                </Label>
+                <Input
+                  id="gross_property_size"
+                  type="number"
+                  step="0.01"
+                  {...form.register("gross_property_size", {
+                    valueAsNumber: true,
+                  })}
+                  placeholder="0.00"
+                />
+                {form.formState.errors.gross_property_size && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {form.formState.errors.gross_property_size.message}
+                  </p>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -123,7 +137,7 @@ export function AddPropertyForm() {
             <CardTitle>Location</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className=" space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
               <Input
                 id="address"
@@ -138,7 +152,7 @@ export function AddPropertyForm() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className=" space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
                 <Input
                   id="city"
@@ -152,7 +166,7 @@ export function AddPropertyForm() {
                 )}
               </div>
 
-              <div className=" space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="country">Country</Label>
                 <Input
                   id="country"
@@ -171,8 +185,6 @@ export function AddPropertyForm() {
               onCoordinatesChange={(coords) => {
                 if (coords) {
                   form.setValue("location.coordinates", coords);
-                } else {
-                  form.setValue("location.coordinates", undefined);
                 }
               }}
               initialCoordinates={form.watch("location.coordinates")}
@@ -187,41 +199,41 @@ export function AddPropertyForm() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className=" space-y-2">
-                <Label htmlFor="totalValue">Total Value (KSH)</Label>
+              <div className="space-y-2">
+                <Label htmlFor="property_value">Property Value (KSH)</Label>
                 <Input
-                  id="totalValue"
+                  id="property_value"
                   type="number"
                   step="0.01"
-                  {...form.register("totalValue", { valueAsNumber: true })}
+                  {...form.register("property_value", { valueAsNumber: true })}
                   placeholder="0.00"
                 />
-                {form.formState.errors.totalValue && (
+                {form.formState.errors.property_value && (
                   <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.totalValue.message}
+                    {form.formState.errors.property_value.message}
                   </p>
                 )}
               </div>
 
-              <div className=" space-y-2">
-                <Label htmlFor="fractionPrice">Fraction Price (KSH)</Label>
+              <div className="space-y-2">
+                <Label htmlFor="price">Price (KSH)</Label>
                 <Input
-                  id="fractionPrice"
+                  id="price"
                   type="number"
                   step="0.01"
-                  {...form.register("fractionPrice", { valueAsNumber: true })}
+                  {...form.register("price", { valueAsNumber: true })}
                   placeholder="0.00"
                 />
-                {form.formState.errors.fractionPrice && (
+                {form.formState.errors.price && (
                   <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.fractionPrice.message}
+                    {form.formState.errors.price.message}
                   </p>
                 )}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className=" space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="totalFractions">Total Fractions</Label>
                 <Input
                   id="totalFractions"
@@ -236,24 +248,28 @@ export function AddPropertyForm() {
                 )}
               </div>
 
-              <div className=" space-y-2">
-                <Label htmlFor="rentPerMonth">Monthly Rent (KSH)</Label>
+              <div className="space-y-2">
+                <Label htmlFor="proposedRentPerMonth">
+                  Proposed Monthly Rent (KSH)
+                </Label>
                 <Input
-                  id="rentPerMonth"
+                  id="proposedRentPerMonth"
                   type="number"
                   step="0.01"
-                  {...form.register("rentPerMonth", { valueAsNumber: true })}
+                  {...form.register("proposedRentPerMonth", {
+                    valueAsNumber: true,
+                  })}
                   placeholder="0.00"
                 />
-                {form.formState.errors.rentPerMonth && (
+                {form.formState.errors.proposedRentPerMonth && (
                   <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.rentPerMonth.message}
+                    {form.formState.errors.proposedRentPerMonth.message}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className=" space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="serviceFeePercent">Service Fee (%)</Label>
               <Input
                 id="serviceFeePercent"
@@ -273,6 +289,63 @@ export function AddPropertyForm() {
           </CardContent>
         </Card>
 
+        {/* Tenant Information (Optional) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tenant Information (Optional)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tenant.address">Tenant Address</Label>
+                <Input
+                  id="tenant.address"
+                  {...form.register("tenant.address")}
+                  placeholder="Tenant wallet/contact address"
+                />
+                {form.formState.errors.tenant?.address && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {form.formState.errors.tenant.address.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tenant.rentAmount">Rent Amount (KSH)</Label>
+                <Input
+                  id="tenant.rentAmount"
+                  type="number"
+                  step="0.01"
+                  {...form.register("tenant.rentAmount", {
+                    valueAsNumber: true,
+                  })}
+                  placeholder="0.00"
+                />
+                {form.formState.errors.tenant?.rentAmount && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {form.formState.errors.tenant.rentAmount.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tenant.rentDate">Rent Date</Label>
+              <Input
+                id="tenant.rentDate"
+                type="date"
+                {...form.register("tenant.rentDate", { valueAsDate: true })}
+              />
+              {form.formState.errors.tenant?.rentDate && (
+                <p className="text-sm text-red-500 mt-1">
+                  {form.formState.errors.tenant.rentDate.message}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Property Images */}
         <Card>
           <CardHeader>
             <CardTitle>Property Images</CardTitle>
@@ -282,12 +355,12 @@ export function AddPropertyForm() {
               endpoint="imageUploader"
               appearance={{
                 container:
-                  "w-full p-8  border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors duration-200",
+                  "w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors duration-200",
                 uploadIcon: "text-gray-400",
                 label: "text-gray-600 font-medium hover:text-primary",
                 allowedContent: "text-gray-500 text-sm",
                 button:
-                  "bg-primary hover:bg-primary/90 ut-ready:bg-primary ut-uploading:bg-primary/50 ut-readying:bg-primary/70 focus:outline-primary  transition-all duration-200",
+                  "bg-primary hover:bg-primary/90 ut-ready:bg-primary ut-uploading:bg-primary/50 ut-readying:bg-primary/70 focus:outline-primary transition-all duration-200",
               }}
               content={{
                 uploadIcon: ({ ready, isUploading }) => {
@@ -308,11 +381,9 @@ export function AddPropertyForm() {
               }}
               className="ut-button:bg-primary ut-button:ut-readying:bg-primary/70 ut-button:ut-uploading:bg-primary/50 ut-uploading:ut-button:bg-primary/50 ut-button:hover:bg-primary/90"
               onClientUploadComplete={(res) => {
-                // Extract URLs from the response and add to form
                 const newImageUrls =
                   res?.map((file) => file.ufsUrl).filter(Boolean) || [];
 
-                // Update the images array in the form (dedupe) and revalidate
                 const currentImages = form.getValues("images");
                 const updatedImages = Array.from(
                   new Set([...currentImages, ...newImageUrls]),
@@ -321,20 +392,17 @@ export function AddPropertyForm() {
                   shouldValidate: true,
                 });
                 toast.success(
-                  `${newImageUrls.length > 1 ? "images" : "image"} uploaded successfully`,
+                  `${newImageUrls.length > 1 ? "Images" : "Image"} uploaded successfully`,
                 );
               }}
               onUploadError={(error: Error) => {
-                // Do something with the error.
                 toast.error(`Upload Failed! ${error.message}`);
               }}
               onUploadBegin={(fileName) => {
                 toast.info(`Uploading ${fileName}...`);
               }}
             />
-            {/* TODO: Display selected images */}
 
-            {/* Show form validation error for images */}
             {form.formState.errors.images && (
               <p className="text-sm text-red-500 mt-1">
                 {form.formState.errors.images.message}
@@ -345,8 +413,8 @@ export function AddPropertyForm() {
       </div>
 
       <div className="flex gap-4">
-        <Button type="submit" className="flex-1">
-          Add Property
+        <Button type="submit" disabled={isSubmitting} className="flex-1">
+          {isSubmitting ? <Spinner size="small" /> : "Add Property"}
         </Button>
         <Button type="button" variant="outline" onClick={() => form.reset()}>
           Reset Form
