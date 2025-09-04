@@ -5,7 +5,7 @@ import {
   Properties,
 } from "./collections";
 import { MyError, Errors } from "@/constants/errors";
-export class MongoDatabase {
+class MongoDatabase {
   async AddProperty(args: Properties) {
     try {
       const now = new Date();
@@ -44,3 +44,5 @@ export class MongoDatabase {
     }
   }
 }
+const database = new MongoDatabase();
+export default database;

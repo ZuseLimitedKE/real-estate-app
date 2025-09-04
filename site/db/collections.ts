@@ -9,11 +9,11 @@ export interface Properties {
   totalFractions: number;
   description: string;
   proposedRentPerMonth: number;
-  tenant: {
+  tenant?: {
     address: string;
     rentDate: Date;
     rentAmount: number;
-  } | null;
+  };
   time_listed_on_site: number; // timestamp
   property_value: number;
   gross_property_size: number;
