@@ -58,7 +58,7 @@ export function AddPropertyForm() {
       form.reset();
     } catch (err) {
       toast.error(
-        "Unable to submit this property for review.Please try again later",
+        "Unable to submit this property for review. Please try again later",
       );
       console.error(err);
     } finally {
