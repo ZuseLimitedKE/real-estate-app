@@ -68,7 +68,7 @@ export const addPropertySchema = z.object({
 
   property_status: z.enum(["pending", "approved", "rejected"]),
   // comes from auth token
-  agencyId: z.string().min(1, "Invalid agency ID"),
+  agencyId: z.string().min(1, "Invalid agency id"),
   //comes from the smart contract
   token_address: z.string().min(1, "Token address is required"),
   //set when submitting
