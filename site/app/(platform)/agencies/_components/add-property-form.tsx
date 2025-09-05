@@ -110,7 +110,7 @@ export function AddPropertyForm() {
                 </p>
               )}
             </div>
-
+            <div className="space-y-2"></div>
             <div className="grid">
               <div className="space-y-2">
                 <Label htmlFor="gross_property_size">
@@ -348,6 +348,77 @@ export function AddPropertyForm() {
             {form.formState.errors.images && (
               <p className="text-sm text-red-500 mt-1">
                 {form.formState.errors.images.message}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Document Uploads */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Property Documents</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UploadDropzone
+              endpoint="documentUploader"
+              appearance={{
+                container:
+                  "w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors duration-200",
+                uploadIcon: "text-gray-400",
+                label: "text-gray-600 font-medium hover:text-primary",
+                allowedContent: "text-gray-500 text-sm",
+                button:
+                  "bg-primary hover:bg-primary/90 ut-ready:bg-primary ut-uploading:bg-primary/50 ut-readying:bg-primary/70 focus:outline-primary transition-all duration-200",
+              }}
+              content={{
+                uploadIcon: ({ ready, isUploading }) => {
+                  if (isUploading) return "📤";
+                  if (ready) return "📁";
+                  return "⏳";
+                },
+                label: ({ ready, isUploading }) => {
+                  if (isUploading) return "Uploading...";
+                  if (ready) return "Choose files or drag and drop";
+                  return "Getting ready...";
+                },
+                allowedContent: ({ ready, fileTypes, isUploading }) => {
+                  if (isUploading) return "Please wait...";
+                  if (!ready) return "Preparing...";
+                  return `Allowed: ${fileTypes.join(", ")}`;
+                },
+              }}
+              className="ut-button:bg-primary ut-button:ut-readying:bg-primary/70 ut-button:ut-uploading:bg-primary/50 ut-uploading:ut-button:bg-primary/50 ut-button:hover:bg-primary/90"
+              onClientUploadComplete={(res) => {
+                const newDocuments =
+                  res
+                    ?.map((file) => ({
+                      url: file.ufsUrl,
+                      name: file.name,
+                    }))
+                    .filter(Boolean) || [];
+
+                const currentDocuments = form.getValues("documents");
+                const updatedDocuments = Array.from(
+                  new Set([...currentDocuments, ...newDocuments]),
+                );
+                form.setValue("documents", updatedDocuments, {
+                  shouldValidate: true,
+                });
+                toast.success(
+                  `${newDocuments.length > 1 ? "Documents" : "Document"} uploaded successfully`,
+                );
+              }}
+              onUploadError={(error: Error) => {
+                toast.error(`Upload Failed! ${error.message}`);
+              }}
+              onUploadBegin={(fileName) => {
+                toast.info(`Uploading ${fileName}...`);
+              }}
+            />
+
+            {form.formState.errors.documents && (
+              <p className="text-sm text-red-500 mt-1">
+                {form.formState.errors.documents.message}
               </p>
             )}
           </CardContent>
