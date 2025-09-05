@@ -54,7 +54,9 @@ export function AddPropertyForm() {
     setIsSubmitting(true);
     try {
       const initialPricePerToken = 100;
-      const totalFractions = data.property_value / initialPricePerToken;
+      const totalFractions = Math.floor(
+        data.property_value / initialPricePerToken,
+      );
       await AddProperty({ ...data, totalFractions });
       toast.success(
         "The property is under review, we will get back to you shortly",
