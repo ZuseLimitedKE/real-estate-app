@@ -21,24 +21,26 @@ export function AddPropertyForm() {
     defaultValues: {
       name: "",
       description: "",
+      amenities: {
+        bed: null,
+        bath: null,
+      },
       location: {
         address: "",
-        city: "Nairobi",
-        country: "Kenya",
         coordinates: {
           lat: -1.286389,
           lng: 36.817223,
         },
       },
       images: [],
-      totalFractions: 100,
+      documents: [],
+      property_status: "pending" as const,
       agencyId: "randomId",
       token_address: "randomAddress",
       proposedRentPerMonth: 0,
       serviceFeePercent: 10,
       property_value: 0,
       gross_property_size: 0,
-      price: 0,
       tenant: undefined,
       time_listed_on_site: Date.now(),
       property_owners: [],
@@ -51,7 +53,9 @@ export function AddPropertyForm() {
   const onSubmit = async (data: AddPropertyFormData) => {
     setIsSubmitting(true);
     try {
-      await AddProperty(data);
+      const initialPricePerToken = 100;
+      const totalFractions = data.property_value / initialPricePerToken;
+      await AddProperty({ ...data, totalFractions });
       toast.success(
         "The property is under review, we will get back to you shortly",
       );
@@ -151,36 +155,6 @@ export function AddPropertyForm() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  {...form.register("location.city")}
-                  placeholder="City"
-                />
-                {form.formState.errors.location?.city && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.location.city.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  {...form.register("location.country")}
-                  placeholder="Country"
-                />
-                {form.formState.errors.location?.country && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.location.country.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
             <LocationPicker
               onCoordinatesChange={(coords) => {
                 if (coords) {
@@ -198,7 +172,7 @@ export function AddPropertyForm() {
             <CardTitle>Financial Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid">
               <div className="space-y-2">
                 <Label htmlFor="property_value">Property Value (KSH)</Label>
                 <Input
@@ -214,40 +188,8 @@ export function AddPropertyForm() {
                   </p>
                 )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="price">Price (KSH)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  {...form.register("price", { valueAsNumber: true })}
-                  placeholder="0.00"
-                />
-                {form.formState.errors.price && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.price.message}
-                  </p>
-                )}
-              </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="totalFractions">Total Fractions</Label>
-                <Input
-                  id="totalFractions"
-                  type="number"
-                  {...form.register("totalFractions", { valueAsNumber: true })}
-                  placeholder="100"
-                />
-                {form.formState.errors.totalFractions && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.totalFractions.message}
-                  </p>
-                )}
-              </div>
-
+            <div className="grid">
               <div className="space-y-2">
                 <Label htmlFor="proposedRentPerMonth">
                   Proposed Monthly Rent (KSH)
