@@ -59,7 +59,7 @@ export function AddPropertyForm() {
       );
       await AddProperty({ ...data, totalFractions });
       toast.success(
-        "The property is under review, we will get back to you shortly",
+        "The property is under review ,we will get back to you shortly",
       );
       form.reset();
     } catch (err) {
