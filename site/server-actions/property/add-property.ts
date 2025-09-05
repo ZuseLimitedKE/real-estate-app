@@ -1,8 +1,8 @@
 "use server";
 import database from "@/db";
-import type { AddPropertyFormData } from "@/types/zod";
 import { MyError, Errors } from "@/constants/errors";
-export async function AddProperty(FormData: AddPropertyFormData) {
+import { Properties } from "@/db/collections";
+export async function AddProperty(FormData: Properties) {
   //TODO: There has to be an auth check here , not all users should be able to add properties
   try {
     // TODO: Ensure property isn't already listed

@@ -22,16 +22,22 @@ export interface Properties {
       lat: number;
       lng: number;
     };
-    country: string;
-    city: string;
     address: string;
   };
   images: string[];
+  documents: {
+    name: string;
+    url: string;
+  }[];
   agencyId: string;
   serviceFeePercent: number;
   token_address: string;
   name: string;
-  price: number;
+  property_status: string;
+  amenities: {
+    bed: number | null;
+    bath: number | null;
+  };
   property_owners: {
     owner_address: string;
     amount_owned: number;
