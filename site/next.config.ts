@@ -6,7 +6,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [new URL("https://assets.aceternity.com/**")],
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
   },
 };
 
