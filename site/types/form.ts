@@ -20,6 +20,11 @@ export interface MultiStepFormContextProps {
   isLastStep: boolean;
   nextStep: () => void;
   previousStep: () => void;
+  saveFormState: (stepIndex: number) => void;
   goToStep: (step: number) => void;
   steps: FormStep[];
 }
+export type SavedFormState = {
+  currentStepIndex: number;
+  formValues: Record<string, unknown>;
+};
