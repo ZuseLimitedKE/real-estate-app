@@ -29,8 +29,22 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     name: "",
     description: "",
     amenities: {
-      bed: null,
-      bath: null,
+      bedrooms: null,
+      bathrooms: null,
+      parking_spaces: null,
+      balconies: null,
+      swimming_pool: false,
+      gym: false,
+      air_conditioning: false,
+      heating: false,
+      laundry_in_unit: false,
+      dishwasher: false,
+      fireplace: false,
+      storage_space: false,
+      pet_friendly: false,
+      security_system: false,
+      elevator: false,
+      garden_yard: false,
     },
     location: {
       address: "",
@@ -64,46 +78,17 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     resolver: zodResolver(addPropertySchema),
     defaultValues: defaultValues,
   });
-  // const convertDataFromStorage = (formData: any): AddPropertyFormData => {
-  //   const converted = {
-  //     ...formData,
-  //     createdAt: formData.createdAt ? new Date(formData.createdAt) : new Date(),
-  //     updatedAt: formData.updatedAt ? new Date(formData.updatedAt) : new Date(),
-  //     tenant: formData.tenant
-  //       ? {
-  //         ...formData.tenant,
-  //         rentDate: new Date(formData.tenant.rentDate),
-  //       }
-  //       : undefined,
-  //     property_owners:
-  //       formData.property_owners?.map((owner: any) => ({
-  //         ...owner,
-  //         purchase_time: new Date(owner.purchase_time),
-  //       })) || [],
-  //     images: formData.images || [],
-  //     documents: formData.documents || [],
-  //     secondary_market_listings: formData.secondary_market_listings || [],
-  //   };
-  //   console.log("Converting from storage:", formData);
-  //   console.log("Converted result:", converted);
-  //   return converted;
-  // };
+
   const convertDataFromStorage = (
     raw: unknown,
   ): DefaultValues<AddPropertyFormData> => {
     const data = (raw ?? {}) as Record<string, any>;
     return {
       ...data,
+      amenities: data.amenities ?? defaultValues.amenities,
       createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
       updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
-      tenant: data.tenant
-        ? {
-          ...data.tenant,
-          rentDate: data.tenant?.rentDate
-            ? new Date(data.tenant.rentDate)
-            : undefined,
-        }
-        : undefined,
+      tenant: data.tenant ?? undefined,
       property_owners: Array.isArray(data.property_owners)
         ? data.property_owners.map((owner: any) => ({
           ...owner,
@@ -157,6 +142,7 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     const isValid = await form.trigger(currentStep.fields);
 
     if (!isValid) {
+      console.log(form.formState.errors);
       return; // Stop progression if validation fails
     }
     // grab values in current step and transform array to object
@@ -196,8 +182,15 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
   };
   const goToStep = (position: number) => {
     if (position >= 0 && position - 1 < steps.length) {
-      setCurrentStepIndex(position - 1);
-      saveFormState(position - 1);
+      const newStepIndex = position - 1;
+
+      // if (newStepIndex > currentStepIndex) {
+      //   console.warn("Cannot jump to future steps");
+      //   return;
+      // }
+
+      setCurrentStepIndex(newStepIndex);
+      saveFormState(newStepIndex);
     }
   };
   const onSubmit = async (data: AddPropertyFormData) => {
