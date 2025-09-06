@@ -82,7 +82,8 @@ export const Step1 = () => {
               type="number"
               min="0"
               {...register("amenities.bedrooms", {
-                valueAsNumber: true,
+                setValueAs: (v) =>
+                  v === "" || v == null ? undefined : Number(v),
               })}
               placeholder="0"
             />
@@ -101,7 +102,8 @@ export const Step1 = () => {
               min="0"
               step="0.5"
               {...register("amenities.bathrooms", {
-                valueAsNumber: true,
+                setValueAs: (v) =>
+                  v === "" || v == null ? undefined : Number(v),
               })}
               placeholder="0"
             />
@@ -119,7 +121,8 @@ export const Step1 = () => {
               type="number"
               min="0"
               {...register("amenities.parking_spaces", {
-                valueAsNumber: true,
+                setValueAs: (v) =>
+                  v === "" || v == null ? undefined : Number(v),
               })}
               placeholder="0"
             />
@@ -137,7 +140,8 @@ export const Step1 = () => {
               type="number"
               min="0"
               {...register("amenities.balconies", {
-                valueAsNumber: true,
+                setValueAs: (v) =>
+                  v === "" || v == null ? undefined : Number(v),
               })}
               placeholder="0"
             />
