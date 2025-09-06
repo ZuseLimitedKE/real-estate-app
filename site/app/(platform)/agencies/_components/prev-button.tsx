@@ -9,7 +9,7 @@ const PrevButton = () => {
     <Button
       variant="outline"
       type="button"
-      className="mt-5"
+      className="mt-5 w-full py-6"
       onClick={previousStep}
       disabled={isFirstStep}
     >
