@@ -5,6 +5,8 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AddProperty } from "@/server-actions/property/add-property";
 import { toast } from "sonner";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Asul } from "next/font/google";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
@@ -50,7 +52,37 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     },
   });
   //Navigation controls
-  const nextStep = () => {
+  const nextStep = async () => {
+    const isValid = await form.trigger(currentStep.fields);
+
+    if (!isValid) {
+      return; // Stop progression if validation fails
+    }
+
+    // grab values in current step and transform array to object
+    const currentStepValues = form.getValues(currentStep.fields);
+    const formValues = Object.fromEntries(
+      currentStep.fields.map((field, index) => [
+        field,
+        currentStepValues[index] || "",
+      ]),
+    );
+
+    // Validate the form state against the current step's schema
+    if (currentStep.validationSchema) {
+      const validationResult =
+        currentStep.validationSchema.safeParse(formValues);
+
+      if (!validationResult.success) {
+        validationResult.error.issues.forEach((err) => {
+          form.setError(err.path.join(".") as keyof AddPropertyFormData, {
+            type: "manual",
+            message: err.message,
+          });
+        });
+        return; // Stop progression if schema validation fails
+      }
+    }
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex((current) => current + 1);
     }
@@ -99,5 +131,23 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     previousStep,
     steps,
   };
-  return <div></div>;
+  return (
+    <MultiStepFormContext.Provider value={value}>
+      <FormProvider {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 max-w-4xl mx-auto p-6"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>{currentStep.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {currentStep.component}
+            </CardContent>
+          </Card>
+        </form>
+      </FormProvider>
+    </MultiStepFormContext.Provider>
+  );
 };
