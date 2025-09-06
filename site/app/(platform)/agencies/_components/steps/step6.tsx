@@ -63,10 +63,12 @@ export const Step6 = () => {
                   name: file.name,
                 }))
                 .filter(Boolean) || [];
-            const currentDocuments = getValues("documents");
-            const updatedDocuments = Array.from(
-              new Set([...currentDocuments, ...newDocuments]),
-            );
+            const currentDocuments = getValues("documents") || [];
+            const byUrl = new Map<string, { url: string; name: string }>();
+            [...(currentDocuments || []), ...newDocuments].forEach((d) => {
+              if (d?.url) byUrl.set(d.url, d);
+            });
+            const updatedDocuments = Array.from(byUrl.values());
             setValue("documents", updatedDocuments, {
               shouldValidate: true,
             });

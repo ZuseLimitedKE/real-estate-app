@@ -23,7 +23,7 @@ export const Step4 = () => {
           <Input
             id="property_value"
             type="number"
-            step="0.01"
+            min="0"
             {...register("property_value", { valueAsNumber: true })}
             placeholder="0.00"
           />
@@ -42,7 +42,7 @@ export const Step4 = () => {
           <Input
             id="proposedRentPerMonth"
             type="number"
-            step="0.01"
+            min="0"
             {...register("proposedRentPerMonth", {
               valueAsNumber: true,
             })}

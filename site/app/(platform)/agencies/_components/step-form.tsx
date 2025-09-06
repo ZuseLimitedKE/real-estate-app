@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import ProgressIndicator from "./progress-indicator";
 import { PrevButton } from "./prev-button";
 import { useLocalStorage } from "@mantine/hooks";
+import type { DefaultValues, Path } from "react-hook-form";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
@@ -63,29 +64,58 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     resolver: zodResolver(addPropertySchema),
     defaultValues: defaultValues,
   });
-  const convertDataFromStorage = (formData: any): AddPropertyFormData => {
-    const converted = {
-      ...formData,
-      createdAt: formData.createdAt ? new Date(formData.createdAt) : new Date(),
-      updatedAt: formData.updatedAt ? new Date(formData.updatedAt) : new Date(),
-      tenant: formData.tenant
+  // const convertDataFromStorage = (formData: any): AddPropertyFormData => {
+  //   const converted = {
+  //     ...formData,
+  //     createdAt: formData.createdAt ? new Date(formData.createdAt) : new Date(),
+  //     updatedAt: formData.updatedAt ? new Date(formData.updatedAt) : new Date(),
+  //     tenant: formData.tenant
+  //       ? {
+  //         ...formData.tenant,
+  //         rentDate: new Date(formData.tenant.rentDate),
+  //       }
+  //       : undefined,
+  //     property_owners:
+  //       formData.property_owners?.map((owner: any) => ({
+  //         ...owner,
+  //         purchase_time: new Date(owner.purchase_time),
+  //       })) || [],
+  //     images: formData.images || [],
+  //     documents: formData.documents || [],
+  //     secondary_market_listings: formData.secondary_market_listings || [],
+  //   };
+  //   console.log("Converting from storage:", formData);
+  //   console.log("Converted result:", converted);
+  //   return converted;
+  // };
+  const convertDataFromStorage = (
+    raw: unknown,
+  ): DefaultValues<AddPropertyFormData> => {
+    const data = (raw ?? {}) as Record<string, any>;
+    return {
+      ...data,
+      createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
+      updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
+      tenant: data.tenant
         ? {
-          ...formData.tenant,
-          rentDate: new Date(formData.tenant.rentDate),
+          ...data.tenant,
+          rentDate: data.tenant?.rentDate
+            ? new Date(data.tenant.rentDate)
+            : undefined,
         }
         : undefined,
-      property_owners:
-        formData.property_owners?.map((owner: any) => ({
+      property_owners: Array.isArray(data.property_owners)
+        ? data.property_owners.map((owner: any) => ({
           ...owner,
-          purchase_time: new Date(owner.purchase_time),
-        })) || [],
-      images: formData.images || [],
-      documents: formData.documents || [],
-      secondary_market_listings: formData.secondary_market_listings || [],
+          purchase_time: owner?.purchase_time
+            ? new Date(owner.purchase_time)
+            : undefined,
+        }))
+        : [],
+      images: data.images ?? [],
+      documents: data.documents ?? [],
+      secondary_market_listings: data.secondary_market_listings ?? [],
     };
-    console.log("Converting from storage:", formData);
-    console.log("Converted result:", converted);
-    return converted;
   };
   // Restore form state from Local Storage
   useEffect(() => {
@@ -145,7 +175,7 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
 
       if (!validationResult.success) {
         validationResult.error.issues.forEach((err) => {
-          form.setError(err.path.join(".") as keyof AddPropertyFormData, {
+          form.setError(err.path.join(".") as Path<AddPropertyFormData>, {
             type: "manual",
             message: err.message,
           });

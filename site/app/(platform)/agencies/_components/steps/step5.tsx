@@ -56,7 +56,7 @@ export const Step5 = () => {
           onClientUploadComplete={(res) => {
             const newImageUrls =
               res?.map((file) => file.ufsUrl).filter(Boolean) || [];
-            const currentImages = getValues("images");
+            const currentImages = getValues("images") || [];
             const updatedImages = Array.from(
               new Set([...currentImages, ...newImageUrls]),
             );
