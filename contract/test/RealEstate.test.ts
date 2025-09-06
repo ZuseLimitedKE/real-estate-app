@@ -4,35 +4,44 @@ import { network } from "hardhat";
 const { ethers } = await network.connect();
 
 describe("RealEstateManager Contract", function () {
-    it ("register function should only be called by admin", async () => {
+    const propertyID = "id";
+    const propertyName = "The Big Kahuna";
+    const numTokens = 1000n;
+    const timeCreated = 10000n;
+    const propertyAddress = "Pine Wood Street";
+    const tokenID = 1n;
+    const serviceFee = 10n;
+    const tokenSymbol = "PWS";
+
+    it("register function should only be called by admin", async () => {
         const [owner, otherAddress] = await ethers.getSigners();
         const realEstate = await ethers.deployContract("RealEstateManager");
         await expect(realEstate.connect(otherAddress).registerProperty(
-            "test",
-            "TST",
-            "test",
-            100n,
+            propertyID,
+            tokenSymbol,
+            propertyName,
+            numTokens,
             owner,
-            100n,
-            "Test road",
-            10n
+            timeCreated,
+            propertyAddress,
+            serviceFee
         )).to.be.revertedWithCustomError(realEstate, "Unauthorized");
     });
 
     it("should revert if invalid inputs are given", async () => {
         const [owner] = await ethers.getSigners();
         const realEstate = await ethers.deployContract("RealEstateManager");
-         await expect(realEstate.registerProperty(
-            "test",
+        await expect(realEstate.registerProperty(
+            propertyID,
             "",
-            "test",
-            100n,
+            propertyName,
+            numTokens,
             owner,
-            100n,
-            "Test road",
-            10n
+            timeCreated,
+            propertyAddress,
+            serviceFee
         )).to.be.revertedWithCustomError(realEstate, "InvalidInput");
-    })
+    });
 
     it("should revert if property already exists", async () => {
         const [owner] = await ethers.getSigners();
@@ -41,24 +50,52 @@ describe("RealEstateManager Contract", function () {
 
         await realEstate.registerProperty(
             samePropertyID,
-            "TST",
-            "test",
-            100n,
+            tokenSymbol,
+            propertyName,
+            numTokens,
             owner,
-            100n,
-            "Test road",
-            10n
+            timeCreated,
+            propertyAddress,
+            serviceFee
         );
 
         await expect(realEstate.registerProperty(
             samePropertyID,
-            "TST",
-            "test",
-            100n,
+            tokenSymbol,
+            propertyName,
+            numTokens,
             owner,
-            100n,
-            "Test road",
-            10n
+            timeCreated,
+            propertyAddress,
+            serviceFee
         )).to.be.revertedWithCustomError(realEstate, "PropertyAlreadyExists");
-    })
+    });
+
+    it("should store property details", async () => {
+        const tokenAmount = 100n;
+        const [owner] = await ethers.getSigners();
+        const realEstate = await ethers.deployContract("RealEstateManager");
+
+        const response = await realEstate.registerProperty(
+            propertyID,
+            tokenSymbol,
+            propertyName,
+            numTokens,
+            owner,
+            timeCreated,
+            propertyAddress,
+            serviceFee
+        )
+
+        const property = await realEstate.properties(propertyID);
+        expect(property.id).to.equal(propertyID);
+        expect(property.name).to.equal(propertyName);
+        expect(property.numTokens).to.equal(numTokens);
+        expect(property.agentAddress).to.equal(owner);
+        expect(property.timeCreated).to.equal(timeCreated);
+        expect(property.propertyAddress).to.equal(propertyAddress);
+        expect(property.tokenID).to.equal(0);
+        expect(property.serviceFee).to.equal(serviceFee);
+        expect(property.tokenSymbol).to.equal(tokenSymbol);
+    });
 })
