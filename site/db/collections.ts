@@ -33,7 +33,7 @@ export interface Properties {
   serviceFeePercent: number;
   token_address: string;
   name: string;
-  property_status: string;
+  property_status: "pending" | "approved" | "rejected";
   amenities: {
     bedrooms?: number | null;
     bathrooms?: number | null;

@@ -11,7 +11,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { NextButton } from "../next-button";
-
+function formatOrdinal(n: number) {
+  const v = n % 100;
+  if (v >= 11 && v <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
+  }
+}
 export const Step3 = () => {
   const {
     register,
@@ -75,14 +88,7 @@ export const Step3 = () => {
               <SelectContent>
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                   <SelectItem key={day} value={day.toString()}>
-                    {day}
-                    {day === 1
-                      ? "st"
-                      : day === 2
-                        ? "nd"
-                        : day === 3
-                          ? "rd"
-                          : "th"}
+                    {formatOrdinal(day)}
                   </SelectItem>
                 ))}
               </SelectContent>
