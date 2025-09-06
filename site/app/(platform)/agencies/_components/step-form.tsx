@@ -182,8 +182,15 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
   };
   const goToStep = (position: number) => {
     if (position >= 0 && position - 1 < steps.length) {
-      setCurrentStepIndex(position - 1);
-      saveFormState(position - 1);
+      const newStepIndex = position - 1;
+
+      // if (newStepIndex > currentStepIndex) {
+      //   console.warn("Cannot jump to future steps");
+      //   return;
+      // }
+
+      setCurrentStepIndex(newStepIndex);
+      saveFormState(newStepIndex);
     }
   };
   const onSubmit = async (data: AddPropertyFormData) => {
