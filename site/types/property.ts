@@ -2,9 +2,10 @@ import z from "zod";
 
 const step1Schema = z.object({
   //STEP 1: property details
-  name: z.string().min(2, "The property name is too short"),
+  name: z.string().trim().min(2, "The property name is too short"),
   description: z
     .string()
+    .trim()
     .min(10, "The description should be at least 10 characters"),
   gross_property_size: z
     .number()
@@ -32,7 +33,7 @@ const step1Schema = z.object({
 const step2Schema = z.object({
   // STEP 2 : location info
   location: z.object({
-    address: z.string().min(4, "The address is too short"),
+    address: z.string().trim().min(4, "The address is too short"),
     coordinates: z.object({
       lat: z.number().min(-90).max(90),
       lng: z.number().min(-180).max(180),
@@ -44,7 +45,7 @@ const step3Schema = z.object({
   //STEP 3: tenant info
   tenant: z
     .object({
-      address: z.string().min(1, "Tenant address is required"),
+      address: z.string().trim().min(2, "Tenant address is required"),
 
       rentAmount: z.number().positive("Rent amount must be greater than 0"),
       rentDate: z
