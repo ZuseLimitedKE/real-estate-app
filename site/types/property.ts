@@ -45,8 +45,12 @@ const step3Schema = z.object({
   tenant: z
     .object({
       address: z.string().min(1, "Tenant address is required"),
-      rentDate: z.date(),
+
       rentAmount: z.number().positive("Rent amount must be greater than 0"),
+      rentDate: z
+        .number()
+        .min(1, "Day must be between 1 and 31")
+        .max(31, "Day must be between 1 and 31"),
     })
     .optional(),
 });

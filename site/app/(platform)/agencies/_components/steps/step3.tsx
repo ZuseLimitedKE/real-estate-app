@@ -1,20 +1,29 @@
 import { AddPropertyFormData } from "@/types/property";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, Controller } from "react-hook-form";
 import { useMultiStepForm } from "@/hooks/use-stepped-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { NextButton } from "../next-button";
+
 export const Step3 = () => {
   const {
     register,
+    control,
     formState: { errors },
   } = useFormContext<AddPropertyFormData>();
-
   const { nextStep } = useMultiStepForm();
 
   const handleStepSubmit = () => {
     nextStep();
   };
+
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
@@ -31,7 +40,6 @@ export const Step3 = () => {
             </p>
           )}
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="tenant.rentAmount">Rent Amount (KSH)</Label>
           <Input
@@ -52,11 +60,34 @@ export const Step3 = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="tenant.rentDate">Rent Date</Label>
-        <Input
-          id="tenant.rentDate"
-          type="date"
-          {...register("tenant.rentDate", { valueAsDate: true })}
+        <Label htmlFor="tenant.rentDate">Monthly Rent Due Date</Label>
+        <Controller
+          name="tenant.rentDate"
+          control={control}
+          render={({ field }) => (
+            <Select
+              value={field.value?.toString()}
+              onValueChange={(value) => field.onChange(parseInt(value))}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select day of month" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                  <SelectItem key={day} value={day.toString()}>
+                    {day}
+                    {day === 1
+                      ? "st"
+                      : day === 2
+                        ? "nd"
+                        : day === 3
+                          ? "rd"
+                          : "th"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         />
         {errors.tenant?.rentDate && (
           <p className="text-sm text-red-500 mt-1">
@@ -64,6 +95,7 @@ export const Step3 = () => {
           </p>
         )}
       </div>
+
       <NextButton onClick={handleStepSubmit} />
     </>
   );

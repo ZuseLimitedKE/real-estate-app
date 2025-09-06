@@ -11,7 +11,7 @@ export interface Properties {
   proposedRentPerMonth: number;
   tenant?: {
     address: string;
-    rentDate: Date;
+    rentDate: number; //1-31
     rentAmount: number;
   };
   time_listed_on_site: number; // timestamp

@@ -88,14 +88,7 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
       amenities: data.amenities ?? defaultValues.amenities,
       createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
       updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
-      tenant: data.tenant
-        ? {
-          ...data.tenant,
-          rentDate: data.tenant?.rentDate
-            ? new Date(data.tenant.rentDate)
-            : undefined,
-        }
-        : undefined,
+      tenant: data.tenant ?? undefined,
       property_owners: Array.isArray(data.property_owners)
         ? data.property_owners.map((owner: any) => ({
           ...owner,
