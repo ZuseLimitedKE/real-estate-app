@@ -11,7 +11,7 @@ const NextButton = ({
   return (
     <Button
       className="text-white bg-primary hover:bg-primary/90 transition-colors w-full py-6"
-      type={isLastStep ? "submit" : "button"}
+      type={"button"}
       onClick={onClick}
       disabled={isSubmitting}
       {...rest}

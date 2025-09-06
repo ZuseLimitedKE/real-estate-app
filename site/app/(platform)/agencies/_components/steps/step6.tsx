@@ -12,11 +12,11 @@ export const Step6 = () => {
     setValue,
     formState: { errors, isValid },
   } = useFormContext<AddPropertyFormData>();
-  const { saveFormState, currentStepIndex } = useMultiStepForm();
+  const { saveFormState, currentStepIndex, nextStep } = useMultiStepForm();
 
   const documents = getValues("documents") || [];
   const handleStepSubmit = () => {
-    return;
+    nextStep();
   };
 
   // Get all form errors for debugging

@@ -2,8 +2,16 @@ import { useMultiStepForm } from "@/hooks/use-stepped-form";
 import { addPropertySteps } from "./property-form";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+
 export default function ProgressIndicator() {
   const { goToStep, currentStepIndex } = useMultiStepForm();
+
+  const handleStepClick = (stepPosition: number) => {
+    // Optional: Only allow going back to completed steps
+    if (stepPosition - 1 <= currentStepIndex) {
+      goToStep(stepPosition);
+    }
+  };
 
   return (
     <div className="hidden md:flex items-center w-full justify-center p-4 mb-10">
@@ -20,18 +28,24 @@ export default function ProgressIndicator() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
             />
           </div>
+
           {/* Steps */}
           {addPropertySteps.map((step) => {
             const isCompleted = currentStepIndex > step.position - 1;
             const isCurrent = currentStepIndex === step.position - 1;
+            const isClickable = step.position - 1 <= currentStepIndex; // Only allow clicking completed or current steps
 
             return (
               <div key={step.position} className="relative z-10">
                 <motion.button
-                  onClick={() => goToStep(step.position)}
-                  className={`flex size-14 items-center justify-center rounded-full border-2 ${isCompleted || isCurrent
+                  type="button"
+                  onClick={() => handleStepClick(step.position)}
+                  disabled={!isClickable}
+                  className={`flex size-14 items-center justify-center rounded-full border-2 transition-colors ${isCompleted || isCurrent
                       ? "border-primary bg-primary text-white"
-                      : "border-gray-200 bg-white text-gray-400"
+                      : isClickable
+                        ? "border-gray-300 bg-white text-gray-500 hover:border-primary/50"
+                        : "border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed"
                     }`}
                   animate={{
                     scale: isCurrent ? 1.1 : 1,
