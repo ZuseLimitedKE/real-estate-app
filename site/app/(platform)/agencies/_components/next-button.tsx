@@ -7,13 +7,14 @@ const NextButton = ({
   type,
   ...rest
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
-  const { isLastStep } = useMultiStepForm();
+  const { isLastStep, isSubmitting } = useMultiStepForm();
 
   return (
     <Button
-      className="text-white bg-black hover:bg-slate-950 transition-colors w-full py-6"
+      className="text-white bg-primary hover:bg-primary/90 transition-colors w-full py-6"
       type={type ?? "button"}
       onClick={onClick}
+      disabled={isSubmitting}
       {...rest}
     >
       {isLastStep ? "Submit" : "Continue"}

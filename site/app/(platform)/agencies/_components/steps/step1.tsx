@@ -44,8 +44,33 @@ export const Step1 = () => {
           </p>
         )}
       </div>
+      <div className="grid">
+        <div className="space-y-2">
+          <Label htmlFor="gross_property_size">Property Size (sq ft)</Label>
+          <Input
+            id="gross_property_size"
+            type="number"
+            step="0.01"
+            {...register("gross_property_size", {
+              valueAsNumber: true,
+            })}
+            placeholder="0.00"
+          />
+          {errors.gross_property_size && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.gross_property_size.message}
+            </p>
+          )}
+        </div>
+      </div>
       {/*TODO: Add Amenities*/}
-      <div className="space-y-2"></div>
+      <div className="space-y-2">
+        {errors.amenities && (
+          <p className="text-sm text-red-500 mt-1">
+            {errors.amenities.message}
+          </p>
+        )}
+      </div>
       <NextButton onClick={handleStepSubmit} />
     </>
   );

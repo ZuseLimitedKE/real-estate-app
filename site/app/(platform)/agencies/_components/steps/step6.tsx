@@ -4,7 +4,7 @@ import { useMultiStepForm } from "@/hooks/use-stepped-form";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import { NextButton } from "../next-button";
-export const Step5 = () => {
+export const Step6 = () => {
   const {
     getValues,
     setValue,
@@ -79,7 +79,7 @@ export const Step5 = () => {
         <p className="text-sm text-red-500 mt-1">{errors.documents.message}</p>
       )}
 
-      <NextButton onClick={handleStepSubmit} />
+      <NextButton type="submit" onClick={handleStepSubmit} />
     </>
   );
 };

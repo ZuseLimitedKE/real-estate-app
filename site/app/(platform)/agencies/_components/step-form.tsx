@@ -6,7 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AddProperty } from "@/server-actions/property/add-property";
 import { toast } from "sonner";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Asul } from "next/font/google";
+import ProgressIndicator from "./progress-indicator";
+import { PrevButton } from "./prev-button";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
@@ -56,9 +57,10 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     const isValid = await form.trigger(currentStep.fields);
 
     if (!isValid) {
+      console.log("step validation failed");
       return; // Stop progression if validation fails
     }
-
+    console.log("still running");
     // grab values in current step and transform array to object
     const currentStepValues = form.getValues(currentStep.fields);
     const formValues = Object.fromEntries(
@@ -126,6 +128,7 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     currentStepIndex,
     isFirstStep: currentStepIndex === 0,
     isLastStep: currentStepIndex === steps.length - 1,
+    isSubmitting,
     goToStep,
     nextStep,
     previousStep,
@@ -140,10 +143,12 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
         >
           <Card>
             <CardHeader>
+              <ProgressIndicator />
               <CardTitle>{currentStep.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {currentStep.component}
+              {currentStepIndex > 0 && <PrevButton />}
             </CardContent>
           </Card>
         </form>
