@@ -5,15 +5,13 @@ import { useMultiStepForm } from "@/hooks/use-stepped-form";
 // nextbutton.tsx
 const NextButton = ({
   onClick,
-  type,
   ...rest
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
-  const { isLastStep, isSubmitting, currentStepIndex } = useMultiStepForm();
-  console.log("currentStepIndex=>", currentStepIndex, "type=>", type);
+  const { isLastStep, isSubmitting } = useMultiStepForm();
   return (
     <Button
       className="text-white bg-primary hover:bg-primary/90 transition-colors w-full py-6"
-      type={type ?? "button"}
+      type={isLastStep ? "submit" : "button"}
       onClick={onClick}
       disabled={isSubmitting}
       {...rest}

@@ -1,7 +1,7 @@
 "use client";
 import { stepSchemas } from "@/types/property";
 import { MultiStepForm } from "./step-form";
-import { House, Map, User, Wallet, Camera, File } from "lucide-react";
+import { House, MapIcon, User, Wallet, Camera, FileIcon } from "lucide-react";
 import { Step1 } from "./steps/step1";
 import { Step2 } from "./steps/step2";
 import { Step3 } from "./steps/step3";
@@ -22,7 +22,7 @@ export const addPropertySteps: FormStep[] = [
   {
     title: "Step 2: Address Details",
     component: <Step2 />,
-    icon: Map,
+    icon: MapIcon,
     position: 2,
     validationSchema: stepSchemas.step2,
     fields: ["location"],
@@ -54,7 +54,7 @@ export const addPropertySteps: FormStep[] = [
   {
     title: "Step 6: Legal Documents",
     component: <Step6 />,
-    icon: File,
+    icon: FileIcon,
     position: 6,
     validationSchema: stepSchemas.step6,
     fields: ["documents"],

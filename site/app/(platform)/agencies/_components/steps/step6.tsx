@@ -125,7 +125,7 @@ export const Step6 = () => {
         )}
       </div>
 
-      <NextButton type="submit" onClick={handleStepSubmit} />
+      <NextButton onClick={handleStepSubmit} />
     </>
   );
 };
