@@ -22,8 +22,8 @@ export function AddPropertyForm() {
       name: "",
       description: "",
       amenities: {
-        bed: null,
-        bath: null,
+        bedrooms: null,
+        bathrooms: null,
       },
       location: {
         address: "",
