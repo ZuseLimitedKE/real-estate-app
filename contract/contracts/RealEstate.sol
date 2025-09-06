@@ -52,8 +52,7 @@ contract RealEstateManager is ERC1155 {
             revert PropertyAlreadyExists(id);
         }
 
-        _mint(msg.sender, currentTokenID, numTokens, "");
-
+        _mint(_admin, currentTokenID, numTokens, "");
 
         Property memory property = Property({
             id: id,

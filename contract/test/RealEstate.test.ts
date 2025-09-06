@@ -72,11 +72,10 @@ describe("RealEstateManager Contract", function () {
     });
 
     it("should store property details", async () => {
-        const tokenAmount = 100n;
         const [owner] = await ethers.getSigners();
         const realEstate = await ethers.deployContract("RealEstateManager");
 
-        const response = await realEstate.registerProperty(
+        await realEstate.registerProperty(
             propertyID,
             tokenSymbol,
             propertyName,
@@ -98,4 +97,26 @@ describe("RealEstateManager Contract", function () {
         expect(property.serviceFee).to.equal(serviceFee);
         expect(property.tokenSymbol).to.equal(tokenSymbol);
     });
+
+    it("should mint the tokens and send them to the admin address", async () => {
+        const [owner] = await ethers.getSigners();
+        const realEstate = await ethers.deployContract("RealEstateManager");
+        const createdTokenID = 0;
+
+        const adminTokenBalanceBefore = await realEstate.balanceOf(owner.address, createdTokenID);
+        await realEstate.registerProperty(
+            propertyID,
+            tokenSymbol,
+            propertyName,
+            numTokens,
+            owner,
+            timeCreated,
+            propertyAddress,
+            serviceFee
+        )
+
+        const adminTokenBalanceAfter = await realEstate.balanceOf(owner.address, createdTokenID);
+        expect(adminTokenBalanceBefore).to.equal(0n);
+        expect(adminTokenBalanceAfter).to.equal(numTokens);
+    })
 })
