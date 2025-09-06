@@ -17,6 +17,12 @@ contract RealEstateManager is ERC1155 {
         currentTokenID = 0;
     }
 
+    event PropertyRegistered(
+        string indexed propertyID,
+        uint numMintedTokens,
+        uint tokenID
+    );
+
     struct Property {
         string id;
         string name;
@@ -68,6 +74,8 @@ contract RealEstateManager is ERC1155 {
 
         properties[id] = property;
         currentTokenID++;
+
+        emit PropertyRegistered(id, numTokens, currentTokenID - 1);
         return currentTokenID - 1;
     }
 
