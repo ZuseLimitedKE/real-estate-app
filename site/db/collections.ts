@@ -35,8 +35,22 @@ export interface Properties {
   name: string;
   property_status: string;
   amenities: {
-    bed: number | null;
-    bath: number | null;
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    parking_spaces?: number | null;
+    balconies?: number | null;
+    swimming_pool?: boolean;
+    gym?: boolean;
+    air_conditioning?: boolean;
+    heating?: boolean;
+    laundry_in_unit?: boolean;
+    dishwasher?: boolean;
+    fireplace?: boolean;
+    storage_space?: boolean;
+    pet_friendly?: boolean;
+    security_system?: boolean;
+    elevator?: boolean;
+    garden_yard?: boolean;
   };
   property_owners: {
     owner_address: string;

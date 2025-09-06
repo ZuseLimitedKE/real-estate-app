@@ -2,23 +2,37 @@ import z from "zod";
 
 const step1Schema = z.object({
   //STEP 1: property details
-  name: z.string().min(3, "Property title is required"),
+  name: z.string().min(2, "The property name is too short"),
   description: z
     .string()
-    .min(10, "Description should be at least 10 characters"),
+    .min(10, "The description should be at least 10 characters"),
   gross_property_size: z
     .number()
     .positive("Property size must be greater than 0"),
   amenities: z.object({
-    bed: z.number().positive().nullable(),
-    bath: z.number().positive().nullable(),
+    bedrooms: z.number().min(0).nullable().optional(),
+    bathrooms: z.number().min(0).nullable().optional(),
+    parking_spaces: z.number().min(0).nullable().optional(),
+    balconies: z.number().min(0).nullable().optional(),
+    swimming_pool: z.boolean().optional(),
+    gym: z.boolean().optional(),
+    air_conditioning: z.boolean().optional(),
+    heating: z.boolean().optional(),
+    laundry_in_unit: z.boolean().optional(),
+    dishwasher: z.boolean().optional(),
+    fireplace: z.boolean().optional(),
+    storage_space: z.boolean().optional(),
+    pet_friendly: z.boolean().optional(),
+    security_system: z.boolean().optional(),
+    elevator: z.boolean().optional(),
+    garden_yard: z.boolean().optional(),
   }),
 });
 
 const step2Schema = z.object({
   // STEP 2 : location info
   location: z.object({
-    address: z.string().min(5, "Address is required"),
+    address: z.string().min(4, "The address is too short"),
     coordinates: z.object({
       lat: z.number().min(-90).max(90),
       lng: z.number().min(-180).max(180),
