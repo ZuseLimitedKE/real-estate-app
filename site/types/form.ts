@@ -15,6 +15,7 @@ export type FormStep = {
 export interface MultiStepFormContextProps {
   currentStep: FormStep;
   currentStepIndex: number;
+  isSubmitting: boolean;
   isFirstStep: boolean;
   isLastStep: boolean;
   nextStep: () => void;
