@@ -16,7 +16,7 @@ export async function GetProperties() {
 export async function GetAgencyProperties(agencyId: string) {
   //TODO: Auth Check
   try {
-    const agencyProperties = database.GetAgencyProperties(agencyId);
+    const agencyProperties = await database.GetAgencyProperties(agencyId);
     return agencyProperties;
   } catch (err) {
     console.error(err);
