@@ -17,7 +17,7 @@ export function AppNavbar() {
   const navItems = [
     {
       name: "View Properties",
-      link: "/properties",
+      link: "/investors",
     },
     {
       name: "Pricing",
