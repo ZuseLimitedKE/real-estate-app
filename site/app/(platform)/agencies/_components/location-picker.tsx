@@ -1,9 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { MapPin, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Search, Building, Home } from "lucide-react";
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+interface LocationResult {
+  display_name: string;
+  formatted_address: string;
+  neighborhood?: string;
+  lat: number;
+  lng: number;
+  place_id: string;
+  place_type: string;
+}
+
 export function LocationPicker({
   onCoordinatesChange,
   initialCoordinates,
@@ -15,16 +42,27 @@ export function LocationPicker({
     lat: number;
     lng: number;
   } | null>(initialCoordinates || null);
-  const [isGeocoding, setIsGeocoding] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
-  const searchLocation = async (query: string) => {
-    if (!query.trim()) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<LocationResult[]>([]);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] =
+    useState<LocationResult | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
+
+  // Debounce search query by 400ms
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+  const searchLocation = useCallback(async (query: string) => {
+    if (!query.trim() || query.length < 3) {
       setSearchResults([]);
+      setError(null);
       return;
     }
+
+    // cancel previous request
+    controllerRef.current?.abort();
+    controllerRef.current = new AbortController();
 
     setIsGeocoding(true);
     setError(null);
@@ -32,6 +70,7 @@ export function LocationPicker({
     try {
       const response = await fetch(
         `/api/search-locations?query=${encodeURIComponent(query)}`,
+        { signal: controllerRef.current.signal },
       );
 
       if (!response.ok) {
@@ -41,29 +80,82 @@ export function LocationPicker({
 
       const data = await response.json();
       setSearchResults(data.results || []);
-    } catch (error) {
-      console.error("Location search failed:", error);
+    } catch (error: any) {
+      if (error.name === "AbortError") return; // ignore aborted requests
+      console.error("Search failed:", error);
       setError(error instanceof Error ? error.message : "Search failed");
       setSearchResults([]);
     } finally {
       setIsGeocoding(false);
     }
+  }, []);
+  useEffect(() => {
+    if (!selectedLocation) {
+      searchLocation(debouncedSearchQuery);
+    }
+  }, [debouncedSearchQuery, searchLocation, selectedLocation]);
+
+  const selectLocation = useCallback(
+    (result: LocationResult) => {
+      const lat = Number(result.lat);
+      const lng = Number(result.lng);
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        setError("Invalid coordinates from search result");
+        return;
+      }
+
+      const coords = { lat, lng };
+      setCoordinates(coords);
+      setSelectedLocation(result);
+      onCoordinatesChange(coords);
+      setSearchResults([]);
+      setSearchQuery(result.display_name);
+      setError(null);
+    },
+    [onCoordinatesChange],
+  );
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+
+      if (e.target.value.length <= 2) {
+        setSearchResults([]);
+        setError(null);
+      }
+    },
+    [],
+  );
+
+  const getPlaceTypeIcon = (placeType: string) => {
+    if (placeType.includes("premise") || placeType.includes("subpremise")) {
+      return <Building className="h-4 w-4" />;
+    }
+    return <Home className="h-4 w-4" />;
   };
 
-  const selectLocation = (result: any) => {
-    const lat = Number(result.lat);
-    const lng = Number(result.lng);
-    //finite check to avoid propagating NaN
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      setError("Invalid coordinates from search result");
-      return;
-    }
-    const coords = { lat, lng };
-    setCoordinates(coords);
-    onCoordinatesChange(coords);
-    setSearchResults([]);
-    setSearchQuery(result.display_name);
-    setError(null);
+  const getPlaceTypeBadge = (placeType: string) => {
+    const typeMap: Record<
+      string,
+      { label: string; variant: "default" | "secondary" | "outline" }
+    > = {
+      premise: { label: "Building", variant: "default" },
+      subpremise: { label: "Unit", variant: "secondary" },
+      street_address: { label: "Address", variant: "outline" },
+      establishment: { label: "Business", variant: "secondary" },
+      address: { label: "Address", variant: "outline" },
+    };
+
+    const type = typeMap[placeType] || {
+      label: "Location",
+      variant: "outline",
+    };
+    return (
+      <Badge variant={type.variant} className="text-xs">
+        {type.label}
+      </Badge>
+    );
   };
 
   return (
@@ -71,27 +163,23 @@ export function LocationPicker({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MapPin className="h-5 w-5" />
-          Location Search
+          Property Location Search
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Search for specific addresses, buildings, estates, or neighborhoods in
+          Kenya
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="locationSearch">Search for Property Location</Label>
+          <Label htmlFor="locationSearch">Property Address or Location</Label>
           <div className="relative">
             <Input
               id="locationSearch"
               type="text"
-              placeholder="Search for address, landmark, or area in Kenya..."
+              placeholder="e.g. Kilimani, Westlands, Karen Shopping Centre..."
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                if (e.target.value.length > 2) {
-                  searchLocation(e.target.value);
-                } else {
-                  setSearchResults([]);
-                  setError(null);
-                }
-              }}
+              onChange={handleInputChange}
               className="pr-10"
             />
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -104,22 +192,36 @@ export function LocationPicker({
           )}
 
           {searchResults.length > 0 && (
-            <div className="border rounded-md bg-background shadow-lg max-h-60 overflow-y-auto">
+            <div className="border rounded-md bg-background shadow-lg max-h-80 overflow-y-auto">
               {searchResults.map((result, index) => (
                 <button
                   key={result.place_id || index}
                   type="button"
-                  className="w-full text-left p-3 hover:bg-muted border-b last:border-b-0 focus:bg-muted focus:outline-none"
+                  className="w-full text-left p-4 hover:bg-muted border-b last:border-b-0 focus:bg-muted focus:outline-none transition-colors"
                   onClick={() => selectLocation(result)}
                 >
-                  <div className="font-medium text-sm">
-                    {result.display_name}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {result.formatted_address}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {result.lat.toFixed(6)}, {result.lng.toFixed(6)}
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      {getPlaceTypeIcon(result.place_type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm truncate">
+                          {result.display_name}
+                        </span>
+                        {getPlaceTypeBadge(result.place_type)}
+                      </div>
+
+                      {result.neighborhood && (
+                        <div className="text-xs text-blue-600 mb-1">
+                          📍 {result.neighborhood}
+                        </div>
+                      )}
+
+                      <div className="text-xs text-muted-foreground mb-1">
+                        {result.formatted_address}
+                      </div>
+                    </div>
                   </div>
                 </button>
               ))}
@@ -127,32 +229,44 @@ export function LocationPicker({
           )}
 
           {isGeocoding && (
-            <p className="text-sm text-muted-foreground">
-              Searching locations...
-            </p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground border-t-transparent"></div>
+              Searching properties and locations...
+            </div>
           )}
         </div>
 
-        {coordinates && (
-          <div className="p-4 bg-purple-50 border border-purple-200 rounded-md">
-            <div className="flex items-center gap-2 text-purple-800">
+        {coordinates && selectedLocation && (
+          <div className="p-4 bg-primary/10 border border-primary rounded-md">
+            <div className="flex items-center gap-2 text-primary mb-2">
               <MapPin className="h-4 w-4" />
-              <span className="font-medium">Location Selected</span>
+              <span className="font-medium">Property Location Selected</span>
             </div>
-            <p className="text-sm text-purple-700 mt-1">
-              Coordinates: {coordinates.lat.toFixed(6)},{" "}
-              {coordinates.lng.toFixed(6)}
-            </p>
+
+            <div className="space-y-1 text-sm">
+              <div className="font-medium text-primary/80">
+                {selectedLocation.display_name}
+              </div>
+
+              {selectedLocation.neighborhood && (
+                <div className="text-primary/60">
+                  Area: {selectedLocation.neighborhood}
+                </div>
+              )}
+            </div>
+
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="mt-2 bg-transparent hover:scale-105 hover:text-black/80"
+              className="mt-3 bg-transparent hover:bg-transparent hover:text-primary"
               onClick={() => {
                 setCoordinates(null);
+                setSelectedLocation(null);
                 onCoordinatesChange(null);
                 setSearchQuery("");
                 setError(null);
+                setSearchResults([]);
               }}
             >
               Clear Selection
