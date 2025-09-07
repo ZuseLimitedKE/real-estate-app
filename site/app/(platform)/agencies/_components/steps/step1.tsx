@@ -1,11 +1,9 @@
 import { AddPropertyFormData } from "@/types/property";
 import { useFormContext, Controller } from "react-hook-form";
-import { useMultiStepForm } from "@/hooks/use-stepped-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { NextButton } from "../next-button";
 
 export const Step1 = () => {
   const {
@@ -13,12 +11,6 @@ export const Step1 = () => {
     control,
     formState: { errors },
   } = useFormContext<AddPropertyFormData>();
-
-  const { nextStep } = useMultiStepForm();
-
-  const handleStepSubmit = () => {
-    nextStep();
-  };
 
   return (
     <>
@@ -363,8 +355,6 @@ export const Step1 = () => {
           </div>
         </div>
       </div>
-
-      <NextButton onClick={handleStepSubmit} />
     </>
   );
 };

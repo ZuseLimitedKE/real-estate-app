@@ -3,15 +3,15 @@ import { useMultiStepForm } from "@/hooks/use-stepped-form";
 import { Button } from "@/components/ui/button";
 
 const PrevButton = () => {
-  const { isFirstStep, previousStep } = useMultiStepForm();
+  const { isFirstStep, previousStep, isSubmitting } = useMultiStepForm();
 
   return (
     <Button
       variant="outline"
       type="button"
-      className="mt-5 w-full py-6"
+      className="md:w-1/2 w-full py-6 hover:text-primary hover:bg-primary/5"
       onClick={previousStep}
-      disabled={isFirstStep}
+      disabled={isFirstStep || isSubmitting}
     >
       Previous
     </Button>
