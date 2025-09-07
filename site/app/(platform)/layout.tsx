@@ -8,7 +8,7 @@ export default function PlatformLayout({
   return (
     <div className="w-full relative min-h-screen">
       <AppNavbar />
-      <div className="pt-24 lg:pt-28  md:px-8 px-6">{children}</div>
+      <div className="pt-6 lg:pt-6  md:px-4 px-4">{children}</div>
     </div>
   );
 }
