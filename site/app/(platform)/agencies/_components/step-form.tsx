@@ -15,6 +15,7 @@ import { PrevButton } from "./prev-button";
 import { useLocalStorage } from "@mantine/hooks";
 import type { DefaultValues, Path } from "react-hook-form";
 import { NextButton } from "./next-button";
+import { MyError } from "@/constants/errors";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
@@ -129,7 +130,6 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     setSavedFormState(null);
     setCurrentStepIndex(0);
     form.reset(defaultValues);
-    //FIXME: Force a small delay to ensure localStorage is cleared
     setTimeout(() => {
       console.log(
         "Form state cleared, localStorage:",
@@ -137,45 +137,7 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
       );
     }, 400);
   };
-
   //Navigation controls
-  // const nextStep = async () => {
-  //   const isValid = await form.trigger(currentStep.fields);
-  //
-  //   if (!isValid) {
-  //     console.log(form.formState.errors);
-  //     return; // Stop progression if validation fails
-  //   }
-  //   // grab values in current step and transform array to object
-  //   const currentStepValues = form.getValues(currentStep.fields);
-  //   const formValues = Object.fromEntries(
-  //     currentStep.fields.map((field, index) => [
-  //       field,
-  //       currentStepValues[index] || "",
-  //     ]),
-  //   );
-  //
-  //   // Validate the form state against the current step's schema
-  //   if (currentStep.validationSchema) {
-  //     const validationResult =
-  //       currentStep.validationSchema.safeParse(formValues);
-  //
-  //     if (!validationResult.success) {
-  //       validationResult.error.issues.forEach((err) => {
-  //         form.setError(err.path.join(".") as Path<AddPropertyFormData>, {
-  //           type: "manual",
-  //           message: err.message,
-  //         });
-  //       });
-  //       return; // Stop progression if schema validation fails
-  //     }
-  //   }
-  //   if (currentStepIndex < steps.length - 1) {
-  //     saveFormState(currentStepIndex + 1);
-  //     setCurrentStepIndex((current) => current + 1);
-  //   }
-  // };
-
   const nextStep = async () => {
     const isValid = await form.trigger(currentStep.fields);
 
@@ -252,9 +214,13 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
       );
       clearFormState();
     } catch (err) {
-      toast.error(
-        "Unable to submit this property for review. Please try again later",
-      );
+      if (err instanceof MyError) {
+        toast.error(err.message);
+      } else {
+        toast.error(
+          "Unable to submit this property for review. Please try again later",
+        );
+      }
       console.error(err);
     } finally {
       setIsSubmitting(false);
