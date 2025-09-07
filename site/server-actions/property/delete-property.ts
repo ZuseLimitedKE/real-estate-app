@@ -4,10 +4,13 @@ import { Errors, MyError } from "@/constants/errors";
 import database from "@/db";
 import { ObjectId } from "mongodb";
 
-export async function DeleteProperty(_id: ObjectId) {
+export async function DeleteProperty(_id: string) {
   //TODO: Auth Check
   try {
-    const isDeleted = await database.DeleteProperty(_id);
+    if (!ObjectId.isValid(_id)) {
+      throw new MyError("Invalid property id");
+    }
+    const isDeleted = await database.DeleteProperty(new ObjectId(_id));
     if (!isDeleted) {
       throw new MyError("Nothing to delete. The property does not exist");
     }
