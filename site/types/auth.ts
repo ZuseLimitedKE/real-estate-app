@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { ObjectId } from 'mongodb';
 export type UserRole = 'CLIENT' | 'AGENCY' | 'ADMIN';
 
 export type UserStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
 
 export interface BaseUser {
-    _id: string;
+    _id: ObjectId;
     email: string;
     password: string;
     role: UserRole;
