@@ -12,7 +12,7 @@ export async function DeleteProperty(_id: string) {
     }
     const isDeleted = await database.DeleteProperty(new ObjectId(_id));
     if (!isDeleted) {
-      throw new MyError("Nothing to delete. The property does not exist");
+      throw new MyError("Property not found or already deleted");
     }
     return isDeleted;
   } catch (err) {

@@ -19,6 +19,7 @@ class MongoDatabase {
       throw new MyError(Errors.NOT_ADD_PROPERTY);
     }
   }
+  //Gets approved properties for public listings
   async GetProperties(): Promise<Properties[]> {
     try {
       //TODO: Pagination
@@ -29,7 +30,7 @@ class MongoDatabase {
         .toArray();
       return properties;
     } catch (err) {
-      console.error("Error fetching agency properties", { cause: err });
+      console.error("Error fetching properties", { cause: err });
       throw new MyError(Errors.NOT_GET_PROPERTIES);
     }
   }
@@ -42,6 +43,7 @@ class MongoDatabase {
       throw new MyError(Errors.NOT_DELETE_PROPERTY);
     }
   }
+  // Gets properties associated with an agency
   async GetAgencyProperties(agencyId: string): Promise<Properties[]> {
     try {
       const properties = await PROPERTIES_COLLECTION.find({
@@ -54,7 +56,7 @@ class MongoDatabase {
         .toArray();
       return properties;
     } catch (err) {
-      console.error("Error fetching properties", { cause: err });
+      console.error("Error fetching agency properties", { cause: err });
       throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES);
     }
   }
