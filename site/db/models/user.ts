@@ -41,11 +41,6 @@ export class UserModel {
     ): Promise<User> {
         try {
             const collection = await this.getCollection();
-            // Check if email already exists
-            const existingUser = await collection.findOne({ email: userData.email.toLowerCase() });
-            if (existingUser) {
-                throw new Error('Email already in use');
-            }
             // Hash password
             const saltRounds = 12;
             const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
