@@ -1,4 +1,6 @@
 "use client";
+// DO NOT DELETE THIS FOR NOW.
+// WARNING THIS IS A LEGACY COMPONENT , IT'S OUTDATED. MODIFY property-form.tsx INSTEAD.
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
