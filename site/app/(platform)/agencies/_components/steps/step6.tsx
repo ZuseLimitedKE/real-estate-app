@@ -2,7 +2,6 @@ import { AddPropertyFormData } from "@/types/property";
 import { useFormContext } from "react-hook-form";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import { NextButton } from "../next-button";
 import { useMultiStepForm } from "@/hooks/use-stepped-form";
 import { AlertCircle } from "lucide-react";
 
@@ -12,12 +11,9 @@ export const Step6 = () => {
     setValue,
     formState: { errors, isValid },
   } = useFormContext<AddPropertyFormData>();
-  const { saveFormState, currentStepIndex, nextStep } = useMultiStepForm();
+  const { saveFormState, currentStepIndex } = useMultiStepForm();
 
   const documents = getValues("documents") || [];
-  const handleStepSubmit = () => {
-    nextStep();
-  };
 
   // Get all form errors for debugging
   const allErrors = Object.keys(errors).length > 0 ? errors : null;
@@ -126,8 +122,6 @@ export const Step6 = () => {
           </details>
         )}
       </div>
-
-      <NextButton onClick={handleStepSubmit} />
     </>
   );
 };

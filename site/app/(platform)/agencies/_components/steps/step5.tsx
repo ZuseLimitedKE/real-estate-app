@@ -3,7 +3,6 @@ import { useFormContext } from "react-hook-form";
 import { useMultiStepForm } from "@/hooks/use-stepped-form";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import { NextButton } from "../next-button";
 import { AlertCircle } from "lucide-react";
 
 export const Step5 = () => {
@@ -12,13 +11,9 @@ export const Step5 = () => {
     setValue,
     formState: { errors },
   } = useFormContext<AddPropertyFormData>();
-  const { saveFormState, currentStepIndex, nextStep } = useMultiStepForm();
+  const { saveFormState, currentStepIndex } = useMultiStepForm();
 
   const images = getValues("images") || [];
-
-  const handleStepSubmit = () => {
-    nextStep();
-  };
 
   return (
     <>
@@ -89,8 +84,6 @@ export const Step5 = () => {
 
       {/* Uploaded Images Display */}
       {images.length > 0 && <div>{images.length} uploaded image(s)</div>}
-
-      <NextButton onClick={handleStepSubmit} />
     </>
   );
 };

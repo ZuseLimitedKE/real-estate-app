@@ -14,6 +14,7 @@ import ProgressIndicator from "./progress-indicator";
 import { PrevButton } from "./prev-button";
 import { useLocalStorage } from "@mantine/hooks";
 import type { DefaultValues, Path } from "react-hook-form";
+import { NextButton } from "./next-button";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
@@ -276,10 +277,7 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
   return (
     <MultiStepFormContext.Provider value={value}>
       <FormProvider {...form}>
-        <form
-          // onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6 max-w-4xl mx-auto p-6"
-        >
+        <form className="space-y-6 max-w-4xl mx-auto p-6">
           <Card>
             <CardHeader>
               <ProgressIndicator />
@@ -287,7 +285,10 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               {currentStep.component}
-              {currentStepIndex > 0 && <PrevButton />}
+              <div className="flex flex-col mt-8  w-full md:justify-center md:flex-row  gap-4">
+                {currentStepIndex > 0 && <PrevButton />}
+                <NextButton />
+              </div>
             </CardContent>
           </Card>
         </form>

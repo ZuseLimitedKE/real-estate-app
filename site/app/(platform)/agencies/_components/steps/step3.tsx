@@ -1,6 +1,5 @@
 import { AddPropertyFormData } from "@/types/property";
 import { useFormContext, Controller } from "react-hook-form";
-import { useMultiStepForm } from "@/hooks/use-stepped-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { NextButton } from "../next-button";
 function formatOrdinal(n: number) {
   const v = n % 100;
   if (v >= 11 && v <= 13) return `${n}th`;
@@ -31,11 +29,6 @@ export const Step3 = () => {
     control,
     formState: { errors },
   } = useFormContext<AddPropertyFormData>();
-  const { nextStep } = useMultiStepForm();
-
-  const handleStepSubmit = () => {
-    nextStep();
-  };
 
   return (
     <>
@@ -101,8 +94,6 @@ export const Step3 = () => {
           </p>
         )}
       </div>
-
-      <NextButton onClick={handleStepSubmit} />
     </>
   );
 };
