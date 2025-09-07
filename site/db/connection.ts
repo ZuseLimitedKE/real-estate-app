@@ -37,4 +37,20 @@ export async function testConnection() {
     return false;
   }
 }
+
+export async function initIndexes() {
+  const db = client.db("real-estate-app");
+  try {
+    await db
+      .collection("properties")
+      .createIndex({ name: 1, "location.address": 1 }, { unique: true });
+
+    await db.collection("agencies").createIndex({ name: 1 }, { unique: true });
+
+    console.log("successfully setup indexes ");
+  } catch (error) {
+    console.error("error setting up indexes:", error);
+  }
+}
+// initIndexes();
 export default client;
