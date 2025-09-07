@@ -36,7 +36,7 @@ class MongoDatabase {
   async DeleteProperty(_id: ObjectId): Promise<boolean> {
     try {
       const res = await PROPERTIES_COLLECTION.deleteOne({ _id: _id });
-      return !!res.acknowledged;
+      return (res.deletedCount ?? 0) > 0;
     } catch (err) {
       console.error("Error deleting property", { cause: err });
       throw new MyError(Errors.NOT_DELETE_PROPERTY);
