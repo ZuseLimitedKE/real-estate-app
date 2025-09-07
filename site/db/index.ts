@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import {
   AGENCIES_COLLECTION,
   Agencies,
@@ -21,15 +22,43 @@ class MongoDatabase {
   async GetProperties(): Promise<Properties[]> {
     try {
       //TODO: Pagination
-      const properties = await PROPERTIES_COLLECTION.find({})
+      const properties = await PROPERTIES_COLLECTION.find({
+        property_status: "approved",
+      })
         .sort({ time_listed_on_site: -1, _id: -1 })
         .toArray();
       return properties;
     } catch (err) {
-      console.error("Error fetching properties", { cause: err });
+      console.error("Error fetching agency properties", { cause: err });
       throw new MyError(Errors.NOT_GET_PROPERTIES);
     }
   }
+  async DeleteProperty(_id: ObjectId): Promise<boolean> {
+    try {
+      const res = await PROPERTIES_COLLECTION.deleteOne({ _id: _id });
+      return !!res.acknowledged;
+    } catch (err) {
+      console.error("Error deleting property", { cause: err });
+      throw new MyError(Errors.NOT_DELETE_PROPERTY);
+    }
+  }
+  async GetAgencyProperties(agencyId: string): Promise<Properties[]> {
+    try {
+      const properties = await PROPERTIES_COLLECTION.find({
+        agencyId: agencyId,
+      })
+        .sort({
+          time_listed_on_site: -1,
+          _id: -1,
+        })
+        .toArray();
+      return properties;
+    } catch (err) {
+      console.error("Error fetching properties", { cause: err });
+      throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES);
+    }
+  }
+
   async AddAgency(args: Agencies) {
     try {
       const res = await AGENCIES_COLLECTION.insertOne(args);
