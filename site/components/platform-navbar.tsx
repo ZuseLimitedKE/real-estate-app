@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-export function AppNavbar() {
+export function PlatformNavbar() {
   const navItems = [
     {
       name: "View Properties",

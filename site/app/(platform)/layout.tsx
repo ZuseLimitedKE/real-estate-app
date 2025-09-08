@@ -1,4 +1,4 @@
-import { AppNavbar } from "@/components/app-navbar";
+import { PlatformNavbar } from "@/components/platform-navbar";
 
 export default function PlatformLayout({
   children,
@@ -7,7 +7,7 @@ export default function PlatformLayout({
 }) {
   return (
     <div className="w-full relative min-h-screen">
-      <AppNavbar />
+      <PlatformNavbar />
       <div className="pt-6 lg:pt-6  md:px-4 px-4">{children}</div>
     </div>
   );
