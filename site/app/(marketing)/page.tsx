@@ -142,16 +142,12 @@ export default function HomePage() {
             variants={itemVariants}
             className="pt-16 flex justify-center"
           >
-            <motion.div
+            <motion.a
+              href="#about"
+              aria-label="Scroll to About section"
               animate={{ y: [0, 8, 0] }}
               transition={{ repeat: Infinity, duration: 1.2 }}
-              className="cursor-pointer"
-              onClick={() => {
-                //There's a better way to do this
-                document
-                  .getElementById("about")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
+              className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -167,7 +163,7 @@ export default function HomePage() {
                   d="M19 9l-7 7-7-7"
                 />
               </svg>
-            </motion.div>
+            </motion.a>
           </motion.div>
         </MotionDiv>
       </section>
