@@ -127,15 +127,14 @@ export default function HomePage() {
                 Start Investing
               </Button>
             </Link>
-            <Link href="#about">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 bg-transparent"
-              >
-                Learn More
-              </Button>
-            </Link>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 bg-transparent"
+            >
+              <Link href="#about">Learn More</Link>
+            </Button>
           </motion.div>
 
           <motion.div
