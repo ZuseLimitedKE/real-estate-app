@@ -19,6 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const MotionDiv = motion.div;
 
@@ -72,7 +73,6 @@ const features = [
 ];
 
 const navLinks = [
-  { href: "#home", label: "Home" },
   { href: "#about", label: "About" },
   { href: "#services", label: "Services" },
   { href: "#properties", label: "Properties" },
@@ -107,7 +107,7 @@ export default function HomePage() {
               duration={1}
             />
             <motion.p
-              className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+              className="text-xl md:text-2xl text-black/60 max-w-3xl mx-auto leading-relaxed"
               variants={itemVariants}
             >
               Invest in fractions of high-value properties across Kenya. Earn
@@ -122,7 +122,7 @@ export default function HomePage() {
             <Link href="/investors">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
               >
                 Start Investing
               </Button>
@@ -131,7 +131,7 @@ export default function HomePage() {
               asChild
               size="lg"
               variant="outline"
-              className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 bg-transparent"
+              className="border-primary/20 font-semibold hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 bg-transparent"
             >
               <Link href="#about">Learn More</Link>
             </Button>
@@ -335,19 +335,23 @@ export default function HomePage() {
             {/* Company Info */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl border border-primary/20">
-                  <Building2 className="w-7 h-7 text-primary" />
-                </div>
+                <Image
+                  className="w-7 h-7 text-primary"
+                  width={100}
+                  height={100}
+                  src="/logo.png"
+                  alt="logo"
+                />
                 <div>
                   <span className="text-xl font-bold text-foreground">
-                    Real Estate App
+                    Atria
                   </span>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs  text-muted-foreground">
                     Fractional Property Investment in Kenya
                   </p>
                 </div>
               </div>
-              <p className="text-muted-foreground leading-relaxed mb-6 max-w-md">
+              <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-md">
                 Making real estate investment accessible to every Kenyan through
                 fractional ownership.
               </p>
@@ -397,7 +401,7 @@ export default function HomePage() {
           {/* Bottom Bar */}
           <div className="border-t border-border/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2025 Real Estate App. All rights reserved.
+              © 2025 Atria. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-muted-foreground">
               <a
