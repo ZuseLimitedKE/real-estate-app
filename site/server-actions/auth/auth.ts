@@ -1,22 +1,15 @@
+// lib/actions/auth.ts
 'use server';
 
-import { signIn, signOut } from '@/auth';
 import AuthError from 'next-auth';
 import { z } from 'zod';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import {
-    loginSchema,
-    clientRegistrationSchema,
-    agencyRegistrationSchema,
-    passwordChangeSchema,
-    passwordResetRequestSchema,
-    passwordResetConfirmSchema
-} from '@/types/auth';
+import { loginSchema, clientRegistrationSchema, agencyRegistrationSchema, passwordChangeSchema, passwordResetRequestSchema, passwordResetConfirmSchema } from '@/types/auth';
 import { UserModel } from '@/db/models/user';
 import { TokenModel } from '@/db/models/token';
 import { sendVerificationEmail, sendPasswordResetEmail } from '@/lib/utils/email';
-
+import jwt from 'jsonwebtoken';
 export type AuthActionResult = {
     success: boolean;
     message: string;
@@ -27,42 +20,34 @@ export type AuthActionResult = {
 export async function authenticate(
     prevState: string | undefined,
     formData: FormData,
-): Promise<string> {
+): Promise<{ success: boolean; message: string, token?: string, role?: string }> {
     try {
+        console.log('FormData received:', formData);
         const validatedFields = loginSchema.safeParse({
             email: formData.get('email'),
             password: formData.get('password'),
         });
 
         if (!validatedFields.success) {
-            return 'Invalid email or password format.';
+            return { success: false, message: 'Invalid email or password format.' };
         }
 
-        await signIn('credentials', {
-            email: validatedFields.data.email,
-            password: validatedFields.data.password,
-            redirectTo: formData.get('redirectTo')?.toString() || '/dashboard',
-        });
+        const result = await UserModel.login(validatedFields.data.email, validatedFields.data.password);
+        if (!result.success) {
 
-        return '';
+            return { success: false, message: result.message || 'Login failed.' };
+        }
+        const token = jwt.sign({ email: validatedFields.data.email, userId: result.userId, role: result.role }, 'n2oa0guQTV8bwRUeebTYUnSjoHAh9pff678pY49El3Y');
+        return { success: true, message: 'Login successful!', token, role: result.role };
     } catch (error) {
-        if (error instanceof AuthError) {
-            switch (error.type) {
-                case 'CredentialsSignin':
-                    return 'Invalid email or password.';
-                case 'CallbackRouteError':
-                    return 'Your account may be suspended or pending approval.';
-                default:
-                    return 'Something went wrong during sign in.';
-            }
-        }
-        throw error;
+        console.error('Authentication error:', error);
+        return { success: false, message: 'An error occurred during login. Please try again.' };
     }
 }
 
 // Logout action
 export async function logout() {
-    await signOut({ redirectTo: '/' });
+    // await signOut({ redirectTo: '/' });
 }
 
 // Client registration action
@@ -71,6 +56,7 @@ export async function registerClient(
     formData: FormData
 ): Promise<AuthActionResult> {
     try {
+        console.log('FormData received:', formData);
         const validatedFields = clientRegistrationSchema.safeParse({
             firstName: formData.get('firstName'),
             lastName: formData.get('lastName'),
@@ -148,6 +134,7 @@ export async function registerAgency(
     formData: FormData
 ): Promise<AuthActionResult> {
     try {
+        console.log('FormData received:', formData);
         const validatedFields = agencyRegistrationSchema.safeParse({
             companyName: formData.get('companyName'),
             tradingName: formData.get('tradingName') || undefined,
@@ -179,6 +166,7 @@ export async function registerAgency(
         });
 
         if (!validatedFields.success) {
+            console.log('Validation errors:', validatedFields.error.flatten().fieldErrors);
             return {
                 success: false,
                 message: 'Validation failed',
@@ -236,7 +224,7 @@ export async function registerAgency(
 
         // Send verification email
         await sendVerificationEmail(email, verificationToken, userData.companyName);
-
+        console.log('Sent verification email to:', email);
         return {
             success: true,
             message: 'Agency account created successfully! Please check your email to verify your account and prepare your business documents for verification.',

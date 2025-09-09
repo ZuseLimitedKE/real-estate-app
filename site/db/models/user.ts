@@ -1,4 +1,4 @@
-import {  Collection, ObjectId } from 'mongodb';
+import { Collection, ObjectId } from 'mongodb';
 import bcrypt from 'bcrypt';
 import { User, UserRole, CreateUserInput, UserStatus } from '@/types/auth';
 import client from '../connection';
@@ -71,6 +71,27 @@ export class UserModel {
             throw new Error(`User creation failed: ${(error as Error).message}`);
         }
     }
+    static async login(email: string, password: string): Promise<{ success: boolean, message: string, role: string, userId: string }> {
+        const collection = await this.getCollection();
+        const user = await collection.findOne({ email: email.toLowerCase() });
+        if (!user) {
+            return { success: false, message: 'User not found', role: '', userId: '' };
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            return { success: false, message: 'Incorrect password', role: '', userId: '' };
+        }
+
+        return {
+            success: true,
+            message: 'Login successful',
+            role: user.role,
+            userId: user._id.toString()
+        };
+    }
+
+
 
     static async updateById(
         id: string,
@@ -144,10 +165,10 @@ export class UserModel {
                 { returnDocument: 'after' }
             );
 
-           if (!result) {
+            if (!result) {
                 throw new Error('User not found');
             }
-            
+
             return result;
         }
         catch (error) {

@@ -197,8 +197,7 @@ export const passwordSchema = z
 
 export const phoneSchema = z
   .string()
-  .regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number format')
-  .optional();
+  .regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number format');
 
 
 export const addressSchema = z.object({
@@ -220,9 +219,7 @@ export const clientRegistrationSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   confirmPassword: z.string(),
-  publicKey: z.string()
-    .min(64, 'Invalid public key format')
-    .regex(/^[0-9a-fA-F]+$/, 'Public key must be hexadecimal'),
+  publicKey: z.string(),
   phoneNumber: phoneSchema,
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'You must accept the terms and conditions',

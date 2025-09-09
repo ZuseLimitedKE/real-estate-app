@@ -8,7 +8,6 @@ export default withAuth(
   async function middleware(req: NextRequest) {
     const { nextUrl } = req
     const token = await getToken({ req })
-    // const token = req.nextauth.token
 
     const isLoggedIn = !!token
     const userRole = token?.role as UserRole
@@ -25,8 +24,8 @@ export default withAuth(
       nextUrl.pathname.startsWith("/about") ||
       nextUrl.pathname.startsWith("/contact")
 
-    // Public pages
-    if (isOnPublic && !isLoggedIn) {
+    // Public pages - allow access without authentication
+    if (isOnPublic) {
       return NextResponse.next()
     }
 
@@ -90,7 +89,28 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token, req }) => {
+        // Allow access to public routes without authentication
+        const { pathname } = req.nextUrl
+        
+        const publicPaths = [
+          "/",
+          "/properties",
+          "/about", 
+          "/contact",
+          "/auth"
+        ]
+        
+        // Check if current path is public
+        const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
+        
+        if (isPublicPath) {
+          return true
+        }
+        
+        // For protected routes, require authentication
+        return !!token
+      },
     },
   }
 )
