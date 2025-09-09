@@ -2,6 +2,7 @@
 import { Coins, Shield, BarChart3, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { CardContent, Card } from "@/components/ui/card";
+
 export function Features() {
   const features = [
     {
@@ -33,6 +34,7 @@ export function Features() {
   return (
     <section id="services" className="py-24 px-4 bg-accent/5">
       <div className="max-w-7xl mx-auto">
+        {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -45,11 +47,12 @@ export function Features() {
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Invest fractionally in properties, earn monthly rent, and enjoy
-            liquidity on our secondary market , all with blockchain-backed
+            liquidity on our secondary market, all with blockchain-backed
             transparency.
           </p>
         </motion.div>
 
+        {/* Feature cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {features.map((feature, index) => (
             <motion.div
@@ -59,14 +62,16 @@ export function Features() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <Card className="h-full border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg group bg-background/50 backdrop-blur-sm">
+              <Card className="h-full border border-border/40 hover:border-border transition-all duration-300 hover:shadow-lg group bg-background/80 backdrop-blur-sm">
                 <CardContent className="p-8">
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="p-4 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl group-hover:from-primary/30 group-hover:to-primary/20 transition-all duration-300 border border-primary/20">
+                  <div className="flex items-start gap-4">
+                    {/* Icon container */}
+                    <div className="p-3 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors duration-300">
                       <feature.icon className="w-7 h-7 text-primary" />
                     </div>
+                    {/* Text content */}
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-foreground mb-3">
+                      <h3 className="text-xl font-semibold text-foreground mb-2">
                         {feature.title}
                       </h3>
                       <p className="text-muted-foreground leading-relaxed">
