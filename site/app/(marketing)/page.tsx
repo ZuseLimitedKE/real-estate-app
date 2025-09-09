@@ -7,6 +7,7 @@ import { DotPattern } from "@/components/magicui/dot-pattern";
 import { cn } from "@/lib/utils";
 import BlurIn from "@/components/magicui/blur-in";
 import MarketingNavbar from "@/components/marketing-navbar";
+import { BentoCard, BentoGrid } from "@/components/magicui/bento-grid";
 import {
   Users,
   Building2,
@@ -17,6 +18,8 @@ import {
   Shield,
   BarChart3,
   Zap,
+  TrendingUp,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -71,7 +74,97 @@ const features = [
       "Trade your property shares on our secondary marketplace. Buy more, sell when you need cash, and track performance on-chain.",
   },
 ];
-
+const bentoFeatures = [
+  {
+    Icon: ({ className }: { className?: string }) => (
+      <div className={cn("relative", className)}>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
+        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
+          <Coins className="w-6 h-6 text-primary" />
+        </div>
+      </div>
+    ),
+    name: "Start Small",
+    description:
+      "Begin your real estate journey with any budget. Own property fractions and scale your portfolio over time.",
+    href: "/investors",
+    cta: "Learn more",
+    background: <div className="absolute inset-0" />,
+    className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
+  },
+  {
+    Icon: ({ className }: { className?: string }) => (
+      <div className={cn("relative", className)}>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
+        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
+          <Shield className="w-6 h-6 text-primary" />
+        </div>
+      </div>
+    ),
+    name: "Trust Built-In",
+    description:
+      "Every investment, ownership record, and rent payment is secured on the blockchain for unmatched transparency.",
+    href: "/investors",
+    cta: "Learn more",
+    background: <div className="absolute inset-0" />,
+    className: "lg:row-start-1 lg:row-end-4 lg:col-start-2 lg:col-end-3",
+  },
+  {
+    Icon: ({ className }: { className?: string }) => (
+      <div className={cn("relative", className)}>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
+        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
+          <Users className="w-6 h-6 text-primary" />
+        </div>
+      </div>
+    ),
+    name: "Professionally Managed",
+    description:
+      "Partner agencies handle property upkeep and tenants. You enjoy hands-free passive income.",
+    href: "/investors",
+    cta: "Learn more",
+    background: <div className="absolute inset-0" />,
+    className: "lg:row-start-3 lg:row-end-4 lg:col-start-1 lg:col-end-2",
+  },
+  {
+    Icon: ({ className }: { className?: string }) => (
+      <div className={cn("relative", className)}>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
+        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
+          <TrendingUp className="w-6 h-6 text-primary" />
+        </div>
+      </div>
+    ),
+    name: "Portfolio Growth",
+    description:
+      "Track your investments and returns in real-time with detailed performance analytics.",
+    href: "/investors",
+    cta: "Learn more",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-muted/20 to-primary/5" />
+    ),
+    className: "lg:row-start-1 lg:row-end-2 lg:col-start-3 lg:col-end-4",
+  },
+  {
+    Icon: ({ className }: { className?: string }) => (
+      <div className={cn("relative", className)}>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
+        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
+          <Lock className="w-6 h-6 text-primary" />
+        </div>
+      </div>
+    ),
+    name: "Verified Properties",
+    description:
+      "All properties are thoroughly vetted and verified by trusted partner agencies before listing.",
+    href: "/investors",
+    cta: "Learn more",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/4 to-muted/10" />
+    ),
+    className: "lg:row-start-2 lg:row-end-4 lg:col-start-3 lg:col-end-4",
+  },
+];
 const navLinks = [
   { href: "#about", label: "About" },
   { href: "#services", label: "Services" },
@@ -181,74 +274,27 @@ export default function HomePage() {
               Real Estate Investment for Every Kenyan
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8">
-              We’re breaking down barriers to property ownership. With
+              We're breaking down barriers to property ownership. With
               fractional ownership and blockchain trust, anyone can now access
               premium real estate across Kenya, earn rental income, and build
               wealth—without needing millions or managing tenants.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Coins className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                Start Small
-              </h3>
-              <p className="text-muted-foreground">
-                Begin your real estate journey with any budget. Own property
-                fractions and scale your portfolio over time.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                Trust Built-In
-              </h3>
-              <p className="text-muted-foreground">
-                Every investment, ownership record, and rent payment is secured
-                on the blockchain for unmatched transparency.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                Professionally Managed
-              </h3>
-              <p className="text-muted-foreground">
-                Partner agencies handle property upkeep and tenants. You enjoy
-                hands-free passive income.
-              </p>
-            </motion.div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            <BentoGrid className="lg:grid-rows-3 md:grid-cols-2 lg:grid-cols-3">
+              {bentoFeatures.map((feature) => (
+                <BentoCard key={feature.name} {...feature} />
+              ))}
+            </BentoGrid>
+          </motion.div>
         </div>
       </section>
-
       {/* Features/Services Section */}
       <section id="services" className="py-24 px-4 bg-accent/5">
         <div className="max-w-7xl mx-auto">
