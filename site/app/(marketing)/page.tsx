@@ -3,11 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { DotPattern } from "@/components/magicui/dot-pattern";
-import { cn } from "@/lib/utils";
-import BlurIn from "@/components/magicui/blur-in";
 import MarketingNavbar from "@/components/marketing-navbar";
-import { BentoCard, BentoGrid } from "@/components/magicui/bento-grid";
 import {
   Carousel,
   CarouselContent,
@@ -15,45 +11,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import {
-  Users,
-  Building2,
-  Mail,
-  Phone,
-  MapIcon,
-  Coins,
-  Shield,
-  BarChart3,
-  Zap,
-  TrendingUp,
-  Lock,
-} from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-
-const MotionDiv = motion.div;
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-    },
-  },
-};
+import { MapIcon, Coins, Shield, BarChart3, Zap } from "lucide-react";
+import { Footer } from "./_components/footer";
+import { Hero } from "./_components/hero";
+import { About } from "./_components/about";
 
 const features = [
   {
@@ -81,103 +42,6 @@ const features = [
       "Trade your property shares on our secondary marketplace. Buy more, sell when you need cash, and track performance on-chain.",
   },
 ];
-const bentoFeatures = [
-  {
-    Icon: ({ className }: { className?: string }) => (
-      <div className={cn("relative", className)}>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
-        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
-          <Coins className="w-6 h-6 text-primary" />
-        </div>
-      </div>
-    ),
-    name: "Start Small",
-    description:
-      "Begin your real estate journey with any budget. Own property fractions and scale your portfolio over time.",
-    href: "/investors",
-    cta: "Learn more",
-    background: <div className="absolute inset-0" />,
-    className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
-  },
-  {
-    Icon: ({ className }: { className?: string }) => (
-      <div className={cn("relative", className)}>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
-        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
-          <Shield className="w-6 h-6 text-primary" />
-        </div>
-      </div>
-    ),
-    name: "Trust Built-In",
-    description:
-      "Every investment, ownership record, and rent payment is secured on the blockchain for unmatched transparency.",
-    href: "/investors",
-    cta: "Learn more",
-    background: <div className="absolute inset-0" />,
-    className: "lg:row-start-1 lg:row-end-4 lg:col-start-2 lg:col-end-3",
-  },
-  {
-    Icon: ({ className }: { className?: string }) => (
-      <div className={cn("relative", className)}>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
-        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
-          <Users className="w-6 h-6 text-primary" />
-        </div>
-      </div>
-    ),
-    name: "Professionally Managed",
-    description:
-      "Partner agencies handle property upkeep and tenants. You enjoy hands-free passive income.",
-    href: "/investors",
-    cta: "Learn more",
-    background: <div className="absolute inset-0" />,
-    className: "lg:row-start-3 lg:row-end-4 lg:col-start-1 lg:col-end-2",
-  },
-  {
-    Icon: ({ className }: { className?: string }) => (
-      <div className={cn("relative", className)}>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
-        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
-          <TrendingUp className="w-6 h-6 text-primary" />
-        </div>
-      </div>
-    ),
-    name: "Portfolio Growth",
-    description:
-      "Track your investments and returns in real-time with detailed performance analytics.",
-    href: "/investors",
-    cta: "Learn more",
-    background: (
-      <div className="absolute inset-0 bg-gradient-to-br from-muted/20 to-primary/5" />
-    ),
-    className: "lg:row-start-1 lg:row-end-2 lg:col-start-3 lg:col-end-4",
-  },
-  {
-    Icon: ({ className }: { className?: string }) => (
-      <div className={cn("relative", className)}>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-sm" />
-        <div className="relative bg-gradient-to-br from-background to-primary/10 rounded-full p-3 border border-primary/20 shadow-lg">
-          <Lock className="w-6 h-6 text-primary" />
-        </div>
-      </div>
-    ),
-    name: "Verified Properties",
-    description:
-      "All properties are thoroughly vetted and verified by trusted partner agencies before listing.",
-    href: "/investors",
-    cta: "Learn more",
-    background: (
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/4 to-muted/10" />
-    ),
-    className: "lg:row-start-2 lg:row-end-4 lg:col-start-3 lg:col-end-4",
-  },
-];
-const navLinks = [
-  { href: "#about", label: "About" },
-  { href: "#services", label: "Services" },
-  { href: "#properties", label: "Properties" },
-];
-
 const propertyImages = [
   {
     id: 1,
@@ -221,124 +85,10 @@ export default function HomePage() {
       <MarketingNavbar />
 
       {/* Hero Section */}
-      <section
-        id="home"
-        className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-background via-accent/5 to-primary/5"
-      >
-        <DotPattern
-          className={cn(
-            "text-primary/20",
-            "[mask-image:radial-gradient(60vw_circle_at_center,white,transparent)]",
-          )}
-        />
-        <MotionDiv
-          className="relative z-10 flex flex-col items-center justify-center min-h-screen space-y-8 px-4 pt-28 "
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={itemVariants} className="text-center">
-            <BlurIn
-              word="Own a Piece of Kenyan Real Estate"
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4"
-              duration={1}
-            />
-            <motion.p
-              className="text-xl md:text-2xl text-black/60 max-w-3xl mx-auto leading-relaxed"
-              variants={itemVariants}
-            >
-              Invest in fractions of high-value properties across Kenya. Earn
-              monthly rental income, trade your shares anytime.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-4 pt-4"
-          >
-            <Link href="/investors">
-              <Button
-                size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
-              >
-                Start Investing
-              </Button>
-            </Link>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-primary/20 font-semibold hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 bg-transparent"
-            >
-              <Link href="#about">Learn More</Link>
-            </Button>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="pt-16 flex justify-center"
-          >
-            <motion.a
-              href="#about"
-              aria-label="Scroll to About section"
-              animate={{ y: [0, 8, 0] }}
-              transition={{ repeat: Infinity, duration: 1.2 }}
-              className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </motion.a>
-          </motion.div>
-        </MotionDiv>
-      </section>
+      <Hero />
 
       {/* About Section */}
-      <section id="about" className="py-24 px-4 bg-background">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Real Estate Investment for Every Kenyan
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8">
-              We're breaking down barriers to property ownership. With
-              fractional ownership and blockchain trust, anyone can now access
-              premium real estate across Kenya, earn rental income, and build
-              wealth—without needing millions or managing tenants.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <BentoGrid className="lg:grid-rows-3 md:grid-cols-2 lg:grid-cols-3">
-              {bentoFeatures.map((feature) => (
-                <BentoCard key={feature.name} {...feature} />
-              ))}
-            </BentoGrid>
-          </motion.div>
-        </div>
-      </section>
+      <About />
       {/* Features/Services Section */}
       <section id="services" className="py-24 px-4 bg-accent/5">
         <div className="max-w-7xl mx-auto">
@@ -489,103 +239,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer Section */}
-      <footer className="bg-gradient-to-br from-background via-accent/5 to-primary/5 border-t border-border/20">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            {/* Company Info */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <Image
-                  className="w-7 h-7 text-primary"
-                  width={100}
-                  height={100}
-                  src="/logo.png"
-                  alt="logo"
-                />
-                <div>
-                  <span className="text-xl font-bold text-foreground">
-                    Atria
-                  </span>
-                  <p className="text-xs  text-muted-foreground">
-                    Fractional Property Investment in Kenya
-                  </p>
-                </div>
-              </div>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-md">
-                Making real estate investment accessible to every Kenyan through
-                fractional ownership.
-              </p>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">
-                Quick Links
-              </h3>
-              <ul className="space-y-2">
-                {navLinks.map((link) => (
-                  <li key={link.href}>
-                    <a
-                      href={link.href}
-                      className="text-muted-foreground hover:text-primary transition-colors duration-200"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Contact Info */}
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">
-                Get in Touch
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Mail className="w-4 h-4 text-primary" />
-                  <span className="text-sm">roman.njoroge@njuguna.com</span>
-                </div>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span className="text-sm">+254 702 735922</span>
-                </div>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <MapIcon className="w-4 h-4 text-primary" />
-                  <span className="text-sm">Nairobi, Kenya</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="border-t border-border/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              © 2025 Atria. All rights reserved.
-            </p>
-            <div className="flex gap-6 text-sm text-muted-foreground">
-              <a
-                href="#"
-                className="hover:text-primary transition-colors duration-200"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="#"
-                className="hover:text-primary transition-colors duration-200"
-              >
-                Terms of Service
-              </a>
-              <a
-                href="#"
-                className="hover:text-primary transition-colors duration-200"
-              >
-                Support
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }
