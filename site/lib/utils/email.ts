@@ -114,7 +114,7 @@ export async function sendVerificationEmail(
   const verificationLink = `${FRONTEND_URL}/auth/verify-email?token=${token}`;
 
   const content = `
-    <h2>Welcome to ${escapeHtml(PLATFORM_NAME)}!</h2>
+    <h2>Welcome to ${PLATFORM_NAME}!</h2>
     <p>Hi ${escapeHtml(userName)},</p>
     <p>Thank you for signing up! Please click the button below to verify your email address:</p>
     <div style="text-align: center;">
@@ -218,7 +218,7 @@ export async function sendAgencyRejectionEmail(
   const content = `
     <h2>Agency Application Update</h2>
     <p>Dear ${escapeHtml(companyName)} Team,</p>
-    <p>Thank you for your interest in joining ${escapeHtml(PLATFORM_NAME)}. After careful review of your application, we are unable to approve your agency account at this time.</p>
+    <p>Thank you for your interest in joining ${PLATFORM_NAME}. After careful review of your application, we are unable to approve your agency account at this time.</p>
     
     <div class="warning">
         <p><strong>Reason for rejection:</strong></p>
@@ -280,7 +280,7 @@ export async function sendClientWelcomeEmail(
   const kycLink = `${FRONTEND_URL}/client/kyc`;
 
   const content = `
-    <h2>Welcome to ${escapeHtml(PLATFORM_NAME)}! 🏠</h2>
+    <h2>Welcome to ${PLATFORM_NAME}! 🏠</h2>
     <p>Hi ${escapeHtml(firstName)},</p>
     <p>Welcome to the future of real estate investing! Your client account has been successfully created.</p>
     
