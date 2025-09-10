@@ -72,13 +72,19 @@ export async function approveAgency(
             };
         }
 
+        if (agency.status !== 'PENDING') {
+            return {
+                success: false,
+                message: 'Agency is not in a pending state',
+            };
+        }
+
         // Update agency status
         const updatedAgency = await UserModel.updateStatus(
             agencyId,
             'APPROVED',
             admin.id
         );
-
         if (!updatedAgency) {
             return {
                 success: false,

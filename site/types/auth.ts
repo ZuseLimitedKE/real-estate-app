@@ -16,6 +16,9 @@ export interface BaseUser {
     emailVerified: boolean;
     twoFactorEnabled: boolean;
     profileImage?: string;
+    deletedAt?: Date;
+    deletedBy?: string;
+    suspensionReason?: string;
 }
 
 export interface ClientUser extends BaseUser {
@@ -180,7 +183,11 @@ export interface AgencyRegistrationData {
         zipCode: string;
         country: string;
     };
-    businessType: string;
+export interface AgencyRegistrationData {
+  companyName: string;
+  // ... other properties ...
+  businessType: 'REAL_ESTATE_AGENCY' | 'PROPERTY_DEVELOPER' | 'INVESTMENT_FIRM' | 'OTHER';
+}
     email: string;
     password: string;
     confirmPassword: string;
@@ -192,9 +199,10 @@ export const emailSchema = z.string().email('Invalid email address');
 export const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters')
-  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
-    'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character');
-
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/,
+    'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character'
+  );
 export const phoneSchema = z
   .string()
   .regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number format');
@@ -377,6 +385,14 @@ export const agencyApprovalSchema = z.object({
   agencyId: z.string().min(1, 'Agency ID is required'),
   status: z.enum(['APPROVED', 'REJECTED']),
   rejectionReason: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.status === 'REJECTED' && !data.rejectionReason?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['rejectionReason'],
+      message: 'Rejection reason is required',
+    });
+  }
 });
 
 export const investmentProfileSchema = z.object({
