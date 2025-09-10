@@ -1,19 +1,22 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 // Create nodemailer transporter
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-    },
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || "587"),
+  secure: process.env.SMTP_SECURE === "true", // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
+  },
 });
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@realestate-platform.com';
-const PLATFORM_NAME = process.env.PLATFORM_NAME || 'Real Estate Platform';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@atria.com";
+const PLATFORM_NAME = process.env.PLATFORM_NAME || "Atria";
+const FRONTEND_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_PROD_URL
+    : process.env.FRONTEND_DEV_URL;
 
 // Email templates
 const getEmailTemplate = (content: string, title: string) => `
@@ -97,13 +100,13 @@ const getEmailTemplate = (content: string, title: string) => `
 </html>
 `;
 export async function sendVerificationEmail(
-    email: string,
-    token: string,
-    userName: string
+  email: string,
+  token: string,
+  userName: string,
 ): Promise<void> {
-    const verificationLink = `${FRONTEND_URL}/auth/verify-email?token=${token}`;
+  const verificationLink = `${FRONTEND_URL}/auth/verify-email?token=${token}`;
 
-    const content = `
+  const content = `
     <h2>Welcome to ${PLATFORM_NAME}!</h2>
     <p>Hi ${userName},</p>
     <p>Thank you for signing up! Please click the button below to verify your email address:</p>
@@ -117,20 +120,20 @@ export async function sendVerificationEmail(
     </div>
   `;
 
-    await transporter.sendMail({
-        from: FROM_EMAIL,
-        to: email,
-        subject: `Verify your email - ${PLATFORM_NAME}`,
-        html: getEmailTemplate(content, 'Email Verification'),
-    });
+  await transporter.sendMail({
+    from: FROM_EMAIL,
+    to: email,
+    subject: `Verify your email - ${PLATFORM_NAME}`,
+    html: getEmailTemplate(content, "Email Verification"),
+  });
 }
 export async function sendPasswordResetEmail(
   email: string,
   token: string,
-  userName: string
+  userName: string,
 ): Promise<void> {
   const resetLink = `${FRONTEND_URL}/auth/reset-password?token=${token}`;
-  
+
   const content = `
     <h2>Password Reset Request</h2>
     <p>Hi ${userName},</p>
@@ -150,17 +153,17 @@ export async function sendPasswordResetEmail(
     from: FROM_EMAIL,
     to: email,
     subject: `Password Reset - ${PLATFORM_NAME}`,
-    html: getEmailTemplate(content, 'Password Reset'),
+    html: getEmailTemplate(content, "Password Reset"),
   });
 }
 
 // Send agency approval email
 export async function sendAgencyApprovalEmail(
   email: string,
-  companyName: string
+  companyName: string,
 ): Promise<void> {
   const loginLink = `${FRONTEND_URL}/auth/login`;
-  
+
   const content = `
     <h2>Agency Application Approved! 🎉</h2>
     <p>Dear ${companyName} Team,</p>
@@ -195,7 +198,7 @@ export async function sendAgencyApprovalEmail(
     from: FROM_EMAIL,
     to: email,
     subject: `Agency Account Approved - ${PLATFORM_NAME}`,
-    html: getEmailTemplate(content, 'Agency Approval'),
+    html: getEmailTemplate(content, "Agency Approval"),
   });
 }
 
@@ -203,7 +206,7 @@ export async function sendAgencyApprovalEmail(
 export async function sendAgencyRejectionEmail(
   email: string,
   companyName: string,
-  rejectionReason: string
+  rejectionReason: string,
 ): Promise<void> {
   const content = `
     <h2>Agency Application Update</h2>
@@ -226,7 +229,7 @@ export async function sendAgencyRejectionEmail(
     from: FROM_EMAIL,
     to: email,
     subject: `Agency Application Update - ${PLATFORM_NAME}`,
-    html: getEmailTemplate(content, 'Agency Application Update'),
+    html: getEmailTemplate(content, "Agency Application Update"),
   });
 }
 
@@ -234,7 +237,7 @@ export async function sendAgencyRejectionEmail(
 export async function sendAccountSuspensionEmail(
   email: string,
   userName: string,
-  reason: string
+  reason: string,
 ): Promise<void> {
   const content = `
     <h2>Account Suspension Notice</h2>
@@ -257,18 +260,18 @@ export async function sendAccountSuspensionEmail(
     from: FROM_EMAIL,
     to: email,
     subject: `Account Suspension Notice - ${PLATFORM_NAME}`,
-    html: getEmailTemplate(content, 'Account Suspension'),
+    html: getEmailTemplate(content, "Account Suspension"),
   });
 }
 
 // Send welcome email for clients
 export async function sendClientWelcomeEmail(
   email: string,
-  firstName: string
+  firstName: string,
 ): Promise<void> {
   const loginLink = `${FRONTEND_URL}/auth/login`;
   const kycLink = `${FRONTEND_URL}/client/kyc`;
-  
+
   const content = `
     <h2>Welcome to ${PLATFORM_NAME}! 🏠</h2>
     <p>Hi ${firstName},</p>
@@ -308,7 +311,7 @@ export async function sendClientWelcomeEmail(
     from: FROM_EMAIL,
     to: email,
     subject: `Welcome to ${PLATFORM_NAME} - Start Your Real Estate Investment Journey!`,
-    html: getEmailTemplate(content, 'Welcome to Platform'),
+    html: getEmailTemplate(content, "Welcome to Platform"),
   });
 }
 
@@ -316,13 +319,13 @@ export async function sendClientWelcomeEmail(
 export async function sendKYCCompletionEmail(
   email: string,
   firstName: string,
-  status: 'APPROVED' | 'REJECTED'
+  status: "APPROVED" | "REJECTED",
 ): Promise<void> {
   const loginLink = `${FRONTEND_URL}/auth/login`;
-  
+
   let content: string;
-  
-  if (status === 'APPROVED') {
+
+  if (status === "APPROVED") {
     content = `
       <h2>KYC Verification Approved! ✅</h2>
       <p>Hi ${firstName},</p>
@@ -370,8 +373,8 @@ export async function sendKYCCompletionEmail(
   await transporter.sendMail({
     from: FROM_EMAIL,
     to: email,
-    subject: `KYC Verification ${status === 'APPROVED' ? 'Approved' : 'Update'} - ${PLATFORM_NAME}`,
-    html: getEmailTemplate(content, 'KYC Verification'),
+    subject: `KYC Verification ${status === "APPROVED" ? "Approved" : "Update"} - ${PLATFORM_NAME}`,
+    html: getEmailTemplate(content, "KYC Verification"),
   });
 }
 
@@ -379,10 +382,10 @@ export async function sendKYCCompletionEmail(
 export async function testEmailConfiguration(): Promise<boolean> {
   try {
     await transporter.verify();
-    console.log('Email configuration is valid');
+    console.log("Email configuration is valid");
     return true;
   } catch (error) {
-    console.error('Email configuration error:', error);
+    console.error("Email configuration error:", error);
     return false;
   }
 }

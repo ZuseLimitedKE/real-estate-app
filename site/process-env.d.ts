@@ -1,39 +1,48 @@
 declare global {
-    namespace NodeJS {
-        interface ProcessEnv {
-            AUTH_SECRET: string;
-            NEXTAUTH_URL: string;
+  namespace NodeJS {
+    interface ProcessEnv {
+      GOOGLE_PLACES_API_KEY: string;
 
-            MONGODB_URI: string;
-            MONGODB_DB_NAME: string;
+      UPLOADTHING_TOKEN: string;
 
-            SMTP_HOST: string;
-            SMTP_PORT: string;
-            SMTP_SECURE: string;
-            SMTP_USER: string;
-            SMTP_PASSWORD: string;
-            FROM_EMAIL: string;
+      HEDERA_RPC_URL: string;
+      HEDERA_ACCOUNT: string;
+      REAL_ESTATE_MANAGER_CONTRACT: string;
 
-            PLATFORM_NAME: string;
-            FRONTEND_URL: string;
-            NODE_ENV: string;
+      AUTH_SECRET: string;
+      NEXTAUTH_URL: string;
 
-            UPLOAD_MAX_SIZE?: string;
-            UPLOAD_ALLOWED_TYPES?: string;
+      MONGODB_URI: string;
+      MONGODB_DB_NAME: string;
 
-            RATE_LIMIT_MAX_REQUESTS?: string;
-            RATE_LIMIT_WINDOW_MS?: string;
+      SMTP_HOST: string;
+      SMTP_PORT: string;
+      SMTP_SECURE: string;
+      SMTP_USER: string;
+      SMTP_PASSWORD: string;
+      FROM_EMAIL: string;
 
-            HEDERA_NETWORK?: string;
-            HEDERA_ACCOUNT_ID?: string;
-            HEDERA_PRIVATE_KEY?: string;
+      PLATFORM_NAME: string;
+      FRONTEND_DEV_URL: string;
+      FRONTEND_PROD_URL: string;
+      NODE_ENV: string;
 
-            SECURITY_HEADERS_ENABLED?: string;
+      UPLOAD_MAX_SIZE?: string;
+      UPLOAD_ALLOWED_TYPES?: string;
 
-            LOG_LEVEL?: string;
-            LOG_FILE?: string;
+      RATE_LIMIT_MAX_REQUESTS?: string;
+      RATE_LIMIT_WINDOW_MS?: string;
 
-            NEXT_PUBLIC_DEV_MODE?: string;
-        }
+      HEDERA_NETWORK?: string;
+      HEDERA_ACCOUNT_ID?: string;
+      HEDERA_PRIVATE_KEY?: string;
+
+      SECURITY_HEADERS_ENABLED?: string;
+
+      LOG_LEVEL?: string;
+      LOG_FILE?: string;
+
+      NEXT_PUBLIC_DEV_MODE?: string;
     }
+  }
 }
