@@ -56,8 +56,18 @@ export default withAuth(
     }
 
     // Status check
-    if (isLoggedIn && userStatus !== "APPROVED" && !nextUrl.pathname.startsWith("/dashboard/pending")) {
-      return NextResponse.redirect(new URL("/dashboard/pending", nextUrl))
+    if (isLoggedIn && userStatus && userStatus !== "APPROVED") {
+      const onPending = nextUrl.pathname.startsWith("/dashboard/pending")
+      const onUnauthorized = nextUrl.pathname.startsWith("/unauthorized")
+      if (userStatus === "PENDING") {
+        if (!onPending) {
+          return NextResponse.redirect(new URL("/dashboard/pending", nextUrl))
+        }
+      } else {
+        if (!onUnauthorized) {
+          return NextResponse.redirect(new URL("/unauthorized?reason=account_status", nextUrl))
+        }
+      }
     }
 
     // Role-based access
