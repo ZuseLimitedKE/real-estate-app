@@ -17,11 +17,9 @@ export default function Home() {
           ease.
         </p>
         <div className="mt-8">
-          <Link href="/auth/login">
-            <Button size="lg" className="px-8 py-3 text-lg rounded-2xl shadow-lg">
-              Get Started
-            </Button>
-          </Link>
+          <Button asChild size="lg" className="px-8 py-3 text-lg rounded-2xl shadow-lg">
+            <Link href="/auth/login">Get Started</Link>
+          </Button>
         </div>
       </div>
     </div>
