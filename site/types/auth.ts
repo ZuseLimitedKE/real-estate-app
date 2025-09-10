@@ -220,8 +220,10 @@ export const clientRegistrationSchema = z.object({
   password: passwordSchema,
   confirmPassword: z.string(),
   publicKey: z.string(),
-  phoneNumber: phoneSchema,
+ phoneNumber: phoneSchema.optional(),
   acceptTerms: z.boolean().refine(val => val === true, {
+    message: "You must accept the terms",
+  }),
     message: 'You must accept the terms and conditions',
   }),
 }).refine(data => data.password === data.confirmPassword, {
