@@ -18,9 +18,9 @@ const AgencyVerificationPending = () => {
           email once the verification process is complete.
         </p>
         <div className="mt-6">
-          <Link href="/">
-            <Button className="w-full">Return to Homepage</Button>
-          </Link>
+          <Button asChild className="w-full">
+            <Link href="/">Return to Homepage</Link>
+          </Button>
         </div>
       </div>
     </div>
