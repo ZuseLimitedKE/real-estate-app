@@ -11,7 +11,9 @@ const VerifyEmail = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [status, setStatus] = useState<"pending" | "success" | "error">("pending");
+  const [status, setStatus] = useState<"pending" | "success" | "error">(
+    "pending",
+  );
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -57,8 +59,8 @@ const VerifyEmail = () => {
               Email Verified 🎉
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Your email has been successfully verified. You can now log in to your
-              account.
+              Your email has been successfully verified. You can now log in to
+              your account.
             </p>
             <div className="mt-6">
               <Link href="/auth/login">

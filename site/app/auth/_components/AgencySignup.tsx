@@ -152,18 +152,6 @@ const AgencySignup = () => {
     },
   });
 
-  // useEffect(() => {
-  //   if (!prevState) return;
-  //   if (prevState.success) {
-  //     toast.success(prevState.message || 'Registration successful!');
-  //     // Optionally redirect user or clear form
-  //     // form.reset();
-  //     // router.push('/dashboard');
-  //   } else {
-  //     toast.error(prevState.message || 'An unknown error occurred.');
-  //   }
-  // }, [prevState]);
-
   const onSubmit = (values: z.infer<typeof agencyRegistrationSchema>) => {
     startTransition(async () => {
       const formData = new FormData();
