@@ -17,7 +17,14 @@ const FRONTEND_URL =
   process.env.NODE_ENV === "production"
     ? process.env.FRONTEND_PROD_URL
     : process.env.FRONTEND_DEV_URL;
-
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 // Email templates
 const getEmailTemplate = (content: string, title: string) => `
 <!DOCTYPE html>
@@ -25,7 +32,7 @@ const getEmailTemplate = (content: string, title: string) => `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
+    <title>${escapeHtml(title)}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -107,8 +114,8 @@ export async function sendVerificationEmail(
   const verificationLink = `${FRONTEND_URL}/auth/verify-email?token=${token}`;
 
   const content = `
-    <h2>Welcome to ${PLATFORM_NAME}!</h2>
-    <p>Hi ${userName},</p>
+    <h2>Welcome to ${escapeHtml(PLATFORM_NAME)}!</h2>
+    <p>Hi ${escapeHtml(userName)},</p>
     <p>Thank you for signing up! Please click the button below to verify your email address:</p>
     <div style="text-align: center;">
         <a href="${verificationLink}" class="button">Verify Email Address</a>
@@ -136,7 +143,7 @@ export async function sendPasswordResetEmail(
 
   const content = `
     <h2>Password Reset Request</h2>
-    <p>Hi ${userName},</p>
+    <p>Hi ${escapeHtml(userName)},</p>
     <p>We received a request to reset your password. Click the button below to create a new password:</p>
     <div style="text-align: center;">
         <a href="${resetLink}" class="button">Reset Password</a>
@@ -166,7 +173,7 @@ export async function sendAgencyApprovalEmail(
 
   const content = `
     <h2>Agency Application Approved! 🎉</h2>
-    <p>Dear ${companyName} Team,</p>
+    <p>Dear ${escapeHtml(companyName)} Team,</p>
     <p>Congratulations! Your agency application has been approved and your account is now active.</p>
     
     <div class="success">
@@ -210,12 +217,12 @@ export async function sendAgencyRejectionEmail(
 ): Promise<void> {
   const content = `
     <h2>Agency Application Update</h2>
-    <p>Dear ${companyName} Team,</p>
-    <p>Thank you for your interest in joining ${PLATFORM_NAME}. After careful review of your application, we are unable to approve your agency account at this time.</p>
+    <p>Dear ${escapeHtml(companyName)} Team,</p>
+    <p>Thank you for your interest in joining ${escapeHtml(PLATFORM_NAME)}. After careful review of your application, we are unable to approve your agency account at this time.</p>
     
     <div class="warning">
         <p><strong>Reason for rejection:</strong></p>
-        <p>${rejectionReason}</p>
+        <p>${escapeHtml(rejectionReason)}</p>
     </div>
     
     <p>We encourage you to address these concerns and reapply in the future. Our requirements help ensure the highest quality of service for all users on our platform.</p>
@@ -241,12 +248,12 @@ export async function sendAccountSuspensionEmail(
 ): Promise<void> {
   const content = `
     <h2>Account Suspension Notice</h2>
-    <p>Dear ${userName},</p>
+    <p>Dear ${escapeHtml(userName)},</p>
     <p>We regret to inform you that your account has been temporarily suspended.</p>
     
     <div class="warning">
         <p><strong>Reason for suspension:</strong></p>
-        <p>${reason}</p>
+        <p>${escapeHtml(reason)}</p>
     </div>
     
     <p>During this suspension period, you will not be able to access your account or use our platform services.</p>
@@ -273,8 +280,8 @@ export async function sendClientWelcomeEmail(
   const kycLink = `${FRONTEND_URL}/client/kyc`;
 
   const content = `
-    <h2>Welcome to ${PLATFORM_NAME}! 🏠</h2>
-    <p>Hi ${firstName},</p>
+    <h2>Welcome to ${escapeHtml(PLATFORM_NAME)}! 🏠</h2>
+    <p>Hi ${escapeHtml(firstName)},</p>
     <p>Welcome to the future of real estate investing! Your client account has been successfully created.</p>
     
     <div class="success">
@@ -328,7 +335,7 @@ export async function sendKYCCompletionEmail(
   if (status === "APPROVED") {
     content = `
       <h2>KYC Verification Approved! ✅</h2>
-      <p>Hi ${firstName},</p>
+      <p>Hi ${escapeHtml(firstName)},</p>
       <p>Great news! Your KYC (Know Your Customer) verification has been approved.</p>
       
       <div class="success">
@@ -349,7 +356,7 @@ export async function sendKYCCompletionEmail(
   } else {
     content = `
       <h2>KYC Verification Update</h2>
-      <p>Hi ${firstName},</p>
+      <p>Hi ${escapeHtml(firstName)},</p>
       <p>We've reviewed your KYC (Know Your Customer) documentation and unfortunately cannot approve it at this time.</p>
       
       <div class="warning">
