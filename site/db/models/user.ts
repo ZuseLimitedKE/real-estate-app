@@ -15,8 +15,8 @@ export class UserModel {
             await this.collection.createIndex({ email: 1 }, { unique: true });
             await this.collection.createIndex({ role: 1 });
             await this.collection.createIndex({ status: 1 });
-            await this.collection.createIndex({ 'publicKey': 1 }, { sparse: true });
-            await this.collection.createIndex({ 'registrationNumber': 1 }, { sparse: true });
+            await this.collection.createIndex({ publicKey: 1 }, { unique: true, sparse: true });
+            await this.collection.createIndex({ registrationNumber: 1 }, { unique: true, sparse: true });
         }
         return this.collection;
     }
