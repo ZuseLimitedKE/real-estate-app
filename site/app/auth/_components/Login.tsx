@@ -33,19 +33,12 @@ const Login = () => {
             if (results.success) {
                 toast.success(results.message);
                 localStorage.setItem("token", results.token!);
-                switch (results.role) {
-                    case "ADMIN":
-                        // router.push("/admin/dashboard");
-                        break;
-                    case "AGENCY":
-                        // router.push("/agency/dashboard");
-                        break;
-                    case "CLIENT":
-                        // router.push("/client/dashboard");
-                        break;
-                    default:
-                        router.push("/dashboard");
-                }
+                const routeByRole: Record<string, string> = {
+                  ADMIN: "/admin/dashboard",
+                  AGENCY: "/agency/dashboard",
+                  CLIENT: "/client/dashboard",
+                };
+                router.push(routeByRole[results.role ?? ""] ?? "/dashboard");
             }
             else {
                 toast.error(results.message);
