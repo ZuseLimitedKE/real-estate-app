@@ -14,9 +14,9 @@ const transporter = nodemailer.createTransport({
 const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@atria.com";
 const PLATFORM_NAME = process.env.PLATFORM_NAME || "Atria";
 const FRONTEND_URL =
-  process.env.NODE_ENV === "production"
+  (process.env.NODE_ENV === "production"
     ? process.env.FRONTEND_PROD_URL
-    : process.env.FRONTEND_DEV_URL;
+    : process.env.FRONTEND_DEV_URL) || "http://localhost:3000";
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
