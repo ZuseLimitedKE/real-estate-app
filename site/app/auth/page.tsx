@@ -1,7 +1,7 @@
 import { Building } from "lucide-react";
 import { useState } from "react";
 import AgencySignup from "./_components/AgencySignup";
-import ClientSignup from "./_components/ClientSignup";
+import InvestorSignup from "./_components/ClientSignup";
 import Login from "./_components/Login";
 const Page = () => {
     const [currentView, setCurrentView] = useState('login');
@@ -10,8 +10,8 @@ const Page = () => {
         switch (currentView) {
             case 'agency-signup':
                 return <AgencySignup />;
-            case 'client-signup':
-                return <ClientSignup />;
+            case 'investor-signup':
+                return <InvestorSignup />;
             case 'login':
             default:
                 return <Login />;
@@ -40,13 +40,13 @@ const Page = () => {
                                 Login
                             </button>
                             <button
-                                onClick={() => setCurrentView('client-signup')}
-                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentView === 'client-signup'
+                                onClick={() => setCurrentView('investor-signup')}
+                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentView === 'investor-signup'
                                         ? 'bg-blue-100 text-blue-700'
                                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
-                                Client Signup
+                                Investor Signup
                             </button>
                             <button
                                 onClick={() => setCurrentView('agency-signup')}

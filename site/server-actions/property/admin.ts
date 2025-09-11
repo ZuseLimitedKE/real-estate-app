@@ -1,6 +1,5 @@
 'use server';
-
-import { auth } from '@/auth';
+//TODO: renixvi is supposed to continue this file
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { UserModel } from '@/db/models/user';
@@ -15,13 +14,13 @@ export type AdminActionResult = {
 
 // Check if user is admin
 async function checkAdminAccess() {
-    const session = await auth();
+    // const session = await auth();
 
-    if (!session?.user || session.user.role !== 'ADMIN') {
-        redirect('/unauthorized');
-    }
+    // if (!session?.user || session.user.role !== 'ADMIN') {
+    //     redirect('/unauthorized');
+    // }
 
-    return session.user;
+    // return session.user;
 }
 
 // Get pending agencies for approval
@@ -218,7 +217,7 @@ export async function suspendUser(
         await UserModel.updateStatus(userId, 'SUSPENDED', admin.id, reason);
 
         const userName = user.role === 'AGENCY' ? (user as AgencyUser).companyName :
-            user.role === 'CLIENT' ? `${(user as any).firstName} ${(user as any).lastName}` :
+            user.role === 'INVESTOR' ? `${(user as any).firstName} ${(user as any).lastName}` :
                 `${(user as any).firstName} ${(user as any).lastName}`;
 
         revalidatePath('/admin/users');
@@ -254,7 +253,7 @@ export async function reactivateUser(
         await UserModel.updateStatus(userId, 'APPROVED', admin.id);
 
         const userName = user.role === 'AGENCY' ? (user as AgencyUser).companyName :
-            user.role === 'CLIENT' ? `${(user as any).firstName} ${(user as any).lastName}` :
+            user.role === 'INVESTOR' ? `${(user as any).firstName} ${(user as any).lastName}` :
                 `${(user as any).firstName} ${(user as any).lastName}`;
 
         revalidatePath('/admin/users');
@@ -436,7 +435,7 @@ export async function deleteUser(
         } as any);
 
         const userName = user.role === 'AGENCY' ? (user as AgencyUser).companyName :
-            user.role === 'CLIENT' ? `${(user as any).firstName} ${(user as any).lastName}` :
+            user.role === 'INVESTOR' ? `${(user as any).firstName} ${(user as any).lastName}` :
                 `${(user as any).firstName} ${(user as any).lastName}`;
 
         revalidatePath('/admin/users');

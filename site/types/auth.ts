@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ObjectId } from "mongodb";
 
-export type UserRole = "CLIENT" | "AGENCY" | "ADMIN";
+export type UserRole = "INVESTOR" | "AGENCY" | "ADMIN";
 
 export type UserStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
 
@@ -22,8 +22,8 @@ export interface BaseUser {
   suspensionReason?: string;
 }
 
-export interface ClientUser extends BaseUser {
-  role: "CLIENT";
+export interface InvestorUser extends BaseUser {
+  role: "INVESTOR";
   firstName: string;
   lastName: string;
   publicKey: string;
@@ -133,11 +133,11 @@ export interface AdminUser extends BaseUser {
   isSuper: boolean;
 }
 
-export type User = ClientUser | AgencyUser | AdminUser;
+export type User = InvestorUser | AgencyUser | AdminUser;
 
-export type CreateUserInput<T extends UserRole> = T extends "CLIENT"
+export type CreateUserInput<T extends UserRole> = T extends "INVESTOR"
   ? Omit<
-    ClientUser,
+    InvestorUser,
     | "_id"
     | "createdAt"
     | "updatedAt"
@@ -186,7 +186,7 @@ export interface LoginFormData {
   password: string;
 }
 
-export interface ClientRegistrationData {
+export interface InvestorRegistrationData {
   firstName: string;
   lastName: string;
   email: string;
@@ -259,7 +259,7 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export const clientRegistrationSchema = z
+export const investorRegistrationSchema = z
   .object({
     firstName: z
       .string()
@@ -335,7 +335,7 @@ export const agencyRegistrationSchema = z
     path: ["confirmPassword"],
   });
 
-export const clientProfileUpdateSchema = z.object({
+export const investorProfileUpdateSchema = z.object({
   firstName: z
     .string()
     .min(2, "First name must be at least 2 characters")

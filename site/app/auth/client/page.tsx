@@ -1,2 +1,2 @@
-import ClientSignup from "../_components/ClientSignup";
-export default ClientSignup;
+import InvestorSignup from "../_components/ClientSignup";
+export default InvestorSignup;

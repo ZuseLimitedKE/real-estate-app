@@ -2,7 +2,7 @@
 "use server";
 import {
   loginSchema,
-  clientRegistrationSchema,
+  investorRegistrationSchema,
   agencyRegistrationSchema,
   passwordChangeSchema,
   passwordResetRequestSchema,
@@ -16,6 +16,7 @@ import {
 } from "@/lib/utils/email";
 import { formatZodErrors } from "@/lib/zod";
 import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 export type AuthActionResult = {
   success: boolean;
   message: string;
@@ -55,7 +56,7 @@ export async function authenticate(
         userId: result.userId,
         role: result.role,
       },
-      "n2oa0guQTV8bwRUeebTYUnSjoHAh9pff678pY49El3Y",
+      process.env.JWT_SECRET!,
     );
     return {
       success: true,
@@ -77,13 +78,13 @@ export async function logout() {
   // await signOut({ redirectTo: '/' });
 }
 
-// Client registration action
-export async function registerClient(
+// Investor registration action
+export async function registerInvestor(
   prevState: AuthActionResult | null,
   formData: FormData,
 ): Promise<AuthActionResult> {
   try {
-    const validatedFields = clientRegistrationSchema.safeParse({
+    const validatedFields = investorRegistrationSchema.safeParse({
       firstName: formData.get("firstName"),
       lastName: formData.get("lastName"),
       email: formData.get("email"),
@@ -127,7 +128,7 @@ export async function registerClient(
       ...userData,
       email,
       publicKey,
-      role: "CLIENT",
+      role: "INVESTOR",
       kycStatus: "NOT_STARTED",
     });
 
@@ -147,7 +148,7 @@ export async function registerClient(
         "Account created successfully! Please check your email to verify your account.",
     };
   } catch (error) {
-    console.error("Client registration error:", error);
+    console.error("Investor registration error:", error);
     return {
       success: false,
       message: "Something went wrong during registration. Please try again.",
@@ -338,7 +339,7 @@ export async function resendVerificationEmail(
     const userName =
       user.role === "AGENCY"
         ? user.companyName
-        : user.role === "CLIENT"
+        : user.role === "INVESTOR"
           ? user.firstName
           : user.firstName;
 
@@ -398,7 +399,7 @@ export async function requestPasswordReset(
     const userName =
       user.role === "AGENCY"
         ? user.companyName
-        : user.role === "CLIENT"
+        : user.role === "INVESTOR"
           ? user.firstName
           : user.firstName;
 
@@ -524,4 +525,13 @@ export async function changePassword(
       message: "Something went wrong during password change.",
     };
   }
+}
+export async function setJwt(token: string) {
+  (await cookies()).set('accessToken', token)
+}
+export async function deleteJwt() {
+  (await cookies()).delete('accessToken')
+}
+export async function getJwt() {
+  return (await cookies()).get('accessToken')?.value
 }

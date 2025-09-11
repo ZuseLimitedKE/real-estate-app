@@ -271,19 +271,19 @@ export async function sendAccountSuspensionEmail(
   });
 }
 
-// Send welcome email for clients
-export async function sendClientWelcomeEmail(
+// Send welcome email for investors
+export async function sendInvestorWelcomeEmail(
   email: string,
   firstName: string,
 ): Promise<void> {
   const loginLink = `${FRONTEND_URL}/auth/login`;
-  const kycLink = `${FRONTEND_URL}/client/kyc`;
+  const kycLink = `${FRONTEND_URL}/investor/kyc`;
 
   const content = `
     <h2>Welcome to ${PLATFORM_NAME}! 🏠</h2>
     <p>Hi ${escapeHtml(firstName)},</p>
-    <p>Welcome to the future of real estate investing! Your client account has been successfully created.</p>
-    
+    <p>Welcome to the future of real estate investing! Your investor account has been successfully created.</p>
+
     <div class="success">
         <p><strong>You're now ready to explore tokenized real estate investments!</strong></p>
         <p>With your account, you can:</p>

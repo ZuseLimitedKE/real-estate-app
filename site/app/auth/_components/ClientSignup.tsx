@@ -2,8 +2,8 @@
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { clientRegistrationSchema } from "@/types/auth";
-import { registerClient } from "@/server-actions/auth/auth";
+import { investorRegistrationSchema } from "@/types/auth";
+import { registerInvestor } from "@/server-actions/auth/auth";
 import { z } from "zod";
 import { User } from "lucide-react";
 import {
@@ -18,11 +18,11 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
-const ClientSignup = () => {
+const InvestorSignup = () => {
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<z.infer<typeof clientRegistrationSchema>>({
-    resolver: zodResolver(clientRegistrationSchema),
+  const form = useForm<z.infer<typeof investorRegistrationSchema>>({
+    resolver: zodResolver(investorRegistrationSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -35,7 +35,7 @@ const ClientSignup = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof clientRegistrationSchema>) => {
+  const onSubmit = (values: z.infer<typeof investorRegistrationSchema>) => {
     startTransition(async () => {
       const formData = new FormData();
       formData.append("firstName", values.firstName);
@@ -50,7 +50,7 @@ const ClientSignup = () => {
       formData.append("confirmPassword", values.confirmPassword);
       formData.append("acceptTerms", values.acceptTerms ? "on" : "off");
 
-      await registerClient(null, formData);
+      await registerInvestor(null, formData);
     });
   };
 
@@ -59,7 +59,7 @@ const ClientSignup = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <User className="mx-auto h-12 w-12 text-blue-600" />
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-          Create Client Account
+          Create Investor Account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Join our platform to invest in tokenized real estate
@@ -216,4 +216,4 @@ const ClientSignup = () => {
   );
 };
 
-export default ClientSignup;
+export default InvestorSignup;

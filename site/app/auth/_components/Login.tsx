@@ -3,22 +3,16 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/types/auth";
-import { authenticate } from "@/server-actions/auth/auth";
+import { authenticate, setJwt } from "@/server-actions/auth/auth";
 import { z } from "zod";
 import { Lock, User, Building } from "lucide-react";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+import {Form,FormField,FormItem,FormLabel,FormControl,FormMessage} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
 const Login = () => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -38,11 +32,17 @@ const Login = () => {
       const results = await authenticate(undefined, formData);
       if (results.success) {
         toast.success(results.message);
-        localStorage.setItem("token", results.token!);
+        (async () => {
+          const jwt = results.token;
+          if (jwt) {
+            setJwt(jwt);
+          }
+        })();
+        // Redirect based on user role
         const routeByRole: Record<string, string> = {
           ADMIN: "/admin/dashboard",
           AGENCY: "/agency/dashboard",
-          CLIENT: "/client/dashboard",
+          INVESTOR: "/investor/dashboard",
         };
         router.push(routeByRole[results.role ?? ""] ?? "/dashboard");
       } else {
@@ -130,11 +130,11 @@ const Login = () => {
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
                   <Link
-                    href="/auth/client"
+                    href="/auth/investor"
                     className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                   >
                     <User className="h-4 w-4 mr-2" />
-                    Client Signup
+                    Investor Signup
                   </Link>
                   <Link
                     href="/auth/agency"
