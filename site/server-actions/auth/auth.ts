@@ -17,6 +17,11 @@ import {
 import { formatZodErrors } from "@/lib/zod";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not set");
+}
 export type AuthActionResult = {
   success: boolean;
   message: string;
@@ -50,18 +55,26 @@ export async function authenticate(
     if (!result.success) {
       return { success: false, message: result.message || "Login failed." };
     }
+    const user = await UserModel.findByEmail(validatedFields.data.email);
+    if (!user?.emailVerified) {
+      return {
+        success: false,
+        message: "Please verify your email before logging in.",
+      };
+    }
     const token = jwt.sign(
       {
         email: validatedFields.data.email,
         userId: result.userId,
         role: result.role,
       },
-      process.env.JWT_SECRET!,
+      JWT_SECRET!,
+      { algorithm: "HS256", expiresIn: "24h", issuer: "Atria" },
     );
+    await setJwt(token);
     return {
       success: true,
       message: "Login successful!",
-      token,
       role: result.role,
     };
   } catch (error) {
@@ -75,7 +88,13 @@ export async function authenticate(
 
 // Logout action
 export async function logout() {
-  // await signOut({ redirectTo: '/' });
+  try {
+    await deleteJwt();
+    redirect("/auth/login");
+  } catch (error) {
+    console.error("Logout error:", error);
+    redirect("/auth/login");
+  }
 }
 
 // Investor registration action
@@ -162,7 +181,6 @@ export async function registerAgency(
   formData: FormData,
 ): Promise<AuthActionResult> {
   try {
-    console.log("FormData received:", formData);
     const validatedFields = agencyRegistrationSchema.safeParse({
       companyName: formData.get("companyName"),
       tradingName: formData.get("tradingName") || undefined,
@@ -194,7 +212,7 @@ export async function registerAgency(
     });
 
     if (!validatedFields.success) {
-      console.log("Validation errors:", formatZodErrors(validatedFields.error));
+      // console.log("Validation errors:", formatZodErrors(validatedFields.error));
       return {
         success: false,
         message: "Validation failed",
@@ -253,7 +271,7 @@ export async function registerAgency(
 
     // Send verification email
     await sendVerificationEmail(email, verificationToken, userData.companyName);
-    console.log("Sent verification email to:", email);
+    // console.log("Sent verification email to:", email);
     return {
       success: true,
       message:
@@ -526,12 +544,37 @@ export async function changePassword(
     };
   }
 }
-export async function setJwt(token: string) {
-  (await cookies()).set('accessToken', token)
+async function setJwt(token: string) {
+  (await cookies()).set("accessToken", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 24 * 60 * 60,
+  });
 }
 export async function deleteJwt() {
-  (await cookies()).delete('accessToken')
+  (await cookies()).delete("accessToken");
 }
 export async function getJwt() {
-  return (await cookies()).get('accessToken')?.value
+  return (await cookies()).get("accessToken")?.value;
+}
+export async function verifyJwt() {
+  try {
+    const token = await getJwt();
+    if (!token) return null;
+
+    const decoded = jwt.verify(token, JWT_SECRET!) as {
+      email: string;
+      userId: string;
+      role: string;
+      exp: number;
+    };
+
+    return decoded;
+  } catch (error) {
+    console.error("JWT verification failed:", error);
+    await deleteJwt(); // Clear invalid token
+    return null;
+  }
 }
