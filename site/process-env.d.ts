@@ -43,6 +43,7 @@ declare global {
       LOG_FILE?: string;
 
       NEXT_PUBLIC_DEV_MODE?: string;
+      JWT_SECRET: string;
     }
   }
 }

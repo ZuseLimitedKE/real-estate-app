@@ -13,11 +13,15 @@ export default function Home() {
           Welcome to RealEstate Platform
         </h1>
         <p className="mt-4 text-lg text-gray-600">
-          Your one-stop solution for buying, selling, and renting properties with
-          ease.
+          Your one-stop solution for buying, selling, and renting properties
+          with ease.
         </p>
         <div className="mt-8">
-          <Button asChild size="lg" className="px-8 py-3 text-lg rounded-2xl shadow-lg">
+          <Button
+            asChild
+            size="lg"
+            className="px-8 py-3 text-lg rounded-2xl shadow-lg"
+          >
             <Link href="/auth/login">Get Started</Link>
           </Button>
         </div>
