@@ -3,10 +3,17 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/types/auth";
-import { authenticate, setJwt } from "@/server-actions/auth/auth";
+import { authenticate } from "@/server-actions/auth/auth";
 import { z } from "zod";
 import { Lock, User, Building } from "lucide-react";
-import {Form,FormField,FormItem,FormLabel,FormControl,FormMessage} from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -32,12 +39,6 @@ const Login = () => {
       const results = await authenticate(undefined, formData);
       if (results.success) {
         toast.success(results.message);
-        (async () => {
-          const jwt = results.token;
-          if (jwt) {
-            setJwt(jwt);
-          }
-        })();
         // Redirect based on user role
         const routeByRole: Record<string, string> = {
           ADMIN: "/admin/dashboard",
@@ -54,12 +55,12 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Lock className="mx-auto h-12 w-12 text-blue-600" />
+        <Lock className="mx-auto h-12 w-12 text-primary" />
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Sign in to your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Welcome back to the real estate platform
+          Welcome back to Atria
         </p>
       </div>
 
