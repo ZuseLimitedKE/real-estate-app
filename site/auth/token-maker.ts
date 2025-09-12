@@ -184,7 +184,8 @@ class TokenMaker {
 
     const newTokenPair = await this.refreshAccessToken(refreshToken);
     if (!newTokenPair) return false;
-
+    // Clear old tokens before setting new ones (token rotation)
+    await this.clearTokens();
     await this.setTokenCookies(newTokenPair);
     return true;
   }
