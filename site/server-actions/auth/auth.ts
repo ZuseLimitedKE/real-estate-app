@@ -576,8 +576,7 @@ export async function changePassword(
 
     // Update password
     await UserModel.changePassword(userId, newPassword);
-
-    // User will need to re-login on other devices
+    // Clear current session tokens (note: cannot invalidate tokens on other devices with stateless JWTs)
     await tokenMaker.clearTokens();
 
     // Generate new token pair for current session
