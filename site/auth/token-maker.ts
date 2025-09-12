@@ -143,11 +143,10 @@ class TokenMaker {
    */
   async verifyRefreshToken(token: string): Promise<TokenPayload | null> {
     try {
-      const decoded = jwt.verify(
-        token,
-        this.refreshTokenSecret,
-      ) as TokenPayload;
-
+      const decoded = jwt.verify(token, this.refreshTokenSecret, {
+        algorithms: ["HS256"],
+        issuer: this.issuer,
+      }) as TokenPayload;
       if (decoded.tokenType !== "refresh") {
         throw new Error("Invalid token type");
       }
