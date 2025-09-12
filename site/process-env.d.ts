@@ -46,8 +46,8 @@ declare global {
 
       JWT_ACCESS_SECRET: string;
       JWT_REFRESH_SECRET: string;
-      JWT_ACCESS_EXPIRY: number;
-      JWT_REFRESH_EXPIRY: number;
+      JWT_ACCESS_EXPIRY: string;   // seconds (numeric string)
+      JWT_REFRESH_EXPIRY: string;  // seconds (numeric string)
       JWT_ISSUER: string;
     }
   }
