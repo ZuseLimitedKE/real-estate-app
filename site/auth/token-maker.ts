@@ -75,6 +75,7 @@ class TokenMaker {
     return await new SignJWT({ ...payload, tokenType })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuer(this.issuer)
+      .setSubject(payload.userId)
       .setIssuedAt()
       .setExpirationTime(`${expiresIn}s`)
       .sign(secret);
@@ -92,6 +93,7 @@ class TokenMaker {
       const { payload }: JWTVerifyResult = await jwtVerify(token, secret, {
         algorithms: ["HS256"],
         issuer: this.issuer,
+        clockTolerance: 5, //5 seconds
       });
 
       if (payload.tokenType !== expectedType) {
