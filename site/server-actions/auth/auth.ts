@@ -41,7 +41,7 @@ export async function authenticate(
     });
 
     if (!validatedFields.success) {
-      return { success: false, message: "Invalid email or password format." };
+      return { success: false, message: "Invalid email or password." };
     }
 
     const result = await UserModel.login(
@@ -194,6 +194,13 @@ export async function registerInvestor(
     };
   } catch (error) {
     console.error("Investor registration error:", error);
+
+    if (error instanceof MongoServerError && error.code === 11000) {
+      return {
+        success: false,
+        message: "Email or public key already registered.",
+      };
+    }
     return {
       success: false,
       message: "Something went wrong during registration. Please try again.",

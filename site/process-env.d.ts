@@ -16,8 +16,8 @@ declare global {
       MONGODB_DB_NAME: string;
 
       SMTP_HOST: string;
-      SMTP_PORT: string;
-      SMTP_SECURE: string;
+      SMTP_PORT: string; // numeric string, e.g. "465"
+      SMTP_SECURE: string; // "true" | "false"
       SMTP_USER: string;
       SMTP_PASSWORD: string;
       FROM_EMAIL: string;
@@ -46,8 +46,8 @@ declare global {
 
       JWT_ACCESS_SECRET: string;
       JWT_REFRESH_SECRET: string;
-      JWT_ACCESS_EXPIRY: string;   // seconds (numeric string)
-      JWT_REFRESH_EXPIRY: string;  // seconds (numeric string)
+      JWT_ACCESS_EXPIRY: string; // seconds (numeric string)
+      JWT_REFRESH_EXPIRY: string; // seconds (numeric string)
       JWT_ISSUER: string;
     }
   }
