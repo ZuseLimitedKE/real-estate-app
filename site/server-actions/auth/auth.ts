@@ -88,20 +88,13 @@ export async function authenticate(
 // Logout action
 export async function logout() {
   try {
-    // Get current user to revoke their refresh tokens
-    const currentUser = await tokenMaker.getCurrentUser();
-
-    if (currentUser) {
-      // Clear token cookies
-
-      await tokenMaker.clearTokens();
-    }
-    redirect("/auth");
+    await tokenMaker.clearTokens();
+    redirect("/");
   } catch (error) {
     console.error("Logout error:", error);
     // Still clear tokens and redirect even if revocation fails
     await tokenMaker.clearTokens();
-    redirect("/auth/login");
+    redirect("/");
   }
 }
 
