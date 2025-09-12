@@ -42,8 +42,8 @@ const Login = () => {
         // Redirect based on user role
         const routeByRole: Record<string, string> = {
           ADMIN: "/admin/dashboard",
-          AGENCY: "/agency/dashboard",
-          INVESTOR: "/investor/dashboard",
+          AGENCY: "/agencies/dashboard",
+          INVESTOR: "/investors/dashboard",
         };
         router.push(routeByRole[results.role ?? ""] ?? "/dashboard");
       } else {
