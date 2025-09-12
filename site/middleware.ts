@@ -90,20 +90,30 @@ export async function middleware(request: NextRequest) {
   // Role-based access control
   if (isAuthenticated && userPayload) {
     const role = userPayload.role.toLowerCase();
-
+    const homeByRole: Record<string, string> = {
+      admin: "/admin",
+      agencies: "/agencies",
+      investors: "/investors",
+    };
     // Admin-only pages
     if (pathname.startsWith("/admin") && role !== "admin") {
-      return NextResponse.redirect(new URL(`/${role}s`, request.url));
+      return NextResponse.redirect(
+        new URL(homeByRole[role] ?? "/", request.url),
+      );
     }
 
     // Agency-only pages
     if (pathname.startsWith("/agencies") && role !== "agency") {
-      return NextResponse.redirect(new URL(`/${role}s`, request.url));
+      return NextResponse.redirect(
+        new URL(homeByRole[role] ?? "/", request.url),
+      );
     }
 
     // Investor-only pages
     if (pathname.startsWith("/investors") && role !== "investor") {
-      return NextResponse.redirect(new URL(`/${role}s`, request.url));
+      return NextResponse.redirect(
+        new URL(homeByRole[role] ?? "/", request.url),
+      );
     }
   }
 
