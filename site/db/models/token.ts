@@ -140,11 +140,13 @@ export class TokenModel {
       const hash = (await scryptAsync(token, salt, 32)) as Buffer;
 
       if (timingSafeEqual(storedHash, hash)) {
-        await collection.updateOne(
-          { _id: tokenDoc._id, used: false },
+        const res = await collection.updateOne(
+          { _id: tokenDoc._id, used: false, expires: { $gt: new Date() } },
           { $set: { used: true, usedAt: new Date() } },
         );
-        return tokenDoc.email;
+        if (res.modifiedCount === 1) {
+          return tokenDoc.email;
+        }
       }
     }
 
