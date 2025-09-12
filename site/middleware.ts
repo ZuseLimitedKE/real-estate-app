@@ -64,7 +64,7 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes: redirect to /auth if not logged in
   if (isProtectedRoute && !isAuthenticated) {
-    const res = NextResponse.redirect(new URL("/auth", request.url));
+    const res = NextResponse.redirect(new URL("/auth/login", request.url));
     res.cookies.delete("accessToken");
     res.cookies.delete("refreshToken");
     return res;

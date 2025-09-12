@@ -1,30 +1,31 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { use, useEffect, useState, useTransition } from "react";
 import { CheckCircle, Loader2, MailX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { verifyEmail } from "@/server-actions/auth/auth";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-const VerifyEmail = () => {
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-
+const VerifyEmail = ({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string }>;
+}) => {
+  const params = use(searchParams);
   const [status, setStatus] = useState<"pending" | "success" | "error">(
     "pending",
   );
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (!token) {
+    if (!params.token) {
       setStatus("error");
       return;
     }
 
     startTransition(async () => {
       try {
-        const result = await verifyEmail(token);
+        const result = await verifyEmail(params.token ?? "");
 
         if (result?.success) {
           setStatus("success");
@@ -35,14 +36,14 @@ const VerifyEmail = () => {
         setStatus("error");
       }
     });
-  }, [token]);
+  }, [params.token]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         {status === "pending" && (
           <>
-            <Loader2 className="mx-auto h-12 w-12 text-blue-600 animate-spin" />
+            <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
             <h2 className="mt-6 text-2xl font-bold text-gray-900">
               Verifying your email...
             </h2>
@@ -64,7 +65,7 @@ const VerifyEmail = () => {
             </p>
             <div className="mt-6">
               <Link href="/auth/login">
-                <Button className="w-full">Go to Login</Button>
+                <Button className="w-full font-semibold">Go to Login</Button>
               </Link>
             </div>
           </>
