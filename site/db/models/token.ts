@@ -42,7 +42,7 @@ export class TokenModel {
       this.collection = db.collection<VerificationToken>("tokens");
 
       await this.collection.createIndexes([
-        { key: { token: 1 } },
+        { key: { token: 1 }, unique: true },
         { key: { email: 1 } },
         { key: { type: 1 } },
         { key: { email: 1, type: 1 } },
