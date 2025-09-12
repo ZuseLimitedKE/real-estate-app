@@ -15,13 +15,9 @@ import {
   sendPasswordResetEmail,
 } from "@/lib/utils/email";
 import { formatZodErrors } from "@/lib/zod";
-import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
+import { tokenMaker } from "@/auth/token-maker";
 import { redirect } from "next/navigation";
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not set");
-}
+
 export type AuthActionResult = {
   success: boolean;
   message: string;
@@ -35,7 +31,6 @@ export async function authenticate(
 ): Promise<{
   success: boolean;
   message: string;
-  token?: string;
   role?: string;
 }> {
   try {
@@ -52,9 +47,11 @@ export async function authenticate(
       validatedFields.data.email,
       validatedFields.data.password,
     );
+
     if (!result.success) {
       return { success: false, message: result.message || "Login failed." };
     }
+
     const user = await UserModel.findByEmail(validatedFields.data.email);
     if (!user?.emailVerified) {
       return {
@@ -62,16 +59,17 @@ export async function authenticate(
         message: "Please verify your email before logging in.",
       };
     }
-    const token = jwt.sign(
-      {
-        email: validatedFields.data.email,
-        userId: result.userId,
-        role: result.role,
-      },
-      JWT_SECRET!,
-      { algorithm: "HS256", expiresIn: "24h", issuer: "Atria" },
-    );
-    await setJwt(token);
+
+    // Generate token pair using TokenMaker
+    const tokenPair = await tokenMaker.generateTokenPair({
+      email: validatedFields.data.email,
+      userId: result.userId!,
+      role: result.role!,
+    });
+
+    // Set tokens as HTTP-only cookies
+    await tokenMaker.setTokenCookies(tokenPair);
+
     return {
       success: true,
       message: "Login successful!",
@@ -89,12 +87,39 @@ export async function authenticate(
 // Logout action
 export async function logout() {
   try {
-    await deleteJwt();
+    // Get current user to revoke their refresh tokens
+    const currentUser = await tokenMaker.getCurrentUser();
+
+    if (currentUser) {
+      // Revoke all refresh tokens for this user
+      await tokenMaker.revokeAllRefreshTokens(currentUser.email);
+    }
+
+    // Clear token cookies
+    await tokenMaker.clearTokens();
+
     redirect("/auth/login");
   } catch (error) {
     console.error("Logout error:", error);
+    // Still clear tokens and redirect even if revocation fails
+    await tokenMaker.clearTokens();
     redirect("/auth/login");
   }
+}
+
+// Get current authenticated user
+export async function getCurrentUser() {
+  return await tokenMaker.getCurrentUser();
+}
+
+// Check if user is authenticated
+export async function isAuthenticated(): Promise<boolean> {
+  return await tokenMaker.isAuthenticated();
+}
+
+// Refresh tokens
+export async function refreshTokens(): Promise<boolean> {
+  return await tokenMaker.attemptTokenRefresh();
 }
 
 // Investor registration action
@@ -212,7 +237,6 @@ export async function registerAgency(
     });
 
     if (!validatedFields.success) {
-      // console.log("Validation errors:", formatZodErrors(validatedFields.error));
       return {
         success: false,
         message: "Validation failed",
@@ -271,7 +295,7 @@ export async function registerAgency(
 
     // Send verification email
     await sendVerificationEmail(email, verificationToken, userData.companyName);
-    // console.log("Sent verification email to:", email);
+
     return {
       success: true,
       message:
@@ -480,6 +504,9 @@ export async function confirmPasswordReset(
 
     await UserModel.changePassword(user._id.toString(), password);
 
+    // Revoke all refresh tokens for security (force re-login)
+    await tokenMaker.revokeAllRefreshTokens(email);
+
     return {
       success: true,
       message:
@@ -501,6 +528,15 @@ export async function changePassword(
   formData: FormData,
 ): Promise<AuthActionResult> {
   try {
+    // Verify user is authenticated
+    const currentUser = await tokenMaker.getCurrentUser();
+    if (!currentUser || currentUser.userId !== userId) {
+      return {
+        success: false,
+        message: "Unauthorized. Please log in again.",
+      };
+    }
+
     const validatedFields = passwordChangeSchema.safeParse({
       currentPassword: formData.get("currentPassword"),
       newPassword: formData.get("newPassword"),
@@ -532,6 +568,19 @@ export async function changePassword(
     // Update password
     await UserModel.changePassword(userId, newPassword);
 
+    // Revoke all refresh tokens for security (except current session)
+    // User will need to re-login on other devices
+    await tokenMaker.revokeAllRefreshTokens(currentUser.email);
+
+    // Generate new token pair for current session
+    const newTokenPair = await tokenMaker.generateTokenPair({
+      email: currentUser.email,
+      userId: currentUser.userId,
+      role: currentUser.role,
+    });
+
+    await tokenMaker.setTokenCookies(newTokenPair);
+
     return {
       success: true,
       message: "Password changed successfully!",
@@ -542,39 +591,5 @@ export async function changePassword(
       success: false,
       message: "Something went wrong during password change.",
     };
-  }
-}
-async function setJwt(token: string) {
-  (await cookies()).set("accessToken", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 24 * 60 * 60,
-  });
-}
-export async function deleteJwt() {
-  (await cookies()).delete("accessToken");
-}
-export async function getJwt() {
-  return (await cookies()).get("accessToken")?.value;
-}
-export async function verifyJwt() {
-  try {
-    const token = await getJwt();
-    if (!token) return null;
-
-    const decoded = jwt.verify(token, JWT_SECRET!) as {
-      email: string;
-      userId: string;
-      role: string;
-      exp: number;
-    };
-
-    return decoded;
-  } catch (error) {
-    console.error("JWT verification failed:", error);
-    await deleteJwt(); // Clear invalid token
-    return null;
   }
 }
