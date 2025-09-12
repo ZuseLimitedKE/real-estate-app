@@ -114,11 +114,10 @@ class TokenMaker {
       const accessToken = token || (await this.getAccessToken());
       if (!accessToken) return null;
 
-      const decoded = jwt.verify(
-        accessToken,
-        this.accessTokenSecret,
-      ) as TokenPayload;
-
+      const decoded = jwt.verify(accessToken, this.accessTokenSecret, {
+        algorithms: ["HS256"],
+        issuer: this.issuer,
+      }) as TokenPayload;
       if (decoded.tokenType !== "access") {
         throw new Error("Invalid token type");
       }
