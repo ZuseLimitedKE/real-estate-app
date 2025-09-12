@@ -43,7 +43,12 @@ declare global {
       LOG_FILE?: string;
 
       NEXT_PUBLIC_DEV_MODE?: string;
-      JWT_SECRET: string;
+
+      JWT_ACCESS_SECRET: string;
+      JWT_REFRESH_SECRET: string;
+      JWT_ACCESS_EXPIRY: number;
+      JWT_REFRESH_EXPIRY: number;
+      JWT_ISSUER: string;
     }
   }
 }
