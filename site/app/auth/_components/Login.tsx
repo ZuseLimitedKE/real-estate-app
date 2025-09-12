@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/types/auth";
 import { authenticate } from "@/server-actions/auth/auth";
 import { z } from "zod";
-import { Lock, User, Building } from "lucide-react";
+import { User, Building } from "lucide-react";
 import {
   Form,
   FormField,
@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const Login = () => {
   const [isPending, startTransition] = useTransition();
@@ -45,7 +47,7 @@ const Login = () => {
           AGENCY: "/agencies/dashboard",
           INVESTOR: "/investors/dashboard",
         };
-        router.push(routeByRole[results.role ?? ""] ?? "/dashboard");
+        router.push(routeByRole[results.role ?? ""] ?? "/");
       } else {
         toast.error(results.message);
       }
@@ -53,11 +55,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className=" flex flex-col justify-center pt-24 px-4 md:px-12">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Lock className="mx-auto h-12 w-12 text-primary" />
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-          Sign in to your account
+          Login to your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Welcome back to Atria
@@ -93,8 +94,7 @@ const Login = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="Enter your password"
                         {...field}
                       />
@@ -107,14 +107,18 @@ const Login = () => {
               <div className="text-sm">
                 <a
                   href="#"
-                  className="font-medium text-blue-600 hover:text-blue-500"
+                  className="font-medium text-primary hover:underline"
                 >
                   Forgot your password?
                 </a>
               </div>
 
-              <Button type="submit" disabled={isPending} className="w-full">
-                {isPending ? "Signing in..." : "Sign in"}
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full font-semibold"
+              >
+                {isPending ? <Spinner /> : "Login"}
               </Button>
 
               <div className="mt-6">
