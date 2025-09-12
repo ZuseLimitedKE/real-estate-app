@@ -59,9 +59,9 @@ const InvestorSignup = () => {
         } else {
           if (result.errors) {
             // Show field-level validation errors
-            Object.values(result.errors).forEach((err) => {
-              toast.error(err);
-            });
+            for (const msgs of Object.values(result.errors)) {
+              msgs.forEach((m) => toast.error(m));
+            }
           } else {
             // General error message
             toast.error(result.message || "Registration failed");
