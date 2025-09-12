@@ -56,8 +56,8 @@ export async function middleware(request: NextRequest) {
 
           isAuthenticated = true;
 
-          // Let request continue with updated tokens
-          if (isProtectedRoute) return response;
+          // Persist refreshed cookies for all routes
+          return response;
         }
       } catch (err) {
         console.error("Token refresh failed:", err);
