@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const InvestorSignup = () => {
   const [isPending, startTransition] = useTransition();
@@ -50,7 +51,26 @@ const InvestorSignup = () => {
       formData.append("confirmPassword", values.confirmPassword);
       formData.append("acceptTerms", values.acceptTerms ? "on" : "off");
 
-      await registerInvestor(null, formData);
+      try {
+        const result = await registerInvestor(null, formData);
+        if (result.success) {
+          toast.success(result.message);
+          form.reset();
+        } else {
+          if (result.errors) {
+            // Show field-level validation errors
+            for (const msgs of Object.values(result.errors)) {
+              msgs.forEach((m) => toast.error(m));
+            }
+          } else {
+            // General error message
+            toast.error(result.message || "Registration failed");
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("unable to create an account");
+      }
     });
   };
 

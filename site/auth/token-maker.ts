@@ -1,18 +1,14 @@
-import jwt, {
-  SignOptions,
-  Secret,
-  TokenExpiredError,
-  JsonWebTokenError,
-  NotBeforeError,
-} from "jsonwebtoken";
+//I've decided to make this stateless for now so refresh tokens aren't being stored in the db
+import { SignJWT, jwtVerify, JWTVerifyResult } from "jose";
 import { cookies } from "next/headers";
-import { TokenModel } from "@/db/models/token";
 
 export interface TokenPayload {
   email: string;
   userId: string;
   role: string;
   tokenType: "access" | "refresh";
+  exp?: number; // JWT standard
+  iat?: number;
 }
 
 export interface TokenPair {
@@ -21,22 +17,26 @@ export interface TokenPair {
 }
 
 class TokenMaker {
-  private readonly accessTokenSecret: Secret;
-  private readonly refreshTokenSecret: Secret;
-  private readonly accessTokenExpiry: number;
-  private readonly refreshTokenExpiry: number;
+  private readonly accessTokenSecret: Uint8Array;
+  private readonly refreshTokenSecret: Uint8Array;
+  private readonly accessTokenExpiry: number; // in seconds
+  private readonly refreshTokenExpiry: number; // in seconds
   private readonly issuer: string;
 
   constructor() {
-    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET!;
-    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET!;
+    this.accessTokenSecret = new TextEncoder().encode(
+      process.env.JWT_ACCESS_SECRET!,
+    );
+    this.refreshTokenSecret = new TextEncoder().encode(
+      process.env.JWT_REFRESH_SECRET!,
+    );
     this.accessTokenExpiry =
-      parseInt(process.env.JWT_ACCESS_EXPIRY || "", 10) || 60 * 15; // 15 minutes
+      parseInt(process.env.JWT_ACCESS_EXPIRY || "", 10) || 60 * 15; // 15 min
     this.refreshTokenExpiry =
       parseInt(process.env.JWT_REFRESH_EXPIRY || "", 10) || 60 * 60 * 24 * 7; // 7 days
     this.issuer = process.env.JWT_ISSUER || "Atria";
 
-    if (!this.accessTokenSecret || !this.refreshTokenSecret) {
+    if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
       throw new Error("JWT secrets are not configured properly");
     }
   }
@@ -47,160 +47,87 @@ class TokenMaker {
   async generateTokenPair(
     payload: Omit<TokenPayload, "tokenType">,
   ): Promise<TokenPair> {
-    const accessToken = this.createAccessToken(payload);
-    const refreshToken = await this.createRefreshToken(payload);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
-  }
-
-  /**
-   * Create access token (short-lived)
-   */
-  private createAccessToken(payload: Omit<TokenPayload, "tokenType">): string {
-    const options: SignOptions = {
-      algorithm: "HS256",
-      expiresIn: this.accessTokenExpiry,
-      issuer: this.issuer,
-    };
-
-    return jwt.sign(
-      {
-        ...payload,
-        tokenType: "access",
-      },
+    const accessToken = await this.createToken(
+      payload,
+      "access",
       this.accessTokenSecret,
-      options,
+      this.accessTokenExpiry,
     );
-  }
-
-  /**
-   * Create refresh token (long-lived) and store in database
-   */
-  private async createRefreshToken(
-    payload: Omit<TokenPayload, "tokenType">,
-  ): Promise<string> {
-    const refreshToken = jwt.sign(
-      {
-        ...payload,
-        tokenType: "refresh",
-      },
+    const refreshToken = await this.createToken(
+      payload,
+      "refresh",
       this.refreshTokenSecret,
-      {
-        algorithm: "HS256",
-        expiresIn: this.refreshTokenExpiry,
-        issuer: this.issuer,
-      },
+      this.refreshTokenExpiry,
     );
 
-    // Store refresh token in database for revocation capability
-    await TokenModel.createToken(
-      payload.email,
-      "REFRESH_TOKEN",
-      this.refreshTokenExpiry * 1000, //note createToken() expects time in ms
-      refreshToken,
-    );
-
-    return refreshToken;
+    return { accessToken, refreshToken };
   }
 
   /**
-   * Verify access token
+   * Create a token with jose
    */
-  async verifyAccessToken(
-    token?: string,
-    opts?: { clearCookiesOnFailure?: boolean },
+  private async createToken(
+    payload: Omit<TokenPayload, "tokenType">,
+    tokenType: "access" | "refresh",
+    secret: Uint8Array,
+    expiresIn: number,
+  ): Promise<string> {
+    return await new SignJWT({ ...payload, tokenType })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuer(this.issuer)
+      .setSubject(payload.userId)
+      .setIssuedAt()
+      .setExpirationTime(`${expiresIn}s`)
+      .sign(secret);
+  }
+
+  /**
+   * Verify a token
+   */
+  private async verifyToken(
+    token: string,
+    secret: Uint8Array,
+    expectedType: "access" | "refresh",
   ): Promise<TokenPayload | null> {
     try {
-      const accessToken = token || (await this.getAccessToken());
-      if (!accessToken) return null;
-
-      const decoded = jwt.verify(accessToken, this.accessTokenSecret, {
+      const { payload }: JWTVerifyResult = await jwtVerify(token, secret, {
         algorithms: ["HS256"],
         issuer: this.issuer,
-      }) as TokenPayload;
-      if (decoded.tokenType !== "access") {
+        clockTolerance: 5, //5 seconds
+      });
+
+      if (payload.tokenType !== expectedType) {
         throw new Error("Invalid token type");
       }
 
-      return decoded;
-    } catch (error) {
-      if (error instanceof TokenExpiredError) {
-        console.warn("Access token expired");
-      } else if (error instanceof JsonWebTokenError) {
-        console.warn("Invalid access token");
-      } else if (error instanceof NotBeforeError) {
-        console.warn("Access token not active yet");
-      } else {
-        console.error("Access token verification failed:", error);
-      }
-      if (opts?.clearCookiesOnFailure !== false) {
-        await this.clearTokens();
-      }
+      return payload as unknown as TokenPayload;
+    } catch (err) {
+      console.warn(`${expectedType} token verification failed:`, err);
       return null;
     }
   }
 
-  /**
-   * Verify refresh token
-   */
+  async verifyAccessToken(token?: string): Promise<TokenPayload | null> {
+    const t = token || (await this.getAccessToken());
+    return t ? this.verifyToken(t, this.accessTokenSecret, "access") : null;
+  }
+
   async verifyRefreshToken(token: string): Promise<TokenPayload | null> {
-    try {
-      const decoded = jwt.verify(token, this.refreshTokenSecret, {
-        algorithms: ["HS256"],
-        issuer: this.issuer,
-      }) as TokenPayload;
-      if (decoded.tokenType !== "refresh") {
-        throw new Error("Invalid token type");
-      }
-
-      // Check if refresh token exists in database and is not revoked
-      const storedToken = await TokenModel.verifyToken(token, "REFRESH_TOKEN");
-      if (!storedToken) {
-        throw new Error("Refresh token not found or revoked");
-      }
-
-      return decoded;
-    } catch (error) {
-      if (error instanceof TokenExpiredError) {
-        console.warn("Refresh token expired");
-      } else if (error instanceof JsonWebTokenError) {
-        console.warn("Invalid refresh token");
-      } else if (error instanceof NotBeforeError) {
-        console.warn("Refresh token not active yet");
-      } else {
-        console.error("Refresh token verification failed:", error);
-      }
-
-      return null;
-    }
+    return this.verifyToken(token, this.refreshTokenSecret, "refresh");
   }
 
   /**
    * Refresh access token using refresh token
    */
   async refreshAccessToken(refreshToken: string): Promise<TokenPair | null> {
-    try {
-      const payload = await this.verifyRefreshToken(refreshToken);
-      if (!payload) return null;
+    const payload = await this.verifyRefreshToken(refreshToken);
+    if (!payload) return null;
 
-      // Generate new token pair
-      const newTokenPair = await this.generateTokenPair({
-        email: payload.email,
-        userId: payload.userId,
-        role: payload.role,
-      });
-
-      // Revoke old refresh token
-      await this.revokeRefreshToken(refreshToken);
-
-      return newTokenPair;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      return null;
-    }
+    return this.generateTokenPair({
+      email: payload.email,
+      userId: payload.userId,
+      role: payload.role,
+    });
   }
 
   /**
@@ -210,7 +137,6 @@ class TokenMaker {
     const cookieStore = await cookies();
     const isProduction = process.env.NODE_ENV === "production";
 
-    // Set access token cookie (short expiry)
     cookieStore.set("accessToken", tokenPair.accessToken, {
       httpOnly: true,
       secure: isProduction,
@@ -219,7 +145,6 @@ class TokenMaker {
       maxAge: this.accessTokenExpiry,
     });
 
-    // Set refresh token cookie (long expiry)
     cookieStore.set("refreshToken", tokenPair.refreshToken, {
       httpOnly: true,
       secure: isProduction,
@@ -229,86 +154,40 @@ class TokenMaker {
     });
   }
 
-  /**
-   * Get access token from cookies
-   */
   async getAccessToken(): Promise<string | undefined> {
     const cookieStore = await cookies();
     return cookieStore.get("accessToken")?.value;
   }
 
-  /**
-   * Get refresh token from cookies
-   */
   async getRefreshToken(): Promise<string | undefined> {
     const cookieStore = await cookies();
     return cookieStore.get("refreshToken")?.value;
   }
 
-  /**
-   * Clear all token cookies
-   */
   async clearTokens(): Promise<void> {
     const cookieStore = await cookies();
     cookieStore.delete("accessToken");
     cookieStore.delete("refreshToken");
   }
 
-  /**
-   * Revoke refresh token (mark as invalid in database)
-   */
-  async revokeRefreshToken(refreshToken: string): Promise<void> {
-    try {
-      // Delete the refresh token from database
-      await TokenModel.revokeToken(refreshToken, "REFRESH_TOKEN");
-    } catch (error) {
-      console.error("Failed to revoke refresh token:", error);
-    }
-  }
-
-  /**
-   * Revoke all refresh tokens for a user
-   */
-  async revokeAllRefreshTokens(email: string): Promise<void> {
-    try {
-      await TokenModel.revokeAllUserTokens(email, "REFRESH_TOKEN");
-    } catch (error) {
-      console.error("Failed to revoke all refresh tokens:", error);
-    }
-  }
-
-  /**
-   * Get current user from access token
-   */
   async getCurrentUser(): Promise<TokenPayload | null> {
     return await this.verifyAccessToken();
   }
 
-  /**
-   * Check if user is authenticated
-   */
   async isAuthenticated(): Promise<boolean> {
-    const user = await this.getCurrentUser();
-    return user !== null;
+    return (await this.getCurrentUser()) !== null;
   }
 
-  /**
-   * Attempt to refresh tokens automatically
-   */
   async attemptTokenRefresh(): Promise<boolean> {
-    try {
-      const refreshToken = await this.getRefreshToken();
-      if (!refreshToken) return false;
+    const refreshToken = await this.getRefreshToken();
+    if (!refreshToken) return false;
 
-      const newTokenPair = await this.refreshAccessToken(refreshToken);
-      if (!newTokenPair) return false;
-
-      await this.setTokenCookies(newTokenPair);
-      return true;
-    } catch (error) {
-      console.error("Auto token refresh failed:", error);
-      return false;
-    }
+    const newTokenPair = await this.refreshAccessToken(refreshToken);
+    if (!newTokenPair) return false;
+    // Clear old tokens before setting new ones (token rotation)
+    await this.clearTokens();
+    await this.setTokenCookies(newTokenPair);
+    return true;
   }
 }
 

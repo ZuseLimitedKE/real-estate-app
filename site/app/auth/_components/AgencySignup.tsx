@@ -179,15 +179,23 @@ const AgencySignup = () => {
       formData.append("confirmPassword", values.confirmPassword);
       formData.append("acceptTerms", values.acceptTerms ? "on" : "off");
 
-      const results = await registerAgency(null, formData);
-      if (results.success) {
+      const result = await registerAgency(null, formData);
+      if (result.success) {
         toast.success(
-          results.message ||
+          result.message ||
           "Registration successful! Please check your email to verify your account.",
         );
         form.reset();
       } else {
-        toast.error(results.message || "An unknown error occurred.");
+        if (result.errors) {
+          // Show field-level validation errors
+          for (const msgs of Object.values(result.errors)) {
+            msgs.forEach((m) => toast.error(m));
+          }
+        } else {
+          // General error message
+          toast.error(result.message || "Registration failed");
+        }
       }
     });
   };
