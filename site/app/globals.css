@@ -78,7 +78,6 @@
 
   --destructive: oklch(0.65 0.25 25);
   --destructive-foreground: oklch(0.98 0 0);
-
   --border: oklch(0.92 0.02 240);
   --input: oklch(0.92 0.02 240);
   --ring: oklch(0.42 0.22 303);
@@ -170,4 +169,7 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+body {
+  scroll-behavior: smooth;
 }

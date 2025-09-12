@@ -70,7 +70,7 @@ export const Navbar = ({ children, className }: NavbarProps) => {
     <motion.div
       ref={ref}
       // IMPORTANT: Change this to class of `fixed` if you want the navbar to be fixed
-      className={cn("sticky inset-x-0 top-5 z-40 w-full", className)}
+      className={cn("sticky inset-x-0 top-2 z-40 w-full", className)}
     >
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
@@ -142,7 +142,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
           )}
 
           <span
-            className={`relative z-20 font-semibold  ${pathname === item.link ? "text-primary" : "text-black"}`}
+            className={`relative z-20 font-semibold  ${pathname === item.link ? "text-primary" : "text-foreground"}`}
           >
             {item.name}
           </span>
@@ -243,9 +243,9 @@ export const MobileNavToggle = ({
       className="p-2"
     >
       {isOpen ? (
-        <IconX className="text-black dark:text-white" />
+        <IconX className="text-foreground dark:text-white" />
       ) : (
-        <IconMenu2 className="text-black dark:text-white" />
+        <IconMenu2 className="text-foreground dark:text-white" />
       )}
     </button>
   );
@@ -255,17 +255,16 @@ export const NavbarLogo = () => {
   return (
     <Link
       href="/"
-      className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
+      className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-foreground"
     >
       <Image
-        src="https://assets.aceternity.com/logo-dark.png"
+        src="/logo.png"
         alt="logo"
-        width={30}
-        height={30}
+        width={100}
+        height={100}
+        className="w-8 h-8"
       />
-      <span className="font-medium text-black dark:text-white">
-        Real Estate App
-      </span>
+      <span className=" text-foreground dark:text-white">Atria</span>
     </Link>
   );
 };
@@ -288,7 +287,7 @@ export const NavbarButton = ({
     | React.ComponentPropsWithoutRef<"button">
   )) => {
   const baseStyles =
-    "px-4 py-2 rounded-md bg-white button bg-white text-black text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-200 inline-block text-center";
+    "px-4 py-2 rounded-md bg-white button bg-white text-foreground text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-200 inline-block text-center";
 
   const variantStyles = {
     primary:

@@ -1,10 +1,13 @@
 import type { HardhatUserConfig } from "hardhat/config";
 
-import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
 import { configVariable } from "hardhat/config";
 
+const ETHERSCAN_API_KEY = configVariable("ETHERSCAN_API_KEY");
+
 const config: HardhatUserConfig = {
-  plugins: [hardhatToolboxViemPlugin],
+  plugins: [hardhatToolboxMochaEthersPlugin, hardhatVerify],
   solidity: {
     profiles: {
       default: {
@@ -22,6 +25,16 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    hedera: {
+      type: "http",
+      url: configVariable("HEDERA_RPC_URL"),
+      accounts: [configVariable("HEDERA_PRIVATE_KEY")]
+    },
+    hedera_testnet: {
+      type: "http",
+      url: configVariable("HEDERA_TESTNET_RPC_URL"),
+      accounts: [configVariable("HEDERA_TESTNET_PRIVATE_KEY")]
+    },
     hardhatMainnet: {
       type: "edr-simulated",
       chainType: "l1",
@@ -35,6 +48,11 @@ const config: HardhatUserConfig = {
       chainType: "l1",
       url: configVariable("SEPOLIA_RPC_URL"),
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+    },
+  },
+  verify: {
+    etherscan: {
+      apiKey: ETHERSCAN_API_KEY,
     },
   },
 };

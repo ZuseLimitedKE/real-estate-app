@@ -1,7 +1,25 @@
-export default function LandingPage() {
+import MarketingNavbar from "@/components/marketing-navbar";
+import { Footer } from "./_components/footer";
+import { Hero } from "./_components/hero";
+import { About } from "./_components/about";
+import { Features } from "./_components/features";
+import { Properties } from "./_components/properties";
+export default function HomePage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      Landing page
-    </div>
+    <main className="min-h-screen bg-background">
+      <MarketingNavbar />
+
+      {/* Hero Section */}
+      <Hero />
+
+      {/* About Section */}
+      <About />
+      {/* Features/Services Section */}
+      <Features />
+      {/* Properties Section with Slideshow */}
+      <Properties />
+      {/* Footer Section */}
+      <Footer />
+    </main>
   );
 }

@@ -1,4 +1,6 @@
 "use client";
+// DO NOT DELETE THIS FOR NOW.
+// WARNING THIS IS A LEGACY COMPONENT , IT'S OUTDATED. MODIFY property-form.tsx INSTEAD.
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -9,8 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LocationPicker } from "./location-picker";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import type { AddPropertyFormData } from "@/types/zod";
-import { addPropertySchema } from "@/types/zod";
+import type { AddPropertyFormData } from "@/types/property";
+import { addPropertySchema } from "@/types/property";
 import { AddProperty } from "@/server-actions/property/add-property";
 import { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
@@ -21,24 +23,26 @@ export function AddPropertyForm() {
     defaultValues: {
       name: "",
       description: "",
+      amenities: {
+        bedrooms: null,
+        bathrooms: null,
+      },
       location: {
         address: "",
-        city: "Nairobi",
-        country: "Kenya",
         coordinates: {
           lat: -1.286389,
           lng: 36.817223,
         },
       },
       images: [],
-      totalFractions: 100,
+      documents: [],
+      property_status: "pending" as const,
       agencyId: "randomId",
       token_address: "randomAddress",
       proposedRentPerMonth: 0,
       serviceFeePercent: 10,
       property_value: 0,
       gross_property_size: 0,
-      price: 0,
       tenant: undefined,
       time_listed_on_site: Date.now(),
       property_owners: [],
@@ -51,9 +55,13 @@ export function AddPropertyForm() {
   const onSubmit = async (data: AddPropertyFormData) => {
     setIsSubmitting(true);
     try {
-      await AddProperty(data);
+      const initialPricePerToken = 100;
+      const totalFractions = Math.floor(
+        data.property_value / initialPricePerToken,
+      );
+      await AddProperty({ ...data, totalFractions });
       toast.success(
-        "The property is under review, we will get back to you shortly",
+        "The property is under review ,we will get back to you shortly",
       );
       form.reset();
     } catch (err) {
@@ -106,7 +114,7 @@ export function AddPropertyForm() {
                 </p>
               )}
             </div>
-
+            <div className="space-y-2"></div>
             <div className="grid">
               <div className="space-y-2">
                 <Label htmlFor="gross_property_size">
@@ -151,36 +159,6 @@ export function AddPropertyForm() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  {...form.register("location.city")}
-                  placeholder="City"
-                />
-                {form.formState.errors.location?.city && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.location.city.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  {...form.register("location.country")}
-                  placeholder="Country"
-                />
-                {form.formState.errors.location?.country && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.location.country.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
             <LocationPicker
               onCoordinatesChange={(coords) => {
                 if (coords) {
@@ -198,7 +176,7 @@ export function AddPropertyForm() {
             <CardTitle>Financial Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid">
               <div className="space-y-2">
                 <Label htmlFor="property_value">Property Value (KSH)</Label>
                 <Input
@@ -214,40 +192,8 @@ export function AddPropertyForm() {
                   </p>
                 )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="price">Price (KSH)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  {...form.register("price", { valueAsNumber: true })}
-                  placeholder="0.00"
-                />
-                {form.formState.errors.price && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.price.message}
-                  </p>
-                )}
-              </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="totalFractions">Total Fractions</Label>
-                <Input
-                  id="totalFractions"
-                  type="number"
-                  {...form.register("totalFractions", { valueAsNumber: true })}
-                  placeholder="100"
-                />
-                {form.formState.errors.totalFractions && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {form.formState.errors.totalFractions.message}
-                  </p>
-                )}
-              </div>
-
+            <div className="grid">
               <div className="space-y-2">
                 <Label htmlFor="proposedRentPerMonth">
                   Proposed Monthly Rent (KSH)
@@ -406,6 +352,77 @@ export function AddPropertyForm() {
             {form.formState.errors.images && (
               <p className="text-sm text-red-500 mt-1">
                 {form.formState.errors.images.message}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Document Uploads */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Property Documents</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UploadDropzone
+              endpoint="documentUploader"
+              appearance={{
+                container:
+                  "w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors duration-200",
+                uploadIcon: "text-gray-400",
+                label: "text-gray-600 font-medium hover:text-primary",
+                allowedContent: "text-gray-500 text-sm",
+                button:
+                  "bg-primary hover:bg-primary/90 ut-ready:bg-primary ut-uploading:bg-primary/50 ut-readying:bg-primary/70 focus:outline-primary transition-all duration-200",
+              }}
+              content={{
+                uploadIcon: ({ ready, isUploading }) => {
+                  if (isUploading) return "📤";
+                  if (ready) return "📁";
+                  return "⏳";
+                },
+                label: ({ ready, isUploading }) => {
+                  if (isUploading) return "Uploading...";
+                  if (ready) return "Choose files or drag and drop";
+                  return "Getting ready...";
+                },
+                allowedContent: ({ ready, fileTypes, isUploading }) => {
+                  if (isUploading) return "Please wait...";
+                  if (!ready) return "Preparing...";
+                  return `Allowed: ${fileTypes.join(", ")}`;
+                },
+              }}
+              className="ut-button:bg-primary ut-button:ut-readying:bg-primary/70 ut-button:ut-uploading:bg-primary/50 ut-uploading:ut-button:bg-primary/50 ut-button:hover:bg-primary/90"
+              onClientUploadComplete={(res) => {
+                const newDocuments =
+                  res
+                    ?.map((file) => ({
+                      url: file.ufsUrl,
+                      name: file.name,
+                    }))
+                    .filter(Boolean) || [];
+
+                const currentDocuments = form.getValues("documents");
+                const updatedDocuments = Array.from(
+                  new Set([...currentDocuments, ...newDocuments]),
+                );
+                form.setValue("documents", updatedDocuments, {
+                  shouldValidate: true,
+                });
+                toast.success(
+                  `${newDocuments.length > 1 ? "Documents" : "Document"} uploaded successfully`,
+                );
+              }}
+              onUploadError={(error: Error) => {
+                toast.error(`Upload Failed! ${error.message}`);
+              }}
+              onUploadBegin={(fileName) => {
+                toast.info(`Uploading ${fileName}...`);
+              }}
+            />
+
+            {form.formState.errors.documents && (
+              <p className="text-sm text-red-500 mt-1">
+                {form.formState.errors.documents.message}
               </p>
             )}
           </CardContent>

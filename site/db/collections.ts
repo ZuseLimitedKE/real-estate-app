@@ -11,7 +11,7 @@ export interface Properties {
   proposedRentPerMonth: number;
   tenant?: {
     address: string;
-    rentDate: Date;
+    rentDate: number; //1-31
     rentAmount: number;
   };
   time_listed_on_site: number; // timestamp
@@ -22,16 +22,36 @@ export interface Properties {
       lat: number;
       lng: number;
     };
-    country: string;
-    city: string;
     address: string;
   };
   images: string[];
+  documents: {
+    name: string;
+    url: string;
+  }[];
   agencyId: string;
   serviceFeePercent: number;
   token_address: string;
   name: string;
-  price: number;
+  property_status: "pending" | "approved" | "rejected";
+  amenities: {
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    parking_spaces?: number | null;
+    balconies?: number | null;
+    swimming_pool?: boolean;
+    gym?: boolean;
+    air_conditioning?: boolean;
+    heating?: boolean;
+    laundry_in_unit?: boolean;
+    dishwasher?: boolean;
+    fireplace?: boolean;
+    storage_space?: boolean;
+    pet_friendly?: boolean;
+    security_system?: boolean;
+    elevator?: boolean;
+    garden_yard?: boolean;
+  };
   property_owners: {
     owner_address: string;
     amount_owned: number;
