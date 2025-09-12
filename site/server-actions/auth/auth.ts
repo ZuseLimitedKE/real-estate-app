@@ -49,7 +49,7 @@ export async function authenticate(
     );
 
     if (!result.success) {
-      return { success: false, message: result.message || "Login failed." };
+      return { success: false, message: "Invalid email or password." };
     }
 
     const user = await UserModel.findByEmail(validatedFields.data.email);
