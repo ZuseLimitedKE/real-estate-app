@@ -27,7 +27,9 @@ export async function middleware(request: NextRequest) {
 
   try {
     // Verify access token
-    userPayload = await tokenMaker.verifyAccessToken(accessToken);
+    userPayload = await tokenMaker.verifyAccessToken(accessToken, {
+      clearCookiesOnFailure: false,
+    });
     isAuthenticated = !!userPayload;
   } catch {
     // If access token is expired/invalid, try refresh
