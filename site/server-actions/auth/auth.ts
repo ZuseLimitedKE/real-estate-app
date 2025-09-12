@@ -17,6 +17,7 @@ import {
 import { formatZodErrors } from "@/lib/zod";
 import { tokenMaker } from "@/auth/token-maker";
 import { redirect } from "next/navigation";
+import { MongoServerError } from "mongodb";
 
 export type AuthActionResult = {
   success: boolean;
@@ -266,7 +267,7 @@ export async function registerAgency(
     }
 
     // Create agency user
-    const newUser = await UserModel.create({
+    await UserModel.create({
       ...userData,
       email,
       registrationNumber,
@@ -303,6 +304,14 @@ export async function registerAgency(
     };
   } catch (error) {
     console.error("Agency registration error:", error);
+    if (error instanceof MongoServerError && error.code === 11000) {
+      const msg = error?.keyPattern?.email
+        ? "An account with this email already exists."
+        : error?.keyPattern?.registrationNumber
+          ? "This business registration number is already registered."
+          : "Duplicate key.";
+      return { success: false, message: msg };
+    }
     return {
       success: false,
       message: "Something went wrong during registration. Please try again.",
@@ -389,7 +398,8 @@ export async function resendVerificationEmail(
 
     return {
       success: true,
-      message: "Verification email sent! Please check your inbox.",
+      message:
+        "If an account with this email exists, you will receive a verification email shortly.",
     };
   } catch (error) {
     console.error("Resend verification error:", error);
