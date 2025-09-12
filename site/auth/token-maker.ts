@@ -99,7 +99,7 @@ class TokenMaker {
     await TokenModel.createToken(
       payload.email,
       "REFRESH_TOKEN",
-      this.refreshTokenExpiry,
+      this.refreshTokenExpiry * 1000, //note createToken() expects time in ms
       refreshToken,
     );
 
@@ -109,7 +109,10 @@ class TokenMaker {
   /**
    * Verify access token
    */
-  async verifyAccessToken(token?: string): Promise<TokenPayload | null> {
+  async verifyAccessToken(
+    token?: string,
+    opts?: { clearCookiesOnFailure?: boolean },
+  ): Promise<TokenPayload | null> {
     try {
       const accessToken = token || (await this.getAccessToken());
       if (!accessToken) return null;
@@ -133,7 +136,9 @@ class TokenMaker {
       } else {
         console.error("Access token verification failed:", error);
       }
-      await this.clearTokens();
+      if (opts?.clearCookiesOnFailure !== false) {
+        await this.clearTokens();
+      }
       return null;
     }
   }
