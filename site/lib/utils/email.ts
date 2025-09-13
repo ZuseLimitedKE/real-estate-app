@@ -30,79 +30,109 @@ const getEmailTemplate = (content: string, title: string) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${escapeHtml(title)}</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        .container {
-            background: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo h1 {
-            color: #2563eb;
-            margin: 0;
-            font-size: 28px;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #2563eb;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-weight: 600;
-        }
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            font-size: 14px;
-            color: #666;
-            text-align: center;
-        }
-        .warning {
-            background-color: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-radius: 6px;
-            padding: 15px;
-            margin: 20px 0;
-        }
-        .success {
-            background-color: #d1fae5;
-            border: 1px solid #10b981;
-            border-radius: 6px;
-            padding: 15px;
-            margin: 20px 0;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>${escapeHtml(title)}</title>
+  <style>
+    /* Import Manrope */
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap');
+
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      color: #2a2a2a;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 24px;
+      background-color: #f4f4f6;
+    }
+
+    .container {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      gap: 12px;
+    }
+
+    .logo img {
+      height: 36px;
+      width: auto;
+    }
+
+    .logo h1 {
+      color: #6801ac;
+      margin: 0;
+      font-size: 26px;
+      font-weight: 700;
+      margin-left:10px;
+    }
+
+    h2 {
+      color: #111;
+      font-size: 20px;
+      margin-top: 0;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 14px 28px;
+      background-color: #6801ac;
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 8px;
+      margin: 24px 0;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: 0.3px;
+    }
+
+    .footer {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .warning {
+      background-color: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .success {
+      background-color: #ecfdf5;
+      border: 1px solid #10b981;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <h1>${PLATFORM_NAME}</h1>
-        </div>
-        ${content}
-        <div class="footer">
-            <p>This is an automated message from ${PLATFORM_NAME}. Please do not reply to this email.</p>
-            <p>If you have any questions, please contact our support team.</p>
-        </div>
+  <div class="container">
+    <div class="logo">
+      <img src="https://atria-africa.vercel.app/logo.png" alt="${PLATFORM_NAME} logo"/>
+      <h1>${PLATFORM_NAME}</h1>
     </div>
+    ${content}
+    <div class="footer">
+      <p>This is an automated message from <strong>${PLATFORM_NAME}</strong>. Please do not reply to this email.</p>
+      <p>If you have any questions, please contact our support team.</p>
+    </div>
+  </div>
 </body>
 </html>
 `;
