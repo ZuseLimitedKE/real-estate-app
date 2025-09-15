@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, Eye, House, MapPin, Pencil, Percent, Plus, Trash, Users } from "lucide-react";
 import AgentDashboardStatisticsItem from "./_components/agentDashboardStatistics";
 import AgenetDashboardProperties from "./_components/agentDashboardProperties";
+import AgentDashboardTenants from "./_components/agentDashboardTenants";
 
 export default function AgentDashboard() {
     return (
@@ -20,22 +21,22 @@ export default function AgentDashboard() {
             </header>
 
             <article className="lg:grid lg:grid-cols-2 lg:gap-4">
-                <AgentDashboardStatisticsItem 
+                <AgentDashboardStatisticsItem
                     title="Total Earnings"
                     icon={<DollarSign />}
                     value="$125,000"
                 />
-                <AgentDashboardStatisticsItem 
+                <AgentDashboardStatisticsItem
                     title="Occupancy Rate"
                     icon={<Percent />}
                     value="85%"
                 />
-                <AgentDashboardStatisticsItem 
+                <AgentDashboardStatisticsItem
                     title="Total Properties"
                     icon={<House />}
                     value="12"
                 />
-                <AgentDashboardStatisticsItem 
+                <AgentDashboardStatisticsItem
                     title="Active Tenants"
                     icon={<Users />}
                     value="23"
@@ -49,7 +50,7 @@ export default function AgentDashboard() {
                         <TabsTrigger value="tenants">Tenants</TabsTrigger>
                     </TabsList>
                     <TabsContent value="properties">
-                        <AgenetDashboardProperties 
+                        <AgenetDashboardProperties
                             properties={[
                                 {
                                     id: "test",
@@ -93,47 +94,64 @@ export default function AgentDashboard() {
                         />
                     </TabsContent>
                     <TabsContent value="tenants">
-                        <section>
-                            <header>
-                                <h2>Tenant Managmement</h2>
-                                <p>3 active tenants</p>
-                            </header>
-                            <ul>
-                                <li>
-                                    <section>
-                                        <p>John Doe</p>
-                                        <p>
-                                            <span><MapPin /></span>
-                                            Riverside Apartments- Unit 12A
-                                        </p>
-                                        <p>Ksh 35,000/month</p>
-                                        <p>active</p>
-                                    </section>
-                                </li>
-                                <li>
-                                    <section>
-                                        <p>John Doe</p>
-                                        <p>
-                                            <span><MapPin /></span>
-                                            Riverside Apartments- Unit 12A
-                                        </p>
-                                        <p>Ksh 35,000/month</p>
-                                        <p>active</p>
-                                    </section>
-                                </li>
-                                <li>
-                                    <section>
-                                        <p>John Doe</p>
-                                        <p>
-                                            <span><MapPin /></span>
-                                            Riverside Apartments- Unit 12A
-                                        </p>
-                                        <p>Ksh 35,000/month</p>
-                                        <p>active</p>
-                                    </section>
-                                </li>
-                            </ul>
-                        </section>
+                        <AgentDashboardTenants
+                            tenants={[
+                                {
+                                    name: "John Doe",
+                                    property: "Riverside Appartments - Unit 12A",
+                                    rent: 35000,
+                                    status: "active",
+                                    contactInfo: {
+                                        email: "john.doe@email.com",
+                                        number: "+254 722001144"
+                                    },
+                                    leaseInfo: {
+                                        property: "123 River Road, Westlands, Nairobi",
+                                        initialDate: new Date('09/10/2021')
+                                    },
+                                    paymentHistory: [
+                                        {
+                                            date: new Date('09/10/2021'),
+                                            amount: 35000,
+                                            status: 'active'
+                                        },
+                                        {
+                                            date: new Date('09/11/2021'),
+                                            amount: 35000,
+                                            status: 'active'
+                                        },
+                                    ]
+                                },
+
+                                {
+                                    name: "Sarah Wilson",
+                                    property: "Commercial Plaza - Shop 5",
+                                    rent: 80000,
+                                    status: "active",
+                                    contactInfo: {
+                                        email: "sarah.wilson@email.com",
+                                        number: "+254 722211144"
+                                    },
+                                    leaseInfo: {
+                                        property: "456 Business Ave, CBD, Nairobi",
+                                        initialDate: new Date('09/12/2023')
+                                    },
+                                    paymentHistory: [
+                                        {
+                                            date: new Date('09/12/2022'),
+                                            amount: 80000,
+                                            status: 'active'
+                                        },
+                                        {
+                                            date: new Date('09/01/2022'),
+                                            amount: 80000,
+                                            status: 'active'
+                                        },
+                                    ]
+                                },
+                            ]}
+
+                        />
                     </TabsContent>
                 </Tabs>
             </article>
