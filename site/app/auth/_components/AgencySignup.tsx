@@ -23,7 +23,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -54,6 +53,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { registerAgency } from "@/server-actions/auth/auth";
 import { agencyRegistrationSchema } from "@/types/auth";
+import { Spinner } from "@/components/ui/spinner";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const steps = [
   {
@@ -179,15 +180,24 @@ const AgencySignup = () => {
       formData.append("confirmPassword", values.confirmPassword);
       formData.append("acceptTerms", values.acceptTerms ? "on" : "off");
 
-      const results = await registerAgency(null, formData);
-      if (results.success) {
+      const result = await registerAgency(null, formData);
+      if (result.success) {
         toast.success(
-          results.message ||
+          result.message ||
           "Registration successful! Please check your email to verify your account.",
         );
         form.reset();
+        setCurrentStep(1);
       } else {
-        toast.error(results.message || "An unknown error occurred.");
+        if (result.errors) {
+          // Show field-level validation errors
+          for (const msgs of Object.values(result.errors)) {
+            msgs.forEach((m) => toast.error(m));
+          }
+        } else {
+          // General error message
+          toast.error(result.message || "Registration failed");
+        }
       }
     });
   };
@@ -206,7 +216,7 @@ const AgencySignup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
+    <div className=" flex items-center justify-center pt-24 px-4 md:px-12">
       <Card className="w-full max-w-4xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight">
@@ -272,7 +282,9 @@ const AgencySignup = () => {
                     name="companyName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Company Name *</FormLabel>
+                        <FormLabel>
+                          Company Name <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter your company name"
@@ -288,7 +300,7 @@ const AgencySignup = () => {
                     name="tradingName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Trading Name (if different)</FormLabel>
+                        <FormLabel>Trading Name (optional)</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="e.g. Awesome Properties"
@@ -304,13 +316,15 @@ const AgencySignup = () => {
                     name="businessType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Business Type *</FormLabel>
+                        <FormLabel>
+                          Business Type <span className="text-red-600">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select a business type" />
                             </SelectTrigger>
                           </FormControl>
@@ -336,7 +350,10 @@ const AgencySignup = () => {
                     name="registrationNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Registration Number *</FormLabel>
+                        <FormLabel>
+                          Registration Number
+                          <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="C-123456" {...field} />
                         </FormControl>
@@ -349,7 +366,9 @@ const AgencySignup = () => {
                     name="licenseNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>License Number *</FormLabel>
+                        <FormLabel>
+                          License Number <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="RE-98765" {...field} />
                         </FormControl>
@@ -362,7 +381,9 @@ const AgencySignup = () => {
                     name="taxId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tax ID / PIN *</FormLabel>
+                        <FormLabel>
+                          Tax ID / PIN <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter tax identification number"
@@ -378,7 +399,10 @@ const AgencySignup = () => {
                     name="establishedDate"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>Established Date *</FormLabel>
+                        <FormLabel>
+                          Established Date
+                          <span className="text-red-600">*</span>
+                        </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -406,7 +430,7 @@ const AgencySignup = () => {
                               }
                               onSelect={(date) =>
                                 field.onChange(
-                                  date ? date.toISOString().split("T")[0] : "",
+                                  date ? format(date, "yyyy-MM-dd") : "",
                                 )
                               }
                               disabled={(date) =>
@@ -468,7 +492,9 @@ const AgencySignup = () => {
                     name="contactPerson.firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name *</FormLabel>
+                        <FormLabel>
+                          First Name <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="John" {...field} />
                         </FormControl>
@@ -481,7 +507,9 @@ const AgencySignup = () => {
                     name="contactPerson.lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>
+                          Last Name <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="Doe" {...field} />
                         </FormControl>
@@ -494,7 +522,9 @@ const AgencySignup = () => {
                     name="contactPerson.position"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Position *</FormLabel>
+                        <FormLabel>
+                          Position <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="Managing Director" {...field} />
                         </FormControl>
@@ -507,7 +537,9 @@ const AgencySignup = () => {
                     name="contactPerson.email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address *</FormLabel>
+                        <FormLabel>
+                          Email Address <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="email"
@@ -525,7 +557,9 @@ const AgencySignup = () => {
                       name="contactPerson.phoneNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number *</FormLabel>
+                          <FormLabel>
+                            Phone Number <span className="text-red-600">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input placeholder="+1 (555) 123-4567" {...field} />
                           </FormControl>
@@ -544,7 +578,9 @@ const AgencySignup = () => {
                     name="businessAddress.street"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Street Address *</FormLabel>
+                        <FormLabel>
+                          Street Address <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="123 Business Rd" {...field} />
                         </FormControl>
@@ -557,7 +593,9 @@ const AgencySignup = () => {
                     name="businessAddress.city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>City *</FormLabel>
+                        <FormLabel>
+                          City <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="Nairobi" {...field} />
                         </FormControl>
@@ -570,7 +608,9 @@ const AgencySignup = () => {
                     name="businessAddress.state"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>State/Province *</FormLabel>
+                        <FormLabel>
+                          State/Province <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="Nairobi County" {...field} />
                         </FormControl>
@@ -583,7 +623,10 @@ const AgencySignup = () => {
                     name="businessAddress.zipCode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>ZIP/Postal Code *</FormLabel>
+                        <FormLabel>
+                          ZIP/Postal Code
+                          <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="00100" {...field} />
                         </FormControl>
@@ -596,7 +639,9 @@ const AgencySignup = () => {
                     name="businessAddress.country"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Country *</FormLabel>
+                        <FormLabel>
+                          Country <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="Kenya" {...field} />
                         </FormControl>
@@ -614,7 +659,10 @@ const AgencySignup = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Account Email Address *</FormLabel>
+                        <FormLabel>
+                          Account Email Address
+                          <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="email"
@@ -631,10 +679,11 @@ const AgencySignup = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password *</FormLabel>
+                        <FormLabel>
+                          Password <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
-                          <Input
-                            type="password"
+                          <PasswordInput
                             placeholder="Enter a strong password"
                             {...field}
                           />
@@ -648,10 +697,12 @@ const AgencySignup = () => {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirm Password *</FormLabel>
+                        <FormLabel>
+                          Confirm Password
+                          <span className="text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
-                          <Input
-                            type="password"
+                          <PasswordInput
                             placeholder="Confirm your password"
                             {...field}
                           />
@@ -664,7 +715,7 @@ const AgencySignup = () => {
                     control={form.control}
                     name="acceptTerms"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
                           <Checkbox
                             checked={field.value}
@@ -672,9 +723,8 @@ const AgencySignup = () => {
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel>
+                          <FormLabel className="text-xs text-muted-foreground">
                             I accept the terms and conditions and privacy policy
-                            *
                           </FormLabel>
                         </div>
                       </FormItem>
@@ -682,27 +732,36 @@ const AgencySignup = () => {
                   />
                 </div>
               )}
-              <Button type="submit" disabled={isPending} className="w-full">
-                {isPending ? "Creating Account..." : "Create Account"}
+              {/* Navigation Buttons */}
+              <div className="flex justify-between pt-4">
+                {currentStep !== 1 && (
+                  <Button
+                    type="button"
+                    className="font-semibold bg-transparent"
+                    variant="outline"
+                    onClick={prevStep}
+                    disabled={currentStep === 1}
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+                  </Button>
+                )}
+                {currentStep < steps.length ? (
+                  <Button type="button" onClick={nextStep} className="ml-auto">
+                    Next <ChevronRight className="ml-2 h-4 w-4 font-semibold" />
+                  </Button>
+                ) : null}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full font-semibold"
+              >
+                {isPending ? <Spinner /> : "Create Account"}
               </Button>
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 1}
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-          </Button>
-          {currentStep < steps.length ? (
-            <Button type="button" onClick={nextStep}>
-              Next <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : null}
-        </CardFooter>
       </Card>
     </div>
   );

@@ -38,7 +38,7 @@ export class TokenModel {
 
   private static async getCollection(): Promise<Collection<VerificationToken>> {
     if (!this.collection) {
-      const db = client.db();
+      const db = client.db("real-estate-app");
       this.collection = db.collection<VerificationToken>("tokens");
 
       await this.collection.createIndexes([

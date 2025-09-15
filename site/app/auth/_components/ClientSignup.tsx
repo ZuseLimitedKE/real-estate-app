@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { investorRegistrationSchema } from "@/types/auth";
 import { registerInvestor } from "@/server-actions/auth/auth";
 import { z } from "zod";
-import { User } from "lucide-react";
 import {
   Form,
   FormField,
@@ -17,10 +16,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const InvestorSignup = () => {
   const [isPending, startTransition] = useTransition();
-
   const form = useForm<z.infer<typeof investorRegistrationSchema>>({
     resolver: zodResolver(investorRegistrationSchema),
     defaultValues: {
@@ -50,14 +51,32 @@ const InvestorSignup = () => {
       formData.append("confirmPassword", values.confirmPassword);
       formData.append("acceptTerms", values.acceptTerms ? "on" : "off");
 
-      await registerInvestor(null, formData);
+      try {
+        const result = await registerInvestor(null, formData);
+        if (result.success) {
+          toast.success(result.message);
+          form.reset();
+        } else {
+          if (result.errors) {
+            // Show field-level validation errors
+            for (const msgs of Object.values(result.errors)) {
+              msgs.forEach((m) => toast.error(m));
+            }
+          } else {
+            // General error message
+            toast.error(result.message || "Registration failed");
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("unable to create an account");
+      }
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className=" flex flex-col justify-center pt-24 px-4 md:px-12">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <User className="mx-auto h-12 w-12 text-blue-600" />
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Create Investor Account
         </h2>
@@ -76,7 +95,9 @@ const InvestorSignup = () => {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name *</FormLabel>
+                      <FormLabel>
+                        First Name <span className="text-red-600">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter first name" {...field} />
                       </FormControl>
@@ -89,7 +110,9 @@ const InvestorSignup = () => {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name *</FormLabel>
+                      <FormLabel>
+                        Last Name <span className="text-red-600">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter last name" {...field} />
                       </FormControl>
@@ -104,7 +127,9 @@ const InvestorSignup = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Address *</FormLabel>
+                    <FormLabel>
+                      Email Address <span className="text-red-600">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -136,7 +161,9 @@ const InvestorSignup = () => {
                 name="publicKey"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Public Key *</FormLabel>
+                    <FormLabel>
+                      Public Key <span className="text-red-600">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Enter your Hedera public key"
@@ -153,10 +180,11 @@ const InvestorSignup = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password *</FormLabel>
+                    <FormLabel>
+                      Password <span className="text-red-600">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="Enter a strong password"
                         {...field}
                       />
@@ -171,10 +199,11 @@ const InvestorSignup = () => {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password *</FormLabel>
+                    <FormLabel>
+                      Confirm Password <span className="text-red-600">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="Confirm your password"
                         {...field}
                       />
@@ -196,8 +225,8 @@ const InvestorSignup = () => {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        I accept the terms and conditions and privacy policy *
+                      <FormLabel className="text-xs text-muted-foreground">
+                        I accept the terms and conditions and privacy policy
                       </FormLabel>
                       <FormMessage />
                     </div>
@@ -205,8 +234,12 @@ const InvestorSignup = () => {
                 )}
               />
 
-              <Button type="submit" disabled={isPending} className="w-full">
-                {isPending ? "Creating Account..." : "Create Account"}
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full font-semibold"
+              >
+                {isPending ? <Spinner /> : "Create Account"}
               </Button>
             </form>
           </Form>

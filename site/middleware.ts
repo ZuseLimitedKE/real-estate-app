@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { tokenMaker } from "@/auth/token-maker";
 
-// Routes that require authentication
 const protectedRoutes = ["/investors", "/agencies", "/admin"];
-
-// Routes that logged-in users should not see
-const authRoutes = ["/auth/login", "/auth/register"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -14,69 +10,47 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route),
   );
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  // Grab tokens from cookies
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  let isAuthenticated = false;
-  let userPayload: Awaited<
-    ReturnType<typeof tokenMaker.verifyAccessToken>
-  > | null = null;
+  // Verify access token
+  let userPayload = await tokenMaker.verifyAccessToken(accessToken);
+  let isAuthenticated = !!userPayload;
 
-  try {
-    // Verify access token
-    userPayload = await tokenMaker.verifyAccessToken(accessToken, {
-      clearCookiesOnFailure: false,
-    });
-    isAuthenticated = !!userPayload;
-  } catch {
-    // If access token is expired/invalid, try refresh
-    if (refreshToken) {
-      try {
-        const newTokenPair = await tokenMaker.refreshAccessToken(refreshToken);
-        if (newTokenPair) {
-          const response = NextResponse.next();
+  let response: NextResponse | null = null;
 
-          // Replace cookies with new tokens
-          response.cookies.set("accessToken", newTokenPair.accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: 60 * 15, // 15 min
-          });
+  // Attempt refresh if not authenticated
+  if (!isAuthenticated && refreshToken) {
+    const newTokenPair = await tokenMaker.refreshAccessToken(refreshToken);
+    if (newTokenPair) {
+      response = NextResponse.next();
 
-          response.cookies.set("refreshToken", newTokenPair.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-          });
+      response.cookies.set("accessToken", newTokenPair.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 15,
+      });
 
-          isAuthenticated = true;
+      response.cookies.set("refreshToken", newTokenPair.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
 
-          // Persist refreshed cookies for all routes
-          return response;
-        }
-      } catch (err) {
-        console.error("Token refresh failed:", err);
-      }
+      userPayload = await tokenMaker.verifyAccessToken(
+        newTokenPair.accessToken,
+      );
+      isAuthenticated = !!userPayload;
     }
   }
 
-  // If not logged in but trying to hit protected routes , send to login
-  if (isProtectedRoute && !isAuthenticated) {
-    const response = NextResponse.redirect(new URL("/auth/login", request.url));
-    response.cookies.delete("accessToken");
-    response.cookies.delete("refreshToken");
-    return response;
-  }
-
-  // If already logged in, block access to login/register
-  if (isAuthRoute && isAuthenticated && userPayload) {
+  // If authenticated and visiting /auth, redirect by role
+  if (pathname.startsWith("/auth") && isAuthenticated && userPayload) {
     const role = userPayload.role.toLowerCase();
     const redirectPath =
       role === "admin"
@@ -84,32 +58,39 @@ export async function middleware(request: NextRequest) {
         : role === "agency"
           ? "/agencies"
           : "/investors";
+
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }
 
-  // Role-based access control
+  // Protected routes: redirect to /auth if not logged in
+  if (isProtectedRoute && !isAuthenticated) {
+    const res = NextResponse.redirect(new URL("/auth/login", request.url));
+    res.cookies.delete("accessToken");
+    res.cookies.delete("refreshToken");
+    return res;
+  }
+
+  // Role-based checks
   if (isAuthenticated && userPayload) {
     const role = userPayload.role.toLowerCase();
     const homeByRole: Record<string, string> = {
       admin: "/admin",
-      agencies: "/agencies",
-      investors: "/investors",
+      agency: "/agencies",
+      investor: "/investors",
     };
-    // Admin-only pages
+
     if (pathname.startsWith("/admin") && role !== "admin") {
       return NextResponse.redirect(
         new URL(homeByRole[role] ?? "/", request.url),
       );
     }
 
-    // Agency-only pages
     if (pathname.startsWith("/agencies") && role !== "agency") {
       return NextResponse.redirect(
         new URL(homeByRole[role] ?? "/", request.url),
       );
     }
 
-    // Investor-only pages
     if (pathname.startsWith("/investors") && role !== "investor") {
       return NextResponse.redirect(
         new URL(homeByRole[role] ?? "/", request.url),
@@ -117,6 +98,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Default: allow through
-  return NextResponse.next();
+  // Default: allow
+  return response ?? NextResponse.next();
 }
+
+export const config = {
+  matcher: ["/((?!_next|static|favicon.ico).*)"],
+};

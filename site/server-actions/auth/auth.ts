@@ -88,23 +88,13 @@ export async function authenticate(
 // Logout action
 export async function logout() {
   try {
-    // Get current user to revoke their refresh tokens
-    const currentUser = await tokenMaker.getCurrentUser();
-
-    if (currentUser) {
-      // Revoke all refresh tokens for this user
-      await tokenMaker.revokeAllRefreshTokens(currentUser.email);
-    }
-
-    // Clear token cookies
     await tokenMaker.clearTokens();
-
-    redirect("/auth/login");
+    redirect("/");
   } catch (error) {
     console.error("Logout error:", error);
     // Still clear tokens and redirect even if revocation fails
     await tokenMaker.clearTokens();
-    redirect("/auth/login");
+    redirect("/");
   }
 }
 
@@ -148,7 +138,8 @@ export async function registerInvestor(
       };
     }
 
-    const { email, publicKey, ...userData } = validatedFields.data;
+    const { email, publicKey, confirmPassword, ...userData } =
+      validatedFields.data;
 
     // Check if email already exists
     const existingUser = await UserModel.emailExists(email);
@@ -252,7 +243,8 @@ export async function registerAgency(
       };
     }
 
-    const { email, registrationNumber, ...userData } = validatedFields.data;
+    const { email, registrationNumber, confirmPassword, ...userData } =
+      validatedFields.data;
 
     // Check if email already exists
     const existingUser = await UserModel.emailExists(email);
@@ -521,8 +513,8 @@ export async function confirmPasswordReset(
 
     await UserModel.changePassword(user._id.toString(), password);
 
-    // Revoke all refresh tokens for security (force re-login)
-    await tokenMaker.revokeAllRefreshTokens(email);
+    // (force re-login)
+    await tokenMaker.clearTokens();
 
     return {
       success: true,
@@ -584,10 +576,8 @@ export async function changePassword(
 
     // Update password
     await UserModel.changePassword(userId, newPassword);
-
-    // Revoke all refresh tokens for security (except current session)
-    // User will need to re-login on other devices
-    await tokenMaker.revokeAllRefreshTokens(currentUser.email);
+    // Clear current session tokens (note: cannot invalidate tokens on other devices with stateless JWTs)
+    await tokenMaker.clearTokens();
 
     // Generate new token pair for current session
     const newTokenPair = await tokenMaker.generateTokenPair({

@@ -1,108 +1,96 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, Eye, House, MapPin, Pencil, Percent, Plus, Trash, Users } from "lucide-react";
+import AgentDashboardStatisticsItem from "./_components/agentDashboardStatistics";
+import AgenetDashboardProperties from "./_components/agentDashboardProperties";
 
 export default function AgentDashboard() {
     return (
         <main>
-            <header>
-                <h1>Agent Dashboard</h1>
-                <p>Manage your properties and track tenants</p>
+            <header className="flex lg:flex-row flex-col lg:justify-between gap-4 my-4">
+                <div>
+                    <h1>Agent Dashboard</h1>
+                    <p>Manage your properties and track tenants</p>
+                </div>
+
                 <Button>
                     <Plus />
                     <p>Add New Property</p>
                 </Button>
             </header>
 
-            <article>
-                <section>
-                    <header>
-                        <h3>Total Earnings</h3>
-                        <DollarSign />
-                    </header>
-                    <p>$125,000</p>
-                </section>
-                <section>
-                    <header>
-                        <h3>Occupancy Rate</h3>
-                        <Percent />
-                    </header>
-                    <p>85%</p>
-                </section>
-                <section>
-                    <header>
-                        <h3>Total Properties</h3>
-                        <House />
-                    </header>
-                    <p>12</p>
-                </section>
-                <section>
-                    <header>
-                        <h3>Active Tenants</h3>
-                        <Users />
-                    </header>
-                    <p>23</p>
-                </section>
+            <article className="lg:grid lg:grid-cols-2 lg:gap-4">
+                <AgentDashboardStatisticsItem 
+                    title="Total Earnings"
+                    icon={<DollarSign />}
+                    value="$125,000"
+                />
+                <AgentDashboardStatisticsItem 
+                    title="Occupancy Rate"
+                    icon={<Percent />}
+                    value="85%"
+                />
+                <AgentDashboardStatisticsItem 
+                    title="Total Properties"
+                    icon={<House />}
+                    value="12"
+                />
+                <AgentDashboardStatisticsItem 
+                    title="Active Tenants"
+                    icon={<Users />}
+                    value="23"
+                />
             </article>
 
             <article>
-                <Tabs default="">
+                <Tabs defaultValue="properties">
                     <TabsList>
                         <TabsTrigger value="properties">Properties</TabsTrigger>
                         <TabsTrigger value="tenants">Tenants</TabsTrigger>
                     </TabsList>
                     <TabsContent value="properties">
-                        <section>
-                            <header>
-                                <h2>My Properties</h2>
-                                <p>3 properties</p>
-                            </header>
-                            <ul>
-                                <li>
-                                    <section>
-                                        <header>
-                                            <img
-                                                src={"/public/modern-apartment-building-nairobi-westlands.jpg"}
-                                                alt="Riverside Appartments image"
-                                            />
-                                            <p>Riverside Apartments</p>
-                                            <p>Approved</p>
-                                        </header>
-                                        <p>
-                                            <MapPin />
-                                            <span>123 River Road, Westlands, Nairobi</span>
-                                        </p>
-                                        <p>
-                                            <span>Type: Residential</span>
-                                            <p>Residential</p>
-                                        </p>
-                                        <p>
-                                            <span>Units: </span>
-                                            <p>24</p>
-                                        </p>
-                                        <p>
-                                            <span>Occupied: </span>
-                                            <p>22/24</p>
-                                        </p>
-                                        <p>KSh 85,000/month</p>
-                                        <footer>
-                                            <Button>
-                                                <Eye />
-                                                <p>View</p>
-                                            </Button>
-                                            <Button>
-                                                <Pencil />
-                                                <p>Edit</p>
-                                            </Button>
-                                            <Button>
-                                                <Trash />
-                                                <p>Delete</p>
-                                            </Button>
-                                        </footer>
-                                    </section>
-                                </li>
-                            </ul>
-                        </section>
+                        <AgenetDashboardProperties 
+                            properties={[
+                                {
+                                    id: "test",
+                                    status: "approved",
+                                    image: "/modern-apartment-building-nairobi-westlands.jpg",
+                                    name: "Riverside Apartments",
+                                    location: "123 River Road, Westlands, Nairobi",
+                                    details: [
+                                        {
+                                            title: "Type",
+                                            value: "Residential"
+                                        },
+                                        {
+                                            title: "Units",
+                                            value: "24"
+                                        },
+                                        {
+                                            title: "Occupied",
+                                            value: "22/24"
+                                        },
+                                    ],
+                                    rent: 85000
+
+                                },
+                                {
+                                    id: "test_2",
+                                    status: "reviewing",
+                                    image: "/waterfront-apartment-development-mombasa-nyali.jpg",
+                                    name: "Mombasa Waterfront Properties",
+                                    location: "123 Nyali Drive, Nyali, Mombasa",
+                                    details: [
+                                        {
+                                            title: "Type",
+                                            value: "Mansionnete"
+                                        },
+                                    ],
+                                    rent: 150000
+
+                                },
+                            ]}
+                        />
                     </TabsContent>
                     <TabsContent value="tenants">
                         <section>
