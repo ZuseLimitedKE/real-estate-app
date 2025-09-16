@@ -1,7 +1,6 @@
 import { ObjectId } from "mongodb";
 import client from "./connection";
 const databaseName = "real-estate-app";
-const agenciesCollection = "agencies";
 const propertiesCollection = "properties";
 const database = client.db(databaseName);
 export interface Properties {
@@ -64,18 +63,5 @@ export interface Properties {
   createdAt: Date;
   updatedAt: Date;
 }
-export interface Agencies {
-  _id?: ObjectId;
-  name: string;
-  location: string;
-  listed_properties: string[];
-  approvalStatus: "approved" | "suspended" | "not reviewed";
-  address: string;
-  managementPricePercentage: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-export const AGENCIES_COLLECTION =
-  database.collection<Agencies>(agenciesCollection);
 export const PROPERTIES_COLLECTION =
   database.collection<Properties>(propertiesCollection);

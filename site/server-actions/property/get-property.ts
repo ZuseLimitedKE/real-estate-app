@@ -2,6 +2,7 @@
 
 import { requireAnyRole } from "@/auth/utils";
 import { Errors, MyError } from "@/constants/errors";
+import { AuthError } from "@/auth/utils";
 import database from "@/db";
 
 export async function GetProperties() {
@@ -16,11 +17,23 @@ export async function GetProperties() {
 
 export async function GetAgencyProperties(agencyId: string) {
   try {
-    await requireAnyRole("agency", "admin");
+    const user = await requireAnyRole("agency", "admin");
+    if (user.role === "agency") {
+      // Prevent agencies from reading other agencies' properties
+      if (user.userId !== agencyId) {
+        throw new AuthError(
+          "Cannot access another agency's properties",
+          "INSUFFICIENT_PERMISSIONS",
+        );
+      }
+    }
     const agencyProperties = await database.GetAgencyProperties(agencyId);
     return agencyProperties;
   } catch (err) {
+    if (err instanceof AuthError) {
+      throw new MyError(Errors.UNAUTHORIZED, { cause: err });
+    }
     console.error(err);
-    throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES);
+    throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES, { cause: err });
   }
 }
