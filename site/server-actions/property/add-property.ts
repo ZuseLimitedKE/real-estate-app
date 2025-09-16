@@ -3,10 +3,11 @@ import database from "@/db";
 import { MyError, Errors } from "@/constants/errors";
 import { Properties } from "@/db/collections";
 import { MongoServerError } from "mongodb";
+import { requireRole } from "@/auth/utils";
 
 export async function AddProperty(FormData: Properties) {
-  //TODO: There has to be an auth check here , not all users should be able to add properties
   try {
+    await requireRole("agency");
     await database.AddProperty(FormData);
   } catch (error) {
     if (error instanceof MongoServerError && error.code === 11000) {

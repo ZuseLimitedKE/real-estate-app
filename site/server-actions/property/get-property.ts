@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/auth/utils";
 import { Errors, MyError } from "@/constants/errors";
 import database from "@/db";
 
@@ -14,8 +15,8 @@ export async function GetProperties() {
 }
 
 export async function GetAgencyProperties(agencyId: string) {
-  //TODO: Auth Check
   try {
+    await requireRole("agency");
     const agencyProperties = await database.GetAgencyProperties(agencyId);
     return agencyProperties;
   } catch (err) {
