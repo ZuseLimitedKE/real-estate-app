@@ -34,7 +34,7 @@ export default function AgentDashboardTenants(props: { tenants: AgentDashboardTe
     }
 
     return (
-        <section>
+        <section className="my-4">
             <header className="flex flex-row justify-between mb-4">
                 <h2>Tenant Managmement</h2>
                 <p>{props.tenants.length} active tenants</p>

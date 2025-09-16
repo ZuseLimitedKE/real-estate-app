@@ -1,69 +1,66 @@
 import { Button } from "@/components/ui/button";
+import { DashboardProperties } from "@/types/agent_dashboard";
 import { Eye, MapPin, Pencil, Trash } from "lucide-react";
+import Image from "next/image";
 
-interface DashboardProperties {
-    id: string,
-    image: string,
-    name: string,
-    status: string,
-    location: string,
-    details: {
-        title: string,
-        value: string
-    }[],
-    rent: number,
-}
-
-export default function AgenetDashboardProperties(props: { properties: DashboardProperties[] }) {
+export default function AgentDashboardProperties(props: { properties: DashboardProperties[] }) {
     const propertiesListItems = props.properties.map((p) => {
         const detailItems = p.details.map((d, index) => (
             <p key={index}>
-                <span>{d.title}: </span>
+                <span className="font-bold text-sm">{d.title}: </span>
                 <span>{d.value}</span>
             </p>
         ));
 
         return (
             <li key={p.id}>
-                <section className="flex flex-col gap-2">
+                <section className="flex flex-col gap-2 rounded-md border border-solid border-slate-300">
                     <header>
-                        <img
+                        <Image
                             src={p.image}
                             alt={p.name}
+                            width={500}
+                            height={500}
+                            className="max-w-full object-fit lg:h-1/2"
                         />
-                        <div className="flex flex-row gap-2 flex-wrap">
-                            <p>{p.name}</p>
-                            <p>{p.status}</p>
+                        <div className="flex flex-row gap-2 flex-wrap p-4 items-center">
+                            <p className="text-lg font-bold">{p.name}</p>
+                            <div className="px-2 py-1 rounded-full bg-primary text-white font-bold text-sm">
+                                <p>{p.status}</p>
+                            </div>
                         </div>
                     </header>
 
-                    <div className="flex flex-row gap-1 flex-wrap">
-                        <MapPin />
-                        <p>{p.location}</p>
-                    </div>
-
-                    <div className="flex flex-row flex-wrap gap-2">
-                        {detailItems}
-                    </div>
-
-                    <p>KSh {p.rent}/month</p>
-                    <footer className="flex flex-col lg:flex-row gap-1">
-                        <div className="flex flex-row gap-2 flex-wrap">
-                            <Button className="flex-1">
-                                <Eye />
-                                <p>View</p>
-                            </Button>
-                            <Button className="flex-1">
-                                <Pencil />
-                                <p>Edit</p>
-                            </Button>
+                    <div className="px-4 pb-4 flex flex-col gap-2">
+                        <div className="flex flex-row gap-1 flex-wrap items-center">
+                            <MapPin className="w-4 h-4"/>
+                            <p className="text-slate-500">{p.location}</p>
                         </div>
 
-                        <Button className="lg:flex-1">
-                            <Trash />
-                            <p>Delete</p>
-                        </Button>
-                    </footer>
+                        <div className="flex flex-col gap-1 lg:flex-row lg:flex-wrap lg:gap-4">
+                            {detailItems}
+                        </div>
+
+                        <p className="font-bold text-lg">KSh {p.rent}/month</p>
+                        <footer className="flex flex-col lg:flex-row gap-1">
+                            <div className="flex flex-row gap-2 flex-wrap">
+                                <Button className="flex-1" variant='outline'>
+                                    <Eye />
+                                    <p>View</p>
+                                </Button>
+                                <Button className="flex-1" variant='outline'>
+                                    <Pencil />
+                                    <p>Edit</p>
+                                </Button>
+                            </div>
+
+                            <Button className="lg:flex-1" variant='destructive'>
+                                <Trash />
+                                <p>Delete</p>
+                            </Button>
+                        </footer>
+                    </div>
+
                 </section>
             </li>
         );
@@ -72,8 +69,8 @@ export default function AgenetDashboardProperties(props: { properties: Dashboard
     return (
         <article>
             <header className="flex flex-row justify-between my-4">
-                <h2>My Properties</h2>
-                <p>3 properties</p>
+                <h2 className="font-bold text-2xl">My Properties</h2>
+                <p className="text-slate-400">3 properties</p>
             </header>
             <ul className="flex flex-col gap-4">
                 {propertiesListItems}
