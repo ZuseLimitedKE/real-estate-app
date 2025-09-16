@@ -3,11 +3,11 @@ import database from "@/db";
 import { MyError, Errors } from "@/constants/errors";
 import { Properties } from "@/db/collections";
 import { MongoServerError } from "mongodb";
-import { requireRole } from "@/auth/utils";
+import { requireAnyRole } from "@/auth/utils";
 
 export async function AddProperty(FormData: Properties) {
   try {
-    await requireRole("agency");
+    await requireAnyRole("admin", "agency");
     await database.AddProperty(FormData);
   } catch (error) {
     if (error instanceof MongoServerError && error.code === 11000) {

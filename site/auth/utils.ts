@@ -36,7 +36,38 @@ export async function requireRole(requiredRoles: UserRole | UserRole[]) {
   }
   return user;
 }
+// helper for checking specific role combinations
+export async function requireAnyRole(...roles: UserRole[]) {
+  return requireRole(roles);
+}
+//gives you granular control over user permissions
+// STILL WORKING ON THIS
+export async function requirePermission(permission: string) {
+  const user = await requireAuth();
 
+  const rolePermissions = {
+    admin: ["*"], // Admin has all permissions
+    agency: [
+      "property:create",
+      "property:update",
+      "property:delete",
+      "property:read",
+    ],
+    investor: ["property:read", "investment:create", "investment:read"],
+  };
+
+  const userRole = user.role.toLowerCase() as keyof typeof rolePermissions;
+  const permissions = rolePermissions[userRole] || [];
+
+  if (!permissions.includes("*") && !permissions.includes(permission)) {
+    throw new AuthError(
+      `Missing required permission: ${permission}`,
+      "INSUFFICIENT_PERMISSIONS",
+    );
+  }
+
+  return user;
+}
 export async function isAuthenticated() {
   return !!(await tokenMaker.getCurrentUser());
 }

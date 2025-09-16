@@ -1,6 +1,6 @@
 "use server";
 
-import { requireRole } from "@/auth/utils";
+import { requireAnyRole } from "@/auth/utils";
 import { Errors, MyError } from "@/constants/errors";
 import database from "@/db";
 
@@ -16,7 +16,7 @@ export async function GetProperties() {
 
 export async function GetAgencyProperties(agencyId: string) {
   try {
-    await requireRole("agency");
+    await requireAnyRole("agency", "admin");
     const agencyProperties = await database.GetAgencyProperties(agencyId);
     return agencyProperties;
   } catch (err) {
