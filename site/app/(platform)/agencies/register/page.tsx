@@ -1,8 +1,10 @@
+import { requireAuth } from "@/auth/utils";
 import { AddPropertyForm } from "../_components/property-form";
-export default function RegisterPropertyPage() {
+export default async function RegisterPropertyPage() {
+  const user = await requireAuth();
   return (
     <div className="min-h-screen">
-      <AddPropertyForm />
+      <AddPropertyForm userId={user.userId} />
     </div>
   );
 }

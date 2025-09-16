@@ -19,10 +19,11 @@ import { MyError } from "@/constants/errors";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
+  userId: string;
   steps: FormStep[];
 }
 
-export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
+export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const currentStep = steps[currentStepIndex];
@@ -58,7 +59,7 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
     images: [],
     documents: [],
     property_status: "pending" as const,
-    agencyId: "randomId",
+    agencyId: userId,
     token_address: "randomAddress",
     proposedRentPerMonth: 0,
     serviceFeePercent: 10,
