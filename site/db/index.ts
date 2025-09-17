@@ -1,9 +1,5 @@
-import {
-  AGENCIES_COLLECTION,
-  Agencies,
-  PROPERTIES_COLLECTION,
-  Properties,
-} from "./collections";
+import { ObjectId } from "mongodb";
+import { PROPERTIES_COLLECTION, Properties } from "./collections";
 import { MyError, Errors } from "@/constants/errors";
 class MongoDatabase {
   async AddProperty(args: Properties) {
@@ -18,10 +14,13 @@ class MongoDatabase {
       throw new MyError(Errors.NOT_ADD_PROPERTY);
     }
   }
+  //Gets approved properties for public listings
   async GetProperties(): Promise<Properties[]> {
     try {
       //TODO: Pagination
-      const properties = await PROPERTIES_COLLECTION.find({})
+      const properties = await PROPERTIES_COLLECTION.find({
+        property_status: "approved",
+      })
         .sort({ time_listed_on_site: -1, _id: -1 })
         .toArray();
       return properties;
@@ -30,22 +29,30 @@ class MongoDatabase {
       throw new MyError(Errors.NOT_GET_PROPERTIES);
     }
   }
-  async AddAgency(args: Agencies) {
+  async DeleteProperty(_id: ObjectId): Promise<boolean> {
     try {
-      const res = await AGENCIES_COLLECTION.insertOne(args);
-      return res.insertedId;
+      const res = await PROPERTIES_COLLECTION.deleteOne({ _id: _id });
+      return (res.deletedCount ?? 0) > 0;
     } catch (err) {
-      console.error("Error adding agency", { cause: err });
-      throw new MyError(Errors.NOT_ADD_AGENCY);
+      console.error("Error deleting property", { cause: err });
+      throw new MyError(Errors.NOT_DELETE_PROPERTY);
     }
   }
-  async GetAgencies(): Promise<Agencies[]> {
+  // Gets properties associated with an agency
+  async GetAgencyProperties(agencyId: string): Promise<Properties[]> {
     try {
-      const agencies = await AGENCIES_COLLECTION.find({}).toArray();
-      return agencies;
+      const properties = await PROPERTIES_COLLECTION.find({
+        agencyId: agencyId,
+      })
+        .sort({
+          time_listed_on_site: -1,
+          _id: -1,
+        })
+        .toArray();
+      return properties;
     } catch (err) {
-      console.error("Error fetching agencies", { cause: err });
-      throw new MyError(Errors.NOT_GET_AGENCIES);
+      console.error("Error fetching agency properties", { cause: err });
+      throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES);
     }
   }
 }

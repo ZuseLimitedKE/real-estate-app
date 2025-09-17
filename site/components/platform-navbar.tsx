@@ -10,11 +10,12 @@ import {
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
+import { logout } from "@/server-actions/auth/auth";
 import Link from "next/link";
 import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
 
-export function AppNavbar() {
+export function PlatformNavbar() {
   const navItems = [
     {
       name: "View Properties",
@@ -39,8 +40,20 @@ export function AppNavbar() {
         <NavbarLogo />
         <NavItems items={navItems} />
         <div className="flex items-center gap-4">
+<<<<<<< HEAD:site/components/app-navbar.tsx
           <NavbarButton variant="secondary"><WalletConnect /> </NavbarButton>
           <NavbarButton variant="primary">Book a call</NavbarButton>
+=======
+          <NavbarButton
+            variant="primary"
+            as="button"
+            onClick={async () => {
+              await logout();
+            }}
+          >
+            Logout
+          </NavbarButton>
+>>>>>>> 41b49ab571a6f2a8cd0eeb57b3c0c56fbeb0c64d:site/components/platform-navbar.tsx
         </div>
       </NavBody>
 
@@ -69,6 +82,7 @@ export function AppNavbar() {
             </Link>
           ))}
           <div className="flex w-full flex-col gap-4">
+<<<<<<< HEAD:site/components/app-navbar.tsx
             <WalletConnect />
             <NavbarButton
               onClick={() => setIsMobileMenuOpen(false)}
@@ -76,6 +90,18 @@ export function AppNavbar() {
               className="w-full"
             >
               Book a call
+=======
+            <NavbarButton
+              onClick={async () => {
+                setIsMobileMenuOpen(false);
+                await logout();
+              }}
+              variant="primary"
+              as="button"
+              className="w-full"
+            >
+              Logout
+>>>>>>> 41b49ab571a6f2a8cd0eeb57b3c0c56fbeb0c64d:site/components/platform-navbar.tsx
             </NavbarButton>
           </div>
         </MobileNavMenu>

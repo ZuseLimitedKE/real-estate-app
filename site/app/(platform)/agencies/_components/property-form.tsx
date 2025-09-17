@@ -61,6 +61,6 @@ export const addPropertySteps: FormStep[] = [
   },
 ];
 
-export function AddPropertyForm() {
-  return <MultiStepForm steps={addPropertySteps} />;
+export function AddPropertyForm({ userId }: { userId: string }) {
+  return <MultiStepForm steps={addPropertySteps} userId={userId} />;
 }
