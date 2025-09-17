@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { Toaster } from "sonner";
 import { siteConfig } from "@/config/site";
+import Providers from "@/components/providers";
 import "./globals.css";
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -26,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${manrope.className} ${inter.variable} antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
         <Toaster richColors closeButton />
       </body>
     </html>
