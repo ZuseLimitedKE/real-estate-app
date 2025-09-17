@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
+import { logout } from "@/server-actions/auth/auth";
 
 export function AppNavbar() {
   const navItems = [
@@ -39,8 +40,18 @@ export function AppNavbar() {
         <NavbarLogo />
         <NavItems items={navItems} />
         <div className="flex items-center gap-4">
-          <NavbarButton variant="secondary"><WalletConnect /> </NavbarButton>
-          <NavbarButton variant="primary">Book a call</NavbarButton>
+          <NavbarButton variant="secondary">
+            <WalletConnect />
+          </NavbarButton>
+          <NavbarButton
+            variant="primary"
+            as="button"
+            onClick={async () => {
+              await logout();
+            }}
+          >
+            Logout
+          </NavbarButton>
         </div>
       </NavBody>
 
@@ -71,11 +82,15 @@ export function AppNavbar() {
           <div className="flex w-full flex-col gap-4">
             <WalletConnect />
             <NavbarButton
-              onClick={() => setIsMobileMenuOpen(false)}
               variant="primary"
               className="w-full"
+              as="button"
+              onClick={async () => {
+                setIsMobileMenuOpen(false);
+                await logout();
+              }}
             >
-              Book a call
+              Logout
             </NavbarButton>
           </div>
         </MobileNavMenu>
