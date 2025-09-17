@@ -10,10 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-<<<<<<< HEAD
 import BuyTokensForm from "./_components/BuyTokensForm";
-=======
->>>>>>> 41b49ab571a6f2a8cd0eeb57b3c0c56fbeb0c64d
+
 import {
   MapPin,
   TrendingUp,
