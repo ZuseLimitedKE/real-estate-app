@@ -3,11 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { WalletConnect } from "./wallet-connect";
 const navLinks = [
   { href: "/auth/login", label: "Login" },
   { href: "/auth/investor", label: "Investor Sign Up" },
   { href: "/auth/agency", label: "Agency Sign Up" },
 ];
+/* TODO: Work on the mobile device layout for this navbar */
 
 export default function AuthNavbar() {
   const pathname = usePathname();
@@ -28,7 +30,7 @@ export default function AuthNavbar() {
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-2">
             {navLinks.map((link, _) => (
               <Link
                 key={link.href}
@@ -39,6 +41,7 @@ export default function AuthNavbar() {
                 <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-8 group-hover:left-1/2 group-hover:-translate-x-1/2"></span>
               </Link>
             ))}
+            <WalletConnect />
           </div>
         </div>
       </div>
