@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/resizable-navbar";
 import Link from "next/link";
 import { useState } from "react";
+import { WalletConnect } from "@/components/wallet-connect";
 
 export function AppNavbar() {
   const navItems = [
@@ -38,7 +39,7 @@ export function AppNavbar() {
         <NavbarLogo />
         <NavItems items={navItems} />
         <div className="flex items-center gap-4">
-          <NavbarButton variant="secondary">Login</NavbarButton>
+          <NavbarButton variant="secondary"><WalletConnect /> </NavbarButton>
           <NavbarButton variant="primary">Book a call</NavbarButton>
         </div>
       </NavBody>
@@ -68,13 +69,7 @@ export function AppNavbar() {
             </Link>
           ))}
           <div className="flex w-full flex-col gap-4">
-            <NavbarButton
-              onClick={() => setIsMobileMenuOpen(false)}
-              variant="primary"
-              className="w-full"
-            >
-              Login
-            </NavbarButton>
+            <WalletConnect />
             <NavbarButton
               onClick={() => setIsMobileMenuOpen(false)}
               variant="primary"
