@@ -2,6 +2,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+<<<<<<< HEAD
+import BuyTokensForm from "./_components/BuyTokensForm";
+=======
+>>>>>>> 41b49ab571a6f2a8cd0eeb57b3c0c56fbeb0c64d
 import {
   MapPin,
   TrendingUp,
@@ -17,9 +22,7 @@ import {
   ArrowLeft,
   Calendar,
   Home,
-  Car,
-  Wifi,
-  Shield,
+
   Building,
   DollarSign,
   Target,
@@ -33,6 +36,7 @@ import property3 from "@/assets/property-3.jpg";
 
 const PropertyDetailsScreen = () => {
   const { id } = useParams();
+  const [isBuyTokensOpen, setIsBuyTokensOpen] = useState(false);
 
   // Mock property data - in real app, this would come from API/database
   const properties = [
@@ -277,7 +281,12 @@ const PropertyDetailsScreen = () => {
                     </div>
                   </div>
 
-                  <Button variant="default" className="w-full" size="lg">
+                  <Button
+                    variant="default"
+                    className="w-full"
+                    size="lg"
+                    onClick={() => setIsBuyTokensOpen(true)}
+                  >
                     <DollarSign className="w-4 h-4 mr-2" />
                     Invest Now
                   </Button>
@@ -582,6 +591,14 @@ const PropertyDetailsScreen = () => {
       </main>
 
       <Footer />
+
+      {/* Buy Tokens Modal */}
+      <BuyTokensForm
+        propertyId={property.id}
+        propertyName={property.title}
+        isOpen={isBuyTokensOpen}
+        onClose={() => setIsBuyTokensOpen(false)}
+      />
     </div>
   );
 };
