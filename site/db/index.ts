@@ -1,10 +1,5 @@
 import { ObjectId } from "mongodb";
-import {
-  AGENCIES_COLLECTION,
-  Agencies,
-  PROPERTIES_COLLECTION,
-  Properties,
-} from "./collections";
+import { PROPERTIES_COLLECTION, Properties } from "./collections";
 import { MyError, Errors } from "@/constants/errors";
 class MongoDatabase {
   async AddProperty(args: Properties) {
@@ -58,25 +53,6 @@ class MongoDatabase {
     } catch (err) {
       console.error("Error fetching agency properties", { cause: err });
       throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES);
-    }
-  }
-
-  async AddAgency(args: Agencies) {
-    try {
-      const res = await AGENCIES_COLLECTION.insertOne(args);
-      return res.insertedId;
-    } catch (err) {
-      console.error("Error adding agency", { cause: err });
-      throw new MyError(Errors.NOT_ADD_AGENCY);
-    }
-  }
-  async GetAgencies(): Promise<Agencies[]> {
-    try {
-      const agencies = await AGENCIES_COLLECTION.find({}).toArray();
-      return agencies;
-    } catch (err) {
-      console.error("Error fetching agencies", { cause: err });
-      throw new MyError(Errors.NOT_GET_AGENCIES);
     }
   }
 }

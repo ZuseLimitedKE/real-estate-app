@@ -19,9 +19,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { PasswordInput } from "@/components/ui/password-input";
-
+import { useAccount } from "wagmi";
 const InvestorSignup = () => {
   const [isPending, startTransition] = useTransition();
+  const { address } = useAccount();
+
   const form = useForm<z.infer<typeof investorRegistrationSchema>>({
     resolver: zodResolver(investorRegistrationSchema),
     defaultValues: {
@@ -29,7 +31,6 @@ const InvestorSignup = () => {
       lastName: "",
       email: "",
       phoneNumber: "",
-      publicKey: "",
       password: "",
       confirmPassword: "",
       acceptTerms: false,
@@ -37,6 +38,10 @@ const InvestorSignup = () => {
   });
 
   const onSubmit = (values: z.infer<typeof investorRegistrationSchema>) => {
+    if (!address) {
+      toast.error("kindly connect your wallet before proceeding");
+      return;
+    }
     startTransition(async () => {
       const formData = new FormData();
       formData.append("firstName", values.firstName);
@@ -46,7 +51,7 @@ const InvestorSignup = () => {
       if (values.phoneNumber) {
         formData.append("phoneNumber", values.phoneNumber);
       }
-      formData.append("publicKey", values.publicKey);
+      formData.append("publicKey", address);
       formData.append("password", values.password);
       formData.append("confirmPassword", values.confirmPassword);
       formData.append("acceptTerms", values.acceptTerms ? "on" : "off");
@@ -159,14 +164,16 @@ const InvestorSignup = () => {
               <FormField
                 control={form.control}
                 name="publicKey"
+                disabled
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Public Key <span className="text-red-600">*</span>
+                      Wallet Address
+                      <span className="text-red-600">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter your Hedera public key"
+                        placeholder={address ?? "connect your wallet"}
                         {...field}
                       />
                     </FormControl>

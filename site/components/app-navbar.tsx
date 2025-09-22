@@ -10,11 +10,12 @@ import {
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
-import { logout } from "@/server-actions/auth/auth";
 import Link from "next/link";
 import { useState } from "react";
+import { WalletConnect } from "@/components/wallet-connect";
+import { logout } from "@/server-actions/auth/auth";
 
-export function PlatformNavbar() {
+export function AppNavbar() {
   const navItems = [
     {
       name: "View Properties",
@@ -39,6 +40,9 @@ export function PlatformNavbar() {
         <NavbarLogo />
         <NavItems items={navItems} />
         <div className="flex items-center gap-4">
+          <NavbarButton variant="secondary">
+            <WalletConnect />
+          </NavbarButton>
           <NavbarButton
             variant="primary"
             as="button"
@@ -76,14 +80,15 @@ export function PlatformNavbar() {
             </Link>
           ))}
           <div className="flex w-full flex-col gap-4">
+            <WalletConnect />
             <NavbarButton
+              variant="primary"
+              className="w-full"
+              as="button"
               onClick={async () => {
                 setIsMobileMenuOpen(false);
                 await logout();
               }}
-              variant="primary"
-              as="button"
-              className="w-full"
             >
               Logout
             </NavbarButton>
