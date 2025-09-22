@@ -4,6 +4,18 @@ import client from "../connection";
 import { AgentDashboardTenantsData, AgentProperty, AgentPropertyTenants, AMENITIES, DashboardProperties } from "@/types/agent_dashboard";
 import { Errors, MyError } from "@/constants/errors";
 import { RESULT_PAGE_SIZE } from "@/constants/pagination";
+import { AgencyStatistics } from "@/server-actions/agent/dashboard/getStatistics";
+
+function getNumMonthsBetweenDates(startDate: Date, endDate: Date): number {
+    const startYear = startDate.getFullYear();
+    const startMonth = startDate.getMonth(); // 0-indexed (0 for Jan, 1 for Feb, etc.)
+
+    const endYear = endDate.getFullYear();
+    const endMonth = endDate.getMonth();
+
+    let monthDifference = (endYear - startYear) * 12 + (endMonth - startMonth);
+    return Math.abs(monthDifference);
+}
 
 export class AgencyModel {
     private static propertiesCollection: Collection<Properties> | null = null;
@@ -15,6 +27,47 @@ export class AgencyModel {
         }
 
         return this.propertiesCollection;
+    }
+
+    static async getAgentStatistics(agencyID: string): Promise<AgencyStatistics> {
+        try {
+            const collection = await this.getPropertiesCollection();
+            const cursor = collection.find({ agencyId: agencyID });
+
+            let totalProperties = 0;
+            let activeTenants = 0;
+            let totalSpaces = 0;
+            let totalEarnings = 0;
+
+            for await (const property of cursor) {
+                totalProperties += 1;
+                if (property.tenant) {
+                    activeTenants += 1;
+                    totalSpaces += 1;
+                    totalEarnings += property.tenant.rentAmount * getNumMonthsBetweenDates(property.tenant.joinDate, new Date())
+                } else if (property.appartmentDetails) {
+                    activeTenants += property.appartmentDetails.units.filter((u) => u.tenant).length;
+                    totalSpaces += property.appartmentDetails.units.length;
+                    for (const unit of property.appartmentDetails.units) {
+                        if (unit.tenant) {
+                            totalEarnings += unit.tenant.rent * getNumMonthsBetweenDates(unit.tenant.joinDate, new Date());
+                        }
+                    }
+                } else {
+                    totalSpaces += 1;
+                }
+            }
+
+            return {
+                totalProperties,
+                activeTenants,
+                occupancyRate: totalSpaces === 0 || activeTenants === 0 ? 0 : (activeTenants / totalSpaces) * 100,
+                totalEarnings
+            }
+        } catch (err) {
+            console.error("Could not get statistics for agency", err);
+            throw new MyError(Errors.NOT_GET_AGENT_DASHBOARD_STATISTICS);
+        }
     }
 
     static async getPropertyFromID(agencyID: string, propertyID: string): Promise<AgentProperty | null> {
@@ -131,7 +184,7 @@ export class AgencyModel {
                     roi: (((monthlyRevenue * 12 * NUM_YEARS_INVESTMENT) - property.property_value) / property.property_value) * 100
                 },
                 documents: property.documents,
-                tenants 
+                tenants
             }
         } catch (err) {
             console.error(`Could not get property ${propertyID} for agent ${agencyID}`, err);

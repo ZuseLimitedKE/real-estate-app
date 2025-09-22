@@ -6,10 +6,12 @@ import AgentDashboardProperties from "./_components/agentDashboardProperties";
 import AgentDashboardTenants from "./_components/agentDashboardTenants";
 import getDashboardProperties from "@/server-actions/agent/dashboard/getProperties";
 import getTenants from "@/server-actions/agent/dashboard/getTenants";
+import getAgencyStatistics from "@/server-actions/agent/dashboard/getStatistics";
 
 export default async function AgentDashboard() {
     let properties = await getDashboardProperties(1);
     let tenants = await getTenants(1);
+    const statistics = await getAgencyStatistics();
 
     async function updatePropertiesPageNum(page: number) {
         properties = await getDashboardProperties(page)
@@ -33,22 +35,22 @@ export default async function AgentDashboard() {
                 <AgentDashboardStatisticsItem
                     title="Total Earnings"
                     icon={<DollarSign className="w-4 h-4" />}
-                    value="$125,000"
+                    value={`$${statistics.totalEarnings}`}
                 />
                 <AgentDashboardStatisticsItem
                     title="Occupancy Rate"
                     icon={<Percent className="w-4 h-4" />}
-                    value="85%"
+                    value={`${statistics.occupancyRate}%`}
                 />
                 <AgentDashboardStatisticsItem
                     title="Total Properties"
                     icon={<House className="w-4 h-4" />}
-                    value="12"
+                    value={statistics.totalProperties.toString()}
                 />
                 <AgentDashboardStatisticsItem
                     title="Active Tenants"
                     icon={<Users className="w-4 h-4" />}
-                    value="23"
+                    value={statistics.activeTenants.toString()}
                 />
             </article>
 
