@@ -6,40 +6,40 @@ export default function PropertyFinancials(props: {finances: AgentPropertyFinanc
         <section className="my-4 flex flex-col gap-4">
             <Card>
                 <CardHeader>
-                    <h2>Investment Overview</h2>
+                    <h2 className="text-lg font-bold">Investment Overview</h2>
                 </CardHeader>
                 <CardContent>
                     <p className="flex flex-row justify-between">
                         <span>Property Value: </span>
-                        <span>Ksh {props.finances.propertyValue}</span>
+                        <span className="font-bold">Ksh {props.finances.propertyValue}</span>
                     </p>
                     <p className="flex flex-row justify-between">
                         <span>Expected Yield: </span>
-                        <span>{props.finances.expectedYield}%</span>
+                        <span className="font-bold">{props.finances.expectedYield}%</span>
                     </p>
                     <p className="flex flex-row justify-between">
                         <span>Investment Period: </span>
-                        <span>5 Years</span>
+                        <span className="font-bold">5 Years</span>
                     </p>
                 </CardContent>
             </Card>
 
             <Card>
                 <CardHeader>
-                    <h2>Revenue Analytics</h2>
+                    <h2 className="text-lg font-bold">Revenue Analytics</h2>
                 </CardHeader>
                 <CardContent>
                     <p className="flex flex-row justify-between">
                         <span>Monthly Revenue: </span>
-                        <span>Ksh {props.finances.monthlyRevenue}</span>
+                        <span className="font-bold">Ksh {props.finances.monthlyRevenue}</span>
                     </p>
                     <p className="flex flex-row justify-between">
                         <span>Annual Revenue: </span>
-                        <span>Ksh {props.finances.annualRevenue}</span>
+                        <span className="font-bold">Ksh {props.finances.annualRevenue}</span>
                     </p>
                     <p className="flex flex-row justify-between">
                         <span>ROI: </span>
-                        <span>{props.finances.roi}%</span>
+                        <span className="font-bold">{props.finances.roi}%</span>
                     </p>
                 </CardContent>
             </Card>

@@ -11,8 +11,8 @@ export default function PropertyDocuments(props: {documents: AgentPropertyDocume
                 <div className="flex flex-row gap-2 items-center">
                     <File className="w-6 h-6 text-primary" />
                     <div>
-                        <p>{doc.name}</p>
-                        <p className="flex flex-row items-center">
+                        <p className="font-bold">{doc.name}</p>
+                        <p className="flex flex-row items-center text-slate-500">
                             <span>{doc.type}</span>
                             <Dot className="w-4 h-4" />
                             <span>{doc.size}</span>
@@ -21,7 +21,7 @@ export default function PropertyDocuments(props: {documents: AgentPropertyDocume
                 </div>
 
                 <Link href={doc.url}>
-                    <Button variant='outline'>
+                    <Button variant='outline' className="font-bold">
                         View
                     </Button>
                 </Link>
@@ -33,7 +33,7 @@ export default function PropertyDocuments(props: {documents: AgentPropertyDocume
         <section className="my-4">
             <Card>
                 <CardHeader>
-                    <h2>Property Documents</h2>
+                    <h2 className="text-lg font-bold">Property Documents</h2>
                 </CardHeader>
                 <CardContent >
                     <ul className="flex flex-col gap-4">
