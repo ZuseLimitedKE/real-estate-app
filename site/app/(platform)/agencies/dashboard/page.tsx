@@ -4,8 +4,15 @@ import { DollarSign, Eye, House, MapPin, Pencil, Percent, Plus, Trash, Users } f
 import AgentDashboardStatisticsItem from "./_components/agentDashboardStatistics";
 import AgentDashboardProperties from "./_components/agentDashboardProperties";
 import AgentDashboardTenants from "./_components/agentDashboardTenants";
+import getDashboardProperties from "@/server-actions/agent/dashboard/getProperties";
 
-export default function AgentDashboard() {
+export default async function AgentDashboard() {
+    let properties = await getDashboardProperties(1);
+
+    async function updatePropertiesPageNum(page: number) {
+        properties = await getDashboardProperties(page)
+    }
+
     return (
         <main>
             <header className="flex lg:flex-row flex-col lg:justify-between gap-4 my-4">
@@ -23,22 +30,22 @@ export default function AgentDashboard() {
             <article className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-3 mb-4">
                 <AgentDashboardStatisticsItem
                     title="Total Earnings"
-                    icon={<DollarSign className="w-4 h-4"/>}
+                    icon={<DollarSign className="w-4 h-4" />}
                     value="$125,000"
                 />
                 <AgentDashboardStatisticsItem
                     title="Occupancy Rate"
-                    icon={<Percent className="w-4 h-4"/>}
+                    icon={<Percent className="w-4 h-4" />}
                     value="85%"
                 />
                 <AgentDashboardStatisticsItem
                     title="Total Properties"
-                    icon={<House className="w-4 h-4"/>}
+                    icon={<House className="w-4 h-4" />}
                     value="12"
                 />
                 <AgentDashboardStatisticsItem
                     title="Active Tenants"
-                    icon={<Users className="w-4 h-4"/>}
+                    icon={<Users className="w-4 h-4" />}
                     value="23"
                 />
             </article>
@@ -51,7 +58,7 @@ export default function AgentDashboard() {
                             <TabsTrigger value="tenants">Tenants</TabsTrigger>
                         </TabsList>
                         <TabsContent value="properties">
-                            <AgentDashboardProperties />
+                            <AgentDashboardProperties properties={properties}/>
                         </TabsContent>
                         <TabsContent value="tenants">
                             <AgentDashboardTenants

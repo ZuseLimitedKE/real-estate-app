@@ -1,54 +1,17 @@
-"use server"
+"use client";
 
+import PaginationControls from "@/components/paginationControls";
 import { Button } from "@/components/ui/button";
-import getDashboardProperties from "@/server-actions/agent/dashboard/getProperties";
+import { RESULT_PAGE_SIZE } from "@/constants/pagination";
+import { DashboardProperties } from "@/types/agent_dashboard";
 import { Eye, MapPin, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
-export default async function AgentDashboardProperties() {
-    // const properties = await getDashboardProperties(1);
-    const properties = [
-        {
-            id: "test",
-            status: "approved",
-            image: "/modern-apartment-building-nairobi-westlands.jpg",
-            name: "Riverside Apartments",
-            location: "123 River Road, Westlands, Nairobi",
-            details: [
-                {
-                    title: "Type",
-                    value: "Residential"
-                },
-                {
-                    title: "Units",
-                    value: "24"
-                },
-                {
-                    title: "Occupied",
-                    value: "22/24"
-                },
-            ],
-            rent: 85000
+export default function AgentDashboardProperties(props: {properties: DashboardProperties[]}) {
+    const [page, setPage] = useState<number>(1);
 
-        },
-        {
-            id: "test_2",
-            status: "reviewing",
-            image: "/waterfront-apartment-development-mombasa-nyali.jpg",
-            name: "Mombasa Waterfront Properties",
-            location: "123 Nyali Drive, Nyali, Mombasa",
-            details: [
-                {
-                    title: "Type",
-                    value: "Mansionnete"
-                },
-            ],
-            rent: 150000
-
-        },
-    ];
-
-    const propertiesListItems = properties.map((p) => {
+    const propertiesListItems = props.properties.map((p) => {
         const detailItems = p.details.map((d, index) => (
             <p key={index}>
                 <span className="font-bold text-sm">{d.title}: </span>
@@ -72,7 +35,7 @@ export default async function AgentDashboardProperties() {
 
                         <div className="flex flex-row gap-2 flex-wrap p-4 items-center">
                             <p className="text-lg font-bold">{p.name}</p>
-                            <div className="px-2 py-1 rounded-full bg-primary text-white font-bold text-sm">
+                            <div className="px-2 py-1 rounded-full bg-primary text-white font-bold text-xs">
                                 <p>{p.status}</p>
                             </div>
                         </div>
@@ -117,11 +80,17 @@ export default async function AgentDashboardProperties() {
         <article>
             <header className="flex flex-row justify-between my-4">
                 <h2 className="font-bold text-2xl">My Properties</h2>
-                <p className="text-slate-400">{properties.length} properties</p>
+                <p className="text-slate-400">{props.properties.length} properties</p>
             </header>
             <ul className="flex flex-col gap-4">
                 {propertiesListItems}
             </ul>
+            <div className="mt-4 flex flex-row justify-center">
+                <PaginationControls page={page} updatePage={(num) => {
+                    // Get data for next page
+                    setPage(num);
+                }} isThereMore={props.properties.length >= RESULT_PAGE_SIZE}/>
+            </div>
         </article>
     );
 }
