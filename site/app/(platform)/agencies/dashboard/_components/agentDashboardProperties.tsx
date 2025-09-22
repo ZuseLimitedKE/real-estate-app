@@ -6,9 +6,10 @@ import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 import { DashboardProperties } from "@/types/agent_dashboard";
 import { Eye, MapPin, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
-export default function AgentDashboardProperties(props: {properties: DashboardProperties[]}) {
+export default function AgentDashboardProperties(props: { properties: DashboardProperties[] }) {
     const [page, setPage] = useState<number>(1);
 
     const propertiesListItems = props.properties.map((p) => {
@@ -54,10 +55,12 @@ export default function AgentDashboardProperties(props: {properties: DashboardPr
                         <p className="font-bold text-lg">KSh {p.rent}/month</p>
                         <footer className="flex flex-col lg:flex-row gap-1">
                             <div className="flex flex-row gap-2 flex-wrap">
-                                <Button className="flex-1" variant='outline'>
-                                    <Eye />
-                                    <p>View</p>
-                                </Button>
+                                <Link href={`/agencies/properties/${p.id}`}>
+                                    <Button className="flex-1" variant='outline'>
+                                        <Eye />
+                                        <p>View</p>
+                                    </Button>
+                                </Link>
                                 <Button className="flex-1" variant='outline'>
                                     <Pencil />
                                     <p>Edit</p>
@@ -89,7 +92,7 @@ export default function AgentDashboardProperties(props: {properties: DashboardPr
                 <PaginationControls page={page} updatePage={(num) => {
                     // Get data for next page
                     setPage(num);
-                }} isThereMore={props.properties.length >= RESULT_PAGE_SIZE}/>
+                }} isThereMore={props.properties.length >= RESULT_PAGE_SIZE} />
             </div>
         </article>
     );
