@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { AgentPropertyFinances } from "@/types/agent_dashboard";
 
-export default function PropertyFinancials() {
+export default function PropertyFinancials(props: {finances: AgentPropertyFinances}) {
     return (
         <section className="my-4 flex flex-col gap-4">
             <Card>
@@ -10,11 +11,11 @@ export default function PropertyFinancials() {
                 <CardContent>
                     <p className="flex flex-row justify-between">
                         <span>Property Value: </span>
-                        <span>Ksh 15,000,000</span>
+                        <span>Ksh {props.finances.propertyValue}</span>
                     </p>
                     <p className="flex flex-row justify-between">
                         <span>Expected Yield: </span>
-                        <span>8.5%</span>
+                        <span>{props.finances.expectedYield}%</span>
                     </p>
                     <p className="flex flex-row justify-between">
                         <span>Investment Period: </span>
@@ -30,15 +31,15 @@ export default function PropertyFinancials() {
                 <CardContent>
                     <p className="flex flex-row justify-between">
                         <span>Monthly Revenue: </span>
-                        <span>Ksh 85,000</span>
+                        <span>Ksh {props.finances.monthlyRevenue}</span>
                     </p>
                     <p className="flex flex-row justify-between">
                         <span>Annual Revenue: </span>
-                        <span>Ksh 1,020,000</span>
+                        <span>Ksh {props.finances.annualRevenue}</span>
                     </p>
                     <p className="flex flex-row justify-between">
                         <span>ROI: </span>
-                        <span>6.08%</span>
+                        <span>{props.finances.roi}%</span>
                     </p>
                 </CardContent>
             </Card>
