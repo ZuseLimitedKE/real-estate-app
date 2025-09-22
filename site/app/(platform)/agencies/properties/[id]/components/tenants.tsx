@@ -46,7 +46,7 @@ export default function PropertyTenants() {
 
                         <CollapsibleContent>
                             <section>
-                                <div className="mt-4 bg-slate-100 p-2">
+                                <div className="mt-4 bg-slate-100 p-2 lg:px-6">
                                     <header className="flex flex-row gap-2 items-center">
                                         <DollarSign className="w-4 h-4" />
                                         <h3>Payment History</h3>
@@ -96,7 +96,7 @@ export default function PropertyTenants() {
 
                         <CollapsibleContent>
                             <section>
-                                <div className="mt-4 bg-slate-100 p-2">
+                                <div className="mt-4 bg-slate-100 p-2 lg:px-6">
                                     <header className="flex flex-row gap-2 items-center">
                                         <DollarSign className="w-4 h-4" />
                                         <h3>Payment History</h3>

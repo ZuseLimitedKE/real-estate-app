@@ -76,7 +76,7 @@ export default function PropertyOverview() {
                 <CardHeader>
                     <h2>Amenities</h2>
                 </CardHeader>
-                <CardContent className="flex flex-row gap-4 flex-wrap">
+                <CardContent className="flex flex-row gap-4 flex-wrap lg:justify-around">
                     <div className="flex flex-row gap-2 items-center">
                         <Wifi className="w-4 h-4"/>
                         <p>WiFi</p>

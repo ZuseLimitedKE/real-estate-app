@@ -12,8 +12,8 @@ import PropertyTenants from "./components/tenants";
 export default function AgentPropertyPage() {
     return (
         <main>
-            <header>
-                <div className="flex flex-row justify-between">
+            <header className="lg:flex lg:flex-row lg:justify-between lg:gap-4 lg:items-center">
+                <div className="flex flex-row justify-between items-center lg:flex-1">
                     <div>
                         <h1>Riverside Appartments</h1>
                         <p className="flex flex-row gap-2 items-center">
@@ -26,32 +26,35 @@ export default function AgentPropertyPage() {
                 </div>
 
 
-                <Button className="w-full my-4">
+                <Button className="w-full my-4 lg:w-[150px]">
                     <Edit className="w-4 h-4" />
                     <p>Edit Property</p>
                 </Button>
 
             </header>
             <article>
-                <Carousel className="w-full max-w-xs my-4">
-                    <CarouselContent>
-                        {Array.from({ length: 5 }).map((_, index) => (
-                            <CarouselItem key={index}>
-                                <div className="p-1">
-                                    <Image
-                                        src={"/executive-apartments-karen-nairobi.jpg"}
-                                        width={500}
-                                        height={500}
-                                        alt="Riverside Appartments image"
-                                    />
-                                </div>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    
-                    <CarouselPrevious />
-                    <CarouselNext />
-                </Carousel>
+                <div className="lg:bg-slate-200">
+                    <Carousel className="w-full max-w-xs my-4 lg:mx-auto ">
+                        <CarouselContent>
+                            {Array.from({ length: 5 }).map((_, index) => (
+                                <CarouselItem key={index}>
+                                    <div className="p-1">
+                                        <Image
+                                            src={"/executive-apartments-karen-nairobi.jpg"}
+                                            width={500}
+                                            height={500}
+                                            alt="Riverside Appartments image"
+                                        />
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+
+                        <CarouselPrevious />
+                        <CarouselNext />
+                    </Carousel>
+                </div>
+
 
                 <Tabs defaultValue="overview" className="w-full my-4">
                     <TabsList className="w-full flex-row justify-between">
