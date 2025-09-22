@@ -6,6 +6,7 @@ const database = client.db(databaseName);
 export interface Properties {
   _id?: ObjectId;
   totalFractions: number;
+  type: string;
   description: string;
   proposedRentPerMonth: number;
   tenant?: {
@@ -19,7 +20,8 @@ export interface Properties {
       date: Date,
       amount: number,
       status: string
-    }[]
+    }[],
+    joinDate: Date,
   };
   time_listed_on_site: number; // timestamp
   property_value: number;
@@ -34,6 +36,8 @@ export interface Properties {
   images: string[];
   documents: {
     name: string;
+    type: string;
+    size: string;
     url: string;
   }[];
   agencyId: string;
@@ -70,6 +74,23 @@ export interface Properties {
   }[];
   createdAt: Date;
   updatedAt: Date;
+  appartmentDetails?: {
+    units: {
+      name: string,
+      tenant?: {
+        name: string,
+        rent: number,
+        paymentHistory: {
+          date: Date,
+          amount: number,
+          status: string
+        }[],
+        joinDate: Date
+      }
+    }[],
+    floors: number,
+    parkingSpace: number
+  }
 }
 export const PROPERTIES_COLLECTION =
   database.collection<Properties>(propertiesCollection);

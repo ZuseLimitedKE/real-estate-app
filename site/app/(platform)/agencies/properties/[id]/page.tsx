@@ -8,91 +8,30 @@ import PropertyFinancials from "./components/financials";
 import PropertyDocuments from "./components/documents";
 import PropertyTenants from "./components/tenants";
 import { AMENITIES } from "@/types/agent_dashboard";
+import getPropertyFromID from "@/server-actions/agent/dashboard/getPropertyFromID";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-export default function AgentPropertyPage() {
-    const property = {
-        name: "Riverside Appartments",
-        address: "123 River Road, Westlands, Nairobi",
-        status: "active",
-        images: ["/executive-apartments-karen-nairobi.jpg", "/garden-city-residences-thika-road-nairobi.jpg"],
-        overview: {
-            propertyDetails: {
-                type: "Residential",
-                size: 2500,
-                units: 24,
-                floors: 6,
-                parkingSpace: 30,
-                createdAt: new Date()
-            },
-            occupancy: {
-                occupied: 22,
-                monthlyRevenue: 85000,
-                totalUnits: 24,
-                rate: 92.0
-            },
-            about: "Modern residential complex featuring contemporary design and premium amenities. Located in the heart of Westlands with easy access to shopping centers, restaurants, and business districts.",
-            amenities: [AMENITIES.WIFI, AMENITIES.PARKING, AMENITIES.SWIMMING, AMENITIES.FITNESS],
-        },
-        financials: {
-            propertyValue: 15000000,
-            expectedYield: 8.5,
-            monthlyRevenue: 85000,
-            annualRevenue: 1020000,
-            roi: 6.08,
-        },
-        documents: [
-            {
-                name: "Title Deed",
-                type: "PDF",
-                size: "2.3MB",
-                url: "something"
-            },
-            {
-                name: "Title Deed",
-                type: "PDF",
-                size: "2.3MB",
-                url: "something"
-            }
-        ],
-        tenants: [
-            {
-                name: "John Doe",
-                unit: "Unit 12A",
-                rent: 35000,
-                joinDate: new Date("15/01/2024"),
-                paymentHistory: [
-                    {
-                        date: new Date("01/03/2024"),
-                        amount: 35000,
-                        status: "paid"
-                    },
-                    {
-                        date: new Date("01/03/2024"),
-                        amount: 35000,
-                        status: "paid"
-                    }
-                ]
-            },
-            {
-                name: "John Doe",
-                unit: "Unit 12A",
-                rent: 35000,
-                joinDate: new Date("15/01/2024"),
-                paymentHistory: [
-                    {
-                        date: new Date("01/03/2024"),
-                        amount: 35000,
-                        status: "paid"
-                    },
-                    {
-                        date: new Date("01/03/2024"),
-                        amount: 35000,
-                        status: "paid"
-                    }
-                ]
-            }
-        ]
-    };
+export default async function AgentPropertyPage({ params }: {
+    params: Promise<{ id: string }>
+}) {
+    const { id } = await params;
+    const property = await getPropertyFromID(id);
+
+    if (!property) {
+        return (
+            <main>
+                <Card className="mx-auto lg:w-1/2 mt-5">
+                    <CardHeader>
+                        <h1 className="text-xl font-bold">Property Does Not Exist</h1>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-slate-500">The property you selected either does not exist or is not owned by your agency.</p>
+                        <p className="text-slate-500">Please go back to your dashboard page to select an existing property</p>
+                    </CardContent>
+                </Card>
+            </main>
+        );
+    }
 
     return (
         <main>

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { AgentPropertyOverview, AMENITIES } from "@/types/agent_dashboard";
-import { Car, Dumbbell, Waves, Wifi } from "lucide-react";
+import { Box, Camera, Car, ChevronUp, Dog, Dumbbell, FireExtinguisher, Flower, Heater, Shirt, Snowflake, SoapDispenserDroplet, Waves, Wifi } from "lucide-react";
 
 export default function PropertyOverview(props: { overview: AgentPropertyOverview }) {
     const amenitiesUI = props.overview.amenities.map((amenity, index) => (
@@ -123,11 +123,74 @@ function getUIForAmenity(amenity: AMENITIES) {
                     <p>Swimming Pool</p>
                 </div>
             );
-        case (AMENITIES.WIFI):
+        case (AMENITIES.AIR_CONDITIONING):
             return (
                 <div className="flex flex-row gap-2 items-center text-primary">
-                    <Wifi className="w-4 h-4" />
-                    <p>WiFi</p>
+                    <Snowflake className="w-4 h-4" />
+                    <p>Air Conditioning</p>
+                </div>
+            );
+        case (AMENITIES.HEATING):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <Heater className="w-4 h-4" />
+                    <p>Heating</p>
+                </div>
+            );
+        case (AMENITIES.LAUNDRY):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <Shirt className="w-4 h-4" />
+                    <p>Laundry In Unit</p>
+                </div>
+            );
+        case (AMENITIES.DISHWASHER):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <SoapDispenserDroplet className="w-4 h-4" />
+                    <p>Dish washer</p>
+                </div>
+            );
+        case (AMENITIES.FIREPLACE):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <FireExtinguisher className="w-4 h-4" />
+                    <p>Fireplace</p>
+                </div>
+            );
+        case (AMENITIES.STORAGE):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <Box className="w-4 h-4" />
+                    <p>Storage</p>
+                </div>
+            );
+        case (AMENITIES.PET_FRIENDLY):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <Dog className="w-4 h-4" />
+                    <p>Pet Friendly</p>
+                </div>
+            );
+        case (AMENITIES.SECURITY):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <Camera className="w-4 h-4" />
+                    <p>Security Sytem</p>
+                </div>
+            );
+        case (AMENITIES.ELEVATOR):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <ChevronUp className="w-4 h-4" />
+                    <p>Elevator</p>
+                </div>
+            );
+        case (AMENITIES.GARDEN):
+            return (
+                <div className="flex flex-row gap-2 items-center text-primary">
+                    <Flower className="w-4 h-4" />
+                    <p>Garden Yard</p>
                 </div>
             );
         default:

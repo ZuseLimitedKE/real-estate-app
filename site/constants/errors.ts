@@ -14,5 +14,6 @@ export enum Errors {
   NOT_GET_AGENCY_PROPERTIES = "Could not get the properties for this agency",
   NOT_GET_AGENCY_TENANTS = "Could not get tenants living in agent's properties",
   NOT_DELETE_PROPERTY = "Could not delete the listed property",
+  NOT_GET_PROPERTY = "Could not get property",
   NOT_AUTHORIZED = "You are not authorized to perform this action"
 }

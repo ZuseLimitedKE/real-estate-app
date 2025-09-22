@@ -32,11 +32,19 @@ export interface AgentDashboardTenantsData {
 }
 
 export enum AMENITIES {
-    WIFI = 'wifi',
     PARKING = 'parking',
     SWIMMING = 'swimming pool',
     FITNESS = 'fitness center',
-
+    AIR_CONDITIONING = 'air conditioning',
+    HEATING = 'heating',
+    LAUNDRY = 'laundry in unit',
+    DISHWASHER = 'dishwasher',
+    FIREPLACE = 'fireplace',
+    STORAGE = 'storage',
+    PET_FRIENDLY = 'pet friendly',
+    SECURITY = 'security system',
+    ELEVATOR = 'elevator',
+    GARDEN = 'garden yard'
 }
 
 export interface AgentProperty {
