@@ -1,31 +1,15 @@
 "use client"
+import PaginationControls from "@/components/paginationControls";
 import { Button } from "@/components/ui/button";
+import { RESULT_PAGE_SIZE } from "@/constants/pagination";
+import { AgentDashboardTenantsData } from "@/types/agent_dashboard";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { Calendar, ChevronsUpDown, DollarSign, MapPin } from "lucide-react";
 import { useState } from "react";
 
-interface AgentDashboardTenantsData {
-    name: string,
-    property: string,
-    rent: number,
-    status: string,
-    contactInfo: {
-        email: string,
-        number: string
-    },
-    leaseInfo: {
-        property: string,
-        initialDate: Date
-    },
-    paymentHistory: {
-        date: Date,
-        amount: number,
-        status: string
-    }[]
-}
-
 export default function AgentDashboardTenants(props: { tenants: AgentDashboardTenantsData[] }) {
     const [storeIfOpen, setIfOpen] = useState<boolean[]>(new Array(props.tenants.length).fill(false));
+    const [page, setPage] = useState<number>(1);
 
     function handleOpenCollapsible(index: number, state: boolean) {
         const newStoreIfOpen = [...storeIfOpen];
@@ -53,7 +37,7 @@ export default function AgentDashboardTenants(props: { tenants: AgentDashboardTe
 
                                 <div className="flex flex-row lg:flex-col gap-2">
                                     <p className="font-bold">Ksh {tenant.rent}/month</p>
-                                    <p className="px-2 py-1 rounded-full bg-primary text-white font-bold text-xs">{tenant.status}</p>
+                                    <p className="px-2 py-1 rounded-full bg-primary text-white font-bold text-xs lg:self-end">{tenant.status}</p>
                                 </div>
                             </div>
 
@@ -66,7 +50,7 @@ export default function AgentDashboardTenants(props: { tenants: AgentDashboardTe
 
                     <CollapsibleContent>
                         <section className="flex flex-col gap-4">
-                            <hr className="mt-4"/>
+                            <hr className="mt-4" />
                             <div className="flex flex-col lg:flex-row lg:justify-between gap-4">
                                 <section>
                                     <h3 className="text-lg font-bold mb-2">Contact Information</h3>
@@ -96,14 +80,14 @@ export default function AgentDashboardTenants(props: { tenants: AgentDashboardTe
 
                             <section>
                                 <header className="flex flex-row gap-1 items-center mb-2">
-                                    <DollarSign className="w-4 h-4"/>
+                                    <DollarSign className="w-4 h-4" />
                                     <h3 className="text-lg font-bold">Payment History</h3>
                                 </header>
                                 <ul className="flex flex-col gap-2">
                                     {tenant.paymentHistory.map((payment, j) => (
                                         <li key={j} className="flex flex-row justify-between">
                                             <div className="flex flex-row gap-2 items-center">
-                                                <Calendar className="w-4 h-4 text-slate-400"/>
+                                                <Calendar className="w-4 h-4 text-slate-400" />
                                                 <p className="font-bold">{new Date(payment.date).toLocaleDateString()}</p>
                                             </div>
                                             <div className="flex flex-row gap-2">
@@ -130,6 +114,12 @@ export default function AgentDashboardTenants(props: { tenants: AgentDashboardTe
             <ul>
                 {tenantItems}
             </ul>
+            <div className="mt-4 flex flex-row justify-center">
+                <PaginationControls page={page} updatePage={(num) => {
+                    // Get data for next page
+                    setPage(num);
+                }} isThereMore={props.tenants.length >= RESULT_PAGE_SIZE} />
+            </div>
         </article>
     );
 }

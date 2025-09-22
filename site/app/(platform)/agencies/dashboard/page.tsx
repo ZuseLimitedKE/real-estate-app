@@ -5,9 +5,11 @@ import AgentDashboardStatisticsItem from "./_components/agentDashboardStatistics
 import AgentDashboardProperties from "./_components/agentDashboardProperties";
 import AgentDashboardTenants from "./_components/agentDashboardTenants";
 import getDashboardProperties from "@/server-actions/agent/dashboard/getProperties";
+import getTenants from "@/server-actions/agent/dashboard/getTenants";
 
 export default async function AgentDashboard() {
     let properties = await getDashboardProperties(1);
+    let tenants = await getTenants(1);
 
     async function updatePropertiesPageNum(page: number) {
         properties = await getDashboardProperties(page)
@@ -51,74 +53,17 @@ export default async function AgentDashboard() {
             </article>
 
             <article>
-                <div className="flex w-full flex-col gap-6">
-                    <Tabs defaultValue="properties">
-                        <TabsList>
-                            <TabsTrigger value="properties">Properties</TabsTrigger>
-                            <TabsTrigger value="tenants">Tenants</TabsTrigger>
+                <div>
+                    <Tabs defaultValue="properties" className="w-full">
+                        <TabsList className="w-full flex-row justify-between">
+                            <TabsTrigger value="properties" className="flex-1">Properties</TabsTrigger>
+                            <TabsTrigger value="tenants" className="flex-1">Tenants</TabsTrigger>
                         </TabsList>
                         <TabsContent value="properties">
-                            <AgentDashboardProperties properties={properties}/>
+                            <AgentDashboardProperties properties={properties} />
                         </TabsContent>
                         <TabsContent value="tenants">
-                            <AgentDashboardTenants
-                                tenants={[
-                                    {
-                                        name: "John Doe",
-                                        property: "Riverside Appartments - Unit 12A",
-                                        rent: 35000,
-                                        status: "active",
-                                        contactInfo: {
-                                            email: "john.doe@email.com",
-                                            number: "+254 722001144"
-                                        },
-                                        leaseInfo: {
-                                            property: "123 River Road, Westlands, Nairobi",
-                                            initialDate: new Date('09/10/2021')
-                                        },
-                                        paymentHistory: [
-                                            {
-                                                date: new Date('09/10/2021'),
-                                                amount: 35000,
-                                                status: 'active'
-                                            },
-                                            {
-                                                date: new Date('09/11/2021'),
-                                                amount: 35000,
-                                                status: 'active'
-                                            },
-                                        ]
-                                    },
-
-                                    {
-                                        name: "Sarah Wilson",
-                                        property: "Commercial Plaza - Shop 5",
-                                        rent: 80000,
-                                        status: "active",
-                                        contactInfo: {
-                                            email: "sarah.wilson@email.com",
-                                            number: "+254 722211144"
-                                        },
-                                        leaseInfo: {
-                                            property: "456 Business Ave, CBD, Nairobi",
-                                            initialDate: new Date('09/12/2023')
-                                        },
-                                        paymentHistory: [
-                                            {
-                                                date: new Date('09/12/2022'),
-                                                amount: 80000,
-                                                status: 'active'
-                                            },
-                                            {
-                                                date: new Date('09/01/2022'),
-                                                amount: 80000,
-                                                status: 'active'
-                                            },
-                                        ]
-                                    },
-                                ]}
-
-                            />
+                            <AgentDashboardTenants tenants={tenants} />
                         </TabsContent>
                     </Tabs>
                 </div>

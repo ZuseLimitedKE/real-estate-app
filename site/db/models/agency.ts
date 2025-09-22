@@ -1,10 +1,9 @@
 import { Collection } from "mongodb";
 import { Properties } from "../collections";
 import client from "../connection";
-import { DashboardProperties } from "@/types/agent_dashboard";
+import { AgentDashboardTenantsData, DashboardProperties } from "@/types/agent_dashboard";
 import { Errors, MyError } from "@/constants/errors";
-
-const PAGE_SIZE = 10;
+import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 
 export class AgencyModel {
     private static propertiesCollection: Collection<Properties> | null = null;
@@ -18,10 +17,43 @@ export class AgencyModel {
         return this.propertiesCollection;
     }
 
+    static async getTenantsProperties(agencyID: string, page: number): Promise<AgentDashboardTenantsData[]> {
+        try {
+            const collection = await this.getPropertiesCollection();
+            const cursor = collection.find({agencyId: agencyID}).limit(RESULT_PAGE_SIZE).skip((page - 1) * RESULT_PAGE_SIZE);
+            const tenants: AgentDashboardTenantsData[] = [];
+
+            for await (const property of cursor) {
+                if (property.tenant) {
+                    tenants.push({
+                        name: property.tenant.name,
+                        property: property.name,
+                        rent: property.tenant.rentAmount,
+                        status: property.property_status,
+                        contactInfo: {
+                            email: property.tenant.email,
+                            number: property.tenant.number
+                        },
+                        leaseInfo: {
+                            property: property.location.address,
+                            initialDate: property.createdAt
+                        },
+                        paymentHistory: property.tenant.payments
+                    })
+                }
+            }
+
+            return tenants;
+        } catch(err) {
+            console.error(`Error getting tenants for agent`, agencyID, ` properties`);
+            throw new MyError(Errors.NOT_GET_AGENCY_TENANTS);
+        }
+    }
+
     static async getDashboardProperties(agencyID: string, page: number): Promise<DashboardProperties[]> {
         try {
             const collection = await this.getPropertiesCollection();
-            const cursor = collection.find({ agencyId: agencyID}).limit(PAGE_SIZE).skip((page - 1) * PAGE_SIZE);
+            const cursor = collection.find({ agencyId: agencyID}).limit(RESULT_PAGE_SIZE).skip((page - 1) * RESULT_PAGE_SIZE);
             const dashboardProperties: DashboardProperties[] = [];
 
             for await (const property of cursor) {

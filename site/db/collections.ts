@@ -12,6 +12,14 @@ export interface Properties {
     address: string;
     rentDate: number; //1-31
     rentAmount: number;
+    name: string;
+    email: string;
+    number: string;
+    payments: {
+      date: Date,
+      amount: number,
+      status: string
+    }[]
   };
   time_listed_on_site: number; // timestamp
   property_value: number;
