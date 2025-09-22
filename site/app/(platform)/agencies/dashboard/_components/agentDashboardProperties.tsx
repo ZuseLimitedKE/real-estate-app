@@ -1,10 +1,54 @@
+"use server"
+
 import { Button } from "@/components/ui/button";
-import { DashboardProperties } from "@/types/agent_dashboard";
+import getDashboardProperties from "@/server-actions/agent/dashboard/getProperties";
 import { Eye, MapPin, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 
-export default function AgentDashboardProperties(props: { properties: DashboardProperties[] }) {
-    const propertiesListItems = props.properties.map((p) => {
+export default async function AgentDashboardProperties() {
+    // const properties = await getDashboardProperties(1);
+    const properties = [
+        {
+            id: "test",
+            status: "approved",
+            image: "/modern-apartment-building-nairobi-westlands.jpg",
+            name: "Riverside Apartments",
+            location: "123 River Road, Westlands, Nairobi",
+            details: [
+                {
+                    title: "Type",
+                    value: "Residential"
+                },
+                {
+                    title: "Units",
+                    value: "24"
+                },
+                {
+                    title: "Occupied",
+                    value: "22/24"
+                },
+            ],
+            rent: 85000
+
+        },
+        {
+            id: "test_2",
+            status: "reviewing",
+            image: "/waterfront-apartment-development-mombasa-nyali.jpg",
+            name: "Mombasa Waterfront Properties",
+            location: "123 Nyali Drive, Nyali, Mombasa",
+            details: [
+                {
+                    title: "Type",
+                    value: "Mansionnete"
+                },
+            ],
+            rent: 150000
+
+        },
+    ];
+
+    const propertiesListItems = properties.map((p) => {
         const detailItems = p.details.map((d, index) => (
             <p key={index}>
                 <span className="font-bold text-sm">{d.title}: </span>
@@ -16,13 +60,16 @@ export default function AgentDashboardProperties(props: { properties: DashboardP
             <li key={p.id}>
                 <section className="flex flex-col gap-2 rounded-md border border-solid border-slate-300">
                     <header>
-                        <Image
-                            src={p.image}
-                            alt={p.name}
-                            width={500}
-                            height={500}
-                            className="max-w-full object-fit lg:h-1/2"
-                        />
+                        <div className="bg-slate-200">
+                            <Image
+                                src={p.image}
+                                alt={p.name}
+                                width={500}
+                                height={500}
+                                className="max-w-full object-fit lg:mx-auto"
+                            />
+                        </div>
+
                         <div className="flex flex-row gap-2 flex-wrap p-4 items-center">
                             <p className="text-lg font-bold">{p.name}</p>
                             <div className="px-2 py-1 rounded-full bg-primary text-white font-bold text-sm">
@@ -33,7 +80,7 @@ export default function AgentDashboardProperties(props: { properties: DashboardP
 
                     <div className="px-4 pb-4 flex flex-col gap-2">
                         <div className="flex flex-row gap-1 flex-wrap items-center">
-                            <MapPin className="w-4 h-4"/>
+                            <MapPin className="w-4 h-4" />
                             <p className="text-slate-500">{p.location}</p>
                         </div>
 
@@ -70,7 +117,7 @@ export default function AgentDashboardProperties(props: { properties: DashboardP
         <article>
             <header className="flex flex-row justify-between my-4">
                 <h2 className="font-bold text-2xl">My Properties</h2>
-                <p className="text-slate-400">3 properties</p>
+                <p className="text-slate-400">{properties.length} properties</p>
             </header>
             <ul className="flex flex-col gap-4">
                 {propertiesListItems}

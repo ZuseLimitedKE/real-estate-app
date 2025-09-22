@@ -51,48 +51,7 @@ export default function AgentDashboard() {
                             <TabsTrigger value="tenants">Tenants</TabsTrigger>
                         </TabsList>
                         <TabsContent value="properties">
-                            <AgentDashboardProperties
-                                properties={[
-                                    {
-                                        id: "test",
-                                        status: "approved",
-                                        image: "/modern-apartment-building-nairobi-westlands.jpg",
-                                        name: "Riverside Apartments",
-                                        location: "123 River Road, Westlands, Nairobi",
-                                        details: [
-                                            {
-                                                title: "Type",
-                                                value: "Residential"
-                                            },
-                                            {
-                                                title: "Units",
-                                                value: "24"
-                                            },
-                                            {
-                                                title: "Occupied",
-                                                value: "22/24"
-                                            },
-                                        ],
-                                        rent: 85000
-
-                                    },
-                                    {
-                                        id: "test_2",
-                                        status: "reviewing",
-                                        image: "/waterfront-apartment-development-mombasa-nyali.jpg",
-                                        name: "Mombasa Waterfront Properties",
-                                        location: "123 Nyali Drive, Nyali, Mombasa",
-                                        details: [
-                                            {
-                                                title: "Type",
-                                                value: "Mansionnete"
-                                            },
-                                        ],
-                                        rent: 150000
-
-                                    },
-                                ]}
-                            />
+                            <AgentDashboardProperties />
                         </TabsContent>
                         <TabsContent value="tenants">
                             <AgentDashboardTenants
