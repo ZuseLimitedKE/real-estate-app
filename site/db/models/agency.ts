@@ -45,10 +45,10 @@ export class AgencyModel {
                     activeTenants += 1;
                     totalSpaces += 1;
                     totalEarnings += property.tenant.rentAmount * getNumMonthsBetweenDates(property.tenant.joinDate, new Date())
-                } else if (property.appartmentDetails) {
-                    activeTenants += property.appartmentDetails.units.filter((u) => u.tenant).length;
-                    totalSpaces += property.appartmentDetails.units.length;
-                    for (const unit of property.appartmentDetails.units) {
+                } else if (property.apartmentDetails) {
+                    activeTenants += property.apartmentDetails.units.filter((u) => u.tenant).length;
+                    totalSpaces += property.apartmentDetails.units.length;
+                    for (const unit of property.apartmentDetails.units) {
                         if (unit.tenant) {
                             totalEarnings += unit.tenant.rent * getNumMonthsBetweenDates(unit.tenant.joinDate, new Date());
                         }
@@ -83,9 +83,9 @@ export class AgencyModel {
 
             let monthlyRevenue = 0;
             let occupied = 0;
-            if (property.appartmentDetails) {
-                occupied = property.appartmentDetails.units.filter((s) => s.tenant).length;
-                for (const unit of property.appartmentDetails.units) {
+            if (property.apartmentDetails) {
+                occupied = property.apartmentDetails.units.filter((s) => s.tenant).length;
+                for (const unit of property.apartmentDetails.units) {
                     monthlyRevenue += unit.tenant?.rent ?? 0;
                 }
             }
@@ -134,8 +134,8 @@ export class AgencyModel {
             const NUM_YEARS_INVESTMENT = 5;
 
             const tenants: AgentPropertyTenants[] = [];
-            if (property.appartmentDetails) {
-                for (const unit of property.appartmentDetails.units) {
+            if (property.apartmentDetails) {
+                for (const unit of property.apartmentDetails.units) {
                     if (unit.tenant) {
                         tenants.push({
                             name: unit.tenant.name,
@@ -165,16 +165,16 @@ export class AgencyModel {
                     propertyDetails: {
                         type: property.type,
                         size: property.gross_property_size,
-                        units: property.appartmentDetails ? property.appartmentDetails.units.length : undefined,
-                        floors: property.appartmentDetails ? property.appartmentDetails.floors : undefined,
-                        parkingSpace: property.appartmentDetails ? property.appartmentDetails.parkingSpace : undefined,
+                        units: property.apartmentDetails ? property.apartmentDetails.units.length : undefined,
+                        floors: property.apartmentDetails ? property.apartmentDetails.floors : undefined,
+                        parkingSpace: property.apartmentDetails ? property.apartmentDetails.parkingSpace : undefined,
                         createdAt: property.createdAt
                     },
-                    occupancy: property.appartmentDetails ? {
-                        occupied: property.appartmentDetails.units.filter((s) => s.tenant).length,
+                    occupancy: property.apartmentDetails ? {
+                        occupied: property.apartmentDetails.units.filter((s) => s.tenant).length,
                         monthlyRevenue: monthlyRevenue,
-                        totalUnits: property.appartmentDetails.units.length,
-                        rate: (occupied / property.appartmentDetails.units.length) * 100
+                        totalUnits: property.apartmentDetails.units.length,
+                        rate: (occupied / property.apartmentDetails.units.length) * 100
                     } : undefined,
                     about: property.description,
                     amenities

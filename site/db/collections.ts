@@ -74,8 +74,7 @@ export interface Properties {
   }[];
   createdAt: Date;
   updatedAt: Date;
-  //FIXME:Minor spelling error
-  appartmentDetails?: {
+  apartmentDetails?: {
     units: {
       name: string;
       tenant?: {
