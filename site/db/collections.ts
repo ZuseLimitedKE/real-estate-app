@@ -17,11 +17,11 @@ export interface Properties {
     email: string;
     number: string;
     payments: {
-      date: Date,
-      amount: number,
-      status: string
-    }[],
-    joinDate: Date,
+      date: Date;
+      amount: number;
+      status: string;
+    }[];
+    joinDate: Date;
   };
   time_listed_on_site: number; // timestamp
   property_value: number;
@@ -74,23 +74,24 @@ export interface Properties {
   }[];
   createdAt: Date;
   updatedAt: Date;
+  //FIXME:Minor spelling error
   appartmentDetails?: {
     units: {
-      name: string,
+      name: string;
       tenant?: {
-        name: string,
-        rent: number,
+        name: string;
+        rent: number;
         paymentHistory: {
-          date: Date,
-          amount: number,
-          status: string
-        }[],
-        joinDate: Date
-      }
-    }[],
-    floors: number,
-    parkingSpace: number
-  }
+          date: Date;
+          amount: number;
+          status: string;
+        }[];
+        joinDate: Date;
+      };
+    }[];
+    floors: number;
+    parkingSpace: number;
+  };
 }
 export const PROPERTIES_COLLECTION =
   database.collection<Properties>(propertiesCollection);
