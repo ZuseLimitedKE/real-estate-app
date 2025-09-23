@@ -9,8 +9,8 @@ export default async function getDashboardProperties(page: number): Promise<Dash
     try {
         // Verify that user exists and is an agent
         const payload = await requireRole("agency");
-    
-        const properties = await AgencyModel.getDashboardProperties(payload.userId, page);
+        const pageNum = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+        const properties = await AgencyModel.getDashboardProperties(payload.userId, pageNum);
         return properties;
     } catch(err) {
         console.error('Error getting dashboard properties for agent', err);
