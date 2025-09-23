@@ -1,20 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, Eye, House, MapPin, Pencil, Percent, Plus, Trash, Users } from "lucide-react";
-import AgentDashboardStatisticsItem from "./_components/agentDashboardStatistics";
+import { Plus } from "lucide-react";
 import AgentDashboardProperties from "./_components/agentDashboardProperties";
 import AgentDashboardTenants from "./_components/agentDashboardTenants";
-import getDashboardProperties from "@/server-actions/agent/dashboard/getProperties";
-import getTenants from "@/server-actions/agent/dashboard/getTenants";
-import getAgencyStatistics from "@/server-actions/agent/dashboard/getStatistics";
+import { useSearchParams } from "next/navigation";
+import AgentDashboardStatistics from "./_components/dashboardStatistics";
 
-export default async function AgentDashboard() {
-    let properties = await getDashboardProperties(1);
-    let tenants = await getTenants(1);
-    const statistics = await getAgencyStatistics();
+const PROPERTIES_PAGE_SEARCH_PARAM = "propertiesPage";
+const TENANTS_PAGE_SEARCH_PARAM = "tenantsPage";
 
-    async function updatePropertiesPageNum(page: number) {
-        properties = await getDashboardProperties(page)
+export default function AgentDashboard() {
+    const searchParams = useSearchParams();
+    const propertiesPage = searchParams.get(PROPERTIES_PAGE_SEARCH_PARAM);
+    const tenantsPage = searchParams.get(TENANTS_PAGE_SEARCH_PARAM);
+
+    let propertiesPageNum = 1;
+    let tenantsPageNum = 1;
+
+    if(propertiesPage) {
+        propertiesPageNum = Number.parseInt(propertiesPage);
+    }
+
+    if (tenantsPage) {
+        tenantsPageNum = Number.parseInt(tenantsPage);
     }
 
     return (
