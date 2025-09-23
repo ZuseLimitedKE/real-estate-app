@@ -55,12 +55,12 @@ export default function AgentDashboardProperties(props: { properties: DashboardP
                         <p className="font-bold text-lg">KSh {p.rent}/month</p>
                         <footer className="flex flex-col lg:flex-row gap-1">
                             <div className="flex flex-row gap-2 flex-wrap">
-                                <Link href={`/agencies/properties/${p.id}`}>
-                                    <Button className="flex-1" variant='outline'>
+                                <Button className="flex-1" variant='outline' asChild>
+                                    <Link href={`/agencies/properties/${p.id}`}>
                                         <Eye />
                                         <p>View</p>
-                                    </Button>
-                                </Link>
+                                    </Link>
+                                </Button>
                                 <Button className="flex-1" variant='outline'>
                                     <Pencil />
                                     <p>Edit</p>
