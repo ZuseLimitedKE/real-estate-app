@@ -1,34 +1,44 @@
-"use client"
+'use client'
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "./ui/button";
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Button } from './ui/button'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-export default function PaginationControls(props: { page: number, updatePage: (page: number) => void, isThereMore: boolean }) {
-    const incrementPageNumber = () => {
-        if (props.isThereMore === true) {
-            props.updatePage(props.page + 1);
-        }
-    }
+interface PaginationProps {
+    currentPage: number
+    totalPages: number
+    paramName: string
+}
 
-    const decrementPageNumber = () => {
-        if (props.page > 1) {
-            props.updatePage(props.page - 1);
-        }
+export default function PaginationControls({ currentPage, totalPages, paramName }: PaginationProps) {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
+    const updatePage = (newPage: number) => {
+        const params = new URLSearchParams(searchParams.toString())
+        params.set(paramName, newPage.toString())
+        router.push(`?${params.toString()}`)
     }
 
     return (
         <div className="flex flex-row gap-2 items-center">
             <Button
-                onClick={decrementPageNumber}
-                disabled={props.page <= 1}
-            ><ChevronLeft className="w-2 h-4" /></Button>
+                onClick={() => updatePage(currentPage - 1)}
+                disabled={currentPage === 1}
+            >
+                <ChevronLeft className="w-2 h-4" />
+            </Button>
+
             <div className="p-2">
-                {props.page}
+                {currentPage}
             </div>
+
             <Button
-                disabled={!props.isThereMore}
-                onClick={incrementPageNumber}
-            ><ChevronRight className="w-2 h-4" /></Button>
+                onClick={() => updatePage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+            >
+                <ChevronRight className="w-2 h-4" />
+            </Button>
         </div>
-    );
+    )
 }

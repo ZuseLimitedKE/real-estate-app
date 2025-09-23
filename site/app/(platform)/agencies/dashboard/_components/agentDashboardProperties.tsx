@@ -1,5 +1,6 @@
 "use server";
 
+import PaginationControls from "@/components/paginationControls";
 import { Button } from "@/components/ui/button";
 import getDashboardProperties from "@/server-actions/agent/dashboard/getProperties";
 import { Eye, MapPin, Pencil, Trash } from "lucide-react";
@@ -7,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default async function AgentDashboardProperties(props: { page: number }) {
-    const properties = await getDashboardProperties(props.page);
+    const {properties, totalPages} = await getDashboardProperties(props.page);
 
     const propertiesListItems = properties.map((p) => {
         const detailItems = p.details.map((d, index) => (
@@ -85,12 +86,9 @@ export default async function AgentDashboardProperties(props: { page: number }) 
             <ul className="flex flex-col gap-4">
                 {propertiesListItems}
             </ul>
-            {/* <div className="mt-4 flex flex-row justify-center">
-                <PaginationControls page={page} updatePage={(num) => {
-                    // Get data for next page
-                    setPage(num);
-                }} isThereMore={props.properties.length >= RESULT_PAGE_SIZE} />
-            </div> */}
+            <div className="mt-4 flex flex-row justify-center">
+                <PaginationControls currentPage={props.page} totalPages={totalPages} paramName="propertiesPage"/>
+            </div>
         </article>
     );
 }
