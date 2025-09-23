@@ -32,23 +32,21 @@ export default function PropertyTenants(props: { tenants: AgentPropertyTenants[]
                     open={storeIfOpen[index]}
                     onOpenChange={(open) => handleOpenCollapsible(index, open)}
                 >
-                    <CollapsibleTrigger asChild>
-                        <div className="flex flex-row justify-between">
-                            <div className="flex flex-row items-center gap-2">
-                                <House className="w-6 h-6 text-primary" />
-                                <div>
-                                    <p className="font-bold">{tenant.name}</p>
-                                    {tenant.unit && (<p className="text-slate-500">Unit 12A</p>)}
-                                </div>
+                    <CollapsibleTrigger className="flex w-full flex-row justify-between text-left">
+                        <div className="flex flex-row items-center gap-2">
+                            <House className="w-6 h-6 text-primary" />
+                            <div>
+                                <p className="font-bold">{tenant.name}</p>
+                                {tenant.unit && (<p className="text-slate-500">Unit {tenant.unit}</p>)}
                             </div>
+                        </div>
 
-                            <div className="flex flex-row gap-1 items-center">
-                                <div>
-                                    <p className="font-bold">Ksh {tenant.rent}/month</p>
-                                    <p className="text-slate-500">Since {new Date(tenant.joinDate).toDateString()}</p>
-                                </div>
-                                <ChevronsUpDown className="w-4 h-4" />
+                        <div className="flex flex-row gap-1 items-center">
+                            <div>
+                                <p className="font-bold">Ksh {tenant.rent}/month</p>
+                                <p className="text-slate-500">Since {new Date(tenant.joinDate).toDateString()}</p>
                             </div>
+                            <ChevronsUpDown className="w-4 h-4" />
                         </div>
                     </CollapsibleTrigger>
 
