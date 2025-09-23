@@ -3,7 +3,7 @@ import PaginationControls from "@/components/paginationControls";
 import { Button } from "@/components/ui/button";
 import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 import { AgentDashboardTenantsData } from "@/types/agent_dashboard";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Calendar, ChevronsUpDown, DollarSign, MapPin } from "lucide-react";
 import { useState } from "react";
 
