@@ -20,11 +20,11 @@ export default function PropertyDocuments(props: {documents: AgentPropertyDocume
                     </div>
                 </div>
 
-                <Link href={doc.url}>
-                    <Button variant='outline' className="font-bold">
-                        View
-                    </Button>
-                </Link>
+                <Button variant="outline" className="font-bold" asChild>
+                  <Link href={doc.url} target="_blank" rel="noopener noreferrer">
+                    View
+                  </Link>
+                </Button>
             </section>
         </li>
     ));
