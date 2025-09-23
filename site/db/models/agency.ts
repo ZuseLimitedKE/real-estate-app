@@ -195,10 +195,10 @@ export class AgencyModel {
         }
     }
 
-    static async getTenantsProperties(agencyID: string, page: number): Promise<AgentDashboardTenantsData[]> {
+    static async getTenantsProperties(agencyID: string, page: number): Promise<{ tenants: AgentDashboardTenantsData[], totalPages: number }> {
         try {
             const collection = await this.getPropertiesCollection();
-            const cursor = collection.find({ agencyId: agencyID }).limit(RESULT_PAGE_SIZE).skip((page - 1) * RESULT_PAGE_SIZE);
+            const cursor = collection.find({ agencyId: agencyID });
             const tenants: AgentDashboardTenantsData[] = [];
 
             for await (const property of cursor) {
@@ -218,17 +218,41 @@ export class AgencyModel {
                         },
                         paymentHistory: property.tenant.payments
                     })
+                } else if (property.apartmentDetails) {
+                    for (const unit of property.apartmentDetails.units) {
+                        if (unit.tenant) {
+                            tenants.push({
+                                name: unit.tenant.name,
+                                property: property.name,
+                                rent: unit.tenant.rent,
+                                status: property.property_status,
+                                contactInfo: {
+                                    email: unit.tenant.email,
+                                    number: unit.tenant.number
+                                },
+                                leaseInfo: {
+                                    property: property.location.address,
+                                    initialDate: property.createdAt
+                                },
+                                paymentHistory: unit.tenant.paymentHistory
+                            })
+                        }
+                    }
                 }
             }
 
-            return tenants;
+            const startNumber = page === 1 ? 0 : ((page - 1) * RESULT_PAGE_SIZE) - 1
+            return {
+                tenants: tenants.slice(startNumber, startNumber + RESULT_PAGE_SIZE),
+                totalPages: Math.ceil(tenants.length / RESULT_PAGE_SIZE)
+            }
         } catch (err) {
             console.error(`Error getting tenants for agent ${agencyID} properties`);
             throw new MyError(Errors.NOT_GET_AGENCY_TENANTS);
         }
     }
 
-    static async getDashboardProperties(agencyID: string, page: number): Promise<DashboardProperties[]> {
+    static async getDashboardProperties(agencyID: string, page: number): Promise<{ properties: DashboardProperties[], totalPages: number }> {
         try {
             const collection = await this.getPropertiesCollection();
             const cursor = collection.find({ agencyId: agencyID }).limit(RESULT_PAGE_SIZE).skip((page - 1) * RESULT_PAGE_SIZE);
@@ -262,7 +286,10 @@ export class AgencyModel {
                 })
             }
 
-            return dashboardProperties;
+            const totalProperties = await collection.countDocuments({ agencyId: agencyID });
+            const totalPages = Math.ceil(totalProperties / RESULT_PAGE_SIZE);
+
+            return { properties: dashboardProperties, totalPages };
         } catch (err) {
             console.error(`Error getting properties for agency ${agencyID} from db`);
             throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES);

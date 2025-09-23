@@ -79,6 +79,8 @@ export interface Properties {
       name: string;
       tenant?: {
         name: string;
+        email: string;
+        number: string;
         rent: number;
         paymentHistory: {
           date: Date;
