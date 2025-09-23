@@ -12,8 +12,9 @@ export default function AgentDashboardTenantCollapsible(props: {tenant: AgentDas
         <Collapsible
             open={open}
             onOpenChange={setOpen}
+            className="p-2 border rounded-md"
         >
-            <CollapsibleTrigger className="flex flex-row justify-between items-center w-full text-left">
+            <CollapsibleTrigger className="flex flex-row justify-between items-center w-full text-left ">
                 <div className="lg:flex lg:flex-row lg:justify-between lg:flex-1">
                     <div className="flex flex-row lg:flex-col gap-2 flex-wrap mb-2">
                         <p className="font-bold text-lg">{props.tenant.name}</p>

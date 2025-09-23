@@ -6,7 +6,7 @@ import getAgencyStatistics from "@/server-actions/agent/dashboard/getStatistics"
 
 export default async function AgentDashboardStatistics() {
     const statistics = await getAgencyStatistics();
-    
+
     return (
         <article className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-3 mb-4">
             <AgentDashboardStatisticsItem

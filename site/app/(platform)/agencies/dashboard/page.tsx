@@ -7,6 +7,9 @@ import AgentDashboardProperties from "./_components/agentDashboardProperties";
 import AgentDashboardTenants from "./_components/agentDashboardTenants";
 import AgentDashboardStatistics from "./_components/dashboardStatistics";
 import { Suspense } from "react";
+import LoadingAgentDashboardStatistics from "./_components/loadingDashboardStatistics";
+import LoadingAgentDashboardProperties from "./_components/loadingAgentDashboardProperties";
+import LoadingAgentDashboardTenants from "./_components/loadingAgentDashboardTenants";
 
 interface PageProps {
     searchParams: {
@@ -15,7 +18,7 @@ interface PageProps {
     }
 }
 
-export default async function AgentDashboard({ searchParams}: PageProps) {
+export default async function AgentDashboard({ searchParams }: PageProps) {
     const propertiesPageNum = Number(searchParams.propertiesPage) || 1;
     const tenantsPageNum = Number(searchParams.tenantsPage) || 1;
 
@@ -33,7 +36,7 @@ export default async function AgentDashboard({ searchParams}: PageProps) {
                 </Button>
             </header>
 
-            <Suspense fallback={<div>Statistics loading...</div>}>
+            <Suspense fallback={<LoadingAgentDashboardStatistics />}>
                 <AgentDashboardStatistics />
             </Suspense>
 
@@ -45,10 +48,14 @@ export default async function AgentDashboard({ searchParams}: PageProps) {
                             <TabsTrigger value="tenants" className="flex-1">Tenants</TabsTrigger>
                         </TabsList>
                         <TabsContent value="properties">
-                            <AgentDashboardProperties page={propertiesPageNum} />
+                            <Suspense fallback={<LoadingAgentDashboardProperties />}>
+                                <AgentDashboardProperties page={propertiesPageNum} />
+                            </Suspense>
                         </TabsContent>
                         <TabsContent value="tenants">
-                            <AgentDashboardTenants page={tenantsPageNum} />
+                            <Suspense fallback={<LoadingAgentDashboardTenants />}>
+                                <AgentDashboardTenants page={tenantsPageNum} />
+                            </Suspense>
                         </TabsContent>
                     </Tabs>
                 </div>

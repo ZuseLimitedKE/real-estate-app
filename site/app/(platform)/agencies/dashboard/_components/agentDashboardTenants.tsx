@@ -2,6 +2,8 @@
 
 import getTenants from "@/server-actions/agent/dashboard/getTenants";
 import AgentDashboardTenantCollapsible from "./agentDashboardTenantCollapsible";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronsUpDown } from "lucide-react";
 
 export default async function AgentDashboardTenants(props: {page: number}) {
   const tenants = await getTenants(props.page);
