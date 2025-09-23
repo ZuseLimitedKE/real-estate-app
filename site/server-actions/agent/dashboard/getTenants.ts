@@ -7,8 +7,8 @@ export default async function getTenants(page: number): Promise<AgentDashboardTe
     try {
         // Verify that user exists and is an agent
         const payload = await requireAnyRole("agency");
-
-        const tenants = await AgencyModel.getTenantsProperties(payload.userId, page);
+        const pageNum = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+        const tenants = await AgencyModel.getTenantsProperties(payload.userId, pageNum);
         return tenants
     } catch (err) {
         console.error("Error getting tenants for agent's properties", err);
