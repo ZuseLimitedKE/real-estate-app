@@ -24,28 +24,24 @@ export default function AgentDashboardTenants(props: { tenants: AgentDashboardTe
                     open={storeIfOpen[index]}
                     onOpenChange={(open) => handleOpenCollapsible(index, open)}
                 >
-                    <CollapsibleTrigger asChild>
-                        <div className="flex flex-row justify-between items-center">
-                            <div className="lg:flex lg:flex-row lg:justify-between lg:flex-1">
-                                <div className="flex flex-row lg:flex-col gap-2 flex-wrap mb-2">
-                                    <p className="font-bold text-lg">{tenant.name}</p>
-                                    <p className="flex flex-row flex-wrap gap-2 text-slate-400 items-center text-sm">
-                                        <span><MapPin className="w-3 h-3" /></span>
-                                        <span className="">{tenant.property}</span>
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-row lg:flex-col gap-2">
-                                    <p className="font-bold">Ksh {tenant.rent}/month</p>
-                                    <p className="px-2 py-1 rounded-full bg-primary text-white font-bold text-xs lg:self-end">{tenant.status}</p>
-                                </div>
+                    <CollapsibleTrigger className="flex flex-row justify-between items-center w-full text-left">
+                        <div className="lg:flex lg:flex-row lg:justify-between lg:flex-1">
+                            <div className="flex flex-row lg:flex-col gap-2 flex-wrap mb-2">
+                                <p className="font-bold text-lg">{tenant.name}</p>
+                                <p className="flex flex-row flex-wrap gap-2 text-slate-400 items-center text-sm">
+                                    <span><MapPin className="w-3 h-3" /></span>
+                                    <span className="">{tenant.property}</span>
+                                </p>
                             </div>
 
-                            <Button variant="ghost" size="icon" className="size-8">
-                                <ChevronsUpDown />
-                                <span className="sr-only">Toggle</span>
-                            </Button>
+                            <div className="flex flex-row lg:flex-col gap-2">
+                                <p className="font-bold">{new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(tenant.rent)}/month</p>
+                                <p className="px-2 py-1 rounded-full bg-primary text-white font-bold text-xs lg:self-end">{tenant.status}</p>
+                            </div>
                         </div>
+
+                        <ChevronsUpDown aria-hidden="true" />
+                        <span className="sr-only">Toggle</span>
                     </CollapsibleTrigger>
 
                     <CollapsibleContent>
