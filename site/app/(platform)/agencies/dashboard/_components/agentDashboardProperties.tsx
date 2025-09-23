@@ -1,18 +1,15 @@
-"use client";
+"use server";
 
-import PaginationControls from "@/components/paginationControls";
 import { Button } from "@/components/ui/button";
-import { RESULT_PAGE_SIZE } from "@/constants/pagination";
-import { DashboardProperties } from "@/types/agent_dashboard";
+import getDashboardProperties from "@/server-actions/agent/dashboard/getProperties";
 import { Eye, MapPin, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
-export default function AgentDashboardProperties(props: { properties: DashboardProperties[] }) {
-    const [page, setPage] = useState<number>(1);
+export default async function AgentDashboardProperties(props: { page: number }) {
+    const properties = await getDashboardProperties(props.page);
 
-    const propertiesListItems = props.properties.map((p) => {
+    const propertiesListItems = properties.map((p) => {
         const detailItems = p.details.map((d, index) => (
             <p key={index}>
                 <span className="font-bold text-sm">{d.title}: </span>
@@ -83,17 +80,17 @@ export default function AgentDashboardProperties(props: { properties: DashboardP
         <article>
             <header className="flex flex-row justify-between my-4">
                 <h2 className="font-bold text-2xl">My Properties</h2>
-                <p className="text-slate-400">{props.properties.length} properties</p>
+                <p className="text-slate-400">{properties.length} properties</p>
             </header>
             <ul className="flex flex-col gap-4">
                 {propertiesListItems}
             </ul>
-            <div className="mt-4 flex flex-row justify-center">
+            {/* <div className="mt-4 flex flex-row justify-center">
                 <PaginationControls page={page} updatePage={(num) => {
                     // Get data for next page
                     setPage(num);
                 }} isThereMore={props.properties.length >= RESULT_PAGE_SIZE} />
-            </div>
+            </div> */}
         </article>
     );
 }
