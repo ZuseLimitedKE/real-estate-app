@@ -73,6 +73,9 @@ export class AgencyModel {
     static async getPropertyFromID(agencyID: string, propertyID: string): Promise<AgentProperty | null> {
         try {
             const collection = await this.getPropertiesCollection();
+            if (!ObjectId.isValid(propertyID)) {
+                return null;
+            }
             const property = await collection.findOne({ agencyId: agencyID, _id: new ObjectId(propertyID) });
             if (!property) {
                 return null;
