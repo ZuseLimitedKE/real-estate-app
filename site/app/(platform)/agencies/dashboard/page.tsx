@@ -1,29 +1,23 @@
+"use server"
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import AgentDashboardProperties from "./_components/agentDashboardProperties";
 import AgentDashboardTenants from "./_components/agentDashboardTenants";
-import { useSearchParams } from "next/navigation";
 import AgentDashboardStatistics from "./_components/dashboardStatistics";
+import { Suspense } from "react";
 
-const PROPERTIES_PAGE_SEARCH_PARAM = "propertiesPage";
-const TENANTS_PAGE_SEARCH_PARAM = "tenantsPage";
-
-export default function AgentDashboard() {
-    const searchParams = useSearchParams();
-    const propertiesPage = searchParams.get(PROPERTIES_PAGE_SEARCH_PARAM);
-    const tenantsPage = searchParams.get(TENANTS_PAGE_SEARCH_PARAM);
-
-    let propertiesPageNum = 1;
-    let tenantsPageNum = 1;
-
-    if(propertiesPage) {
-        propertiesPageNum = Number.parseInt(propertiesPage);
+interface PageProps {
+    searchParams: {
+        propertiesPage?: string
+        tenantsPage?: string
     }
+}
 
-    if (tenantsPage) {
-        tenantsPageNum = Number.parseInt(tenantsPage);
-    }
+export default async function AgentDashboard({ searchParams}: PageProps) {
+    const propertiesPageNum = Number(searchParams.propertiesPage) || 1;
+    const tenantsPageNum = Number(searchParams.tenantsPage) || 1;
 
     return (
         <main>
@@ -39,7 +33,9 @@ export default function AgentDashboard() {
                 </Button>
             </header>
 
-            <AgentDashboardStatistics />
+            <Suspense fallback={<div>Statistics loading...</div>}>
+                <AgentDashboardStatistics />
+            </Suspense>
 
             <article>
                 <div>

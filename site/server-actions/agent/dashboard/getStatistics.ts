@@ -1,3 +1,5 @@
+"use server"
+
 import { requireRole } from "@/auth/utils";
 import { Errors, MyError } from "@/constants/errors";
 import { AgencyModel } from "@/db/models/agency";
