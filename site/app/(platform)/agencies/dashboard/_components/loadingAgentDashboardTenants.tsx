@@ -5,7 +5,7 @@ export default function LoadingAgentDashboardTenants() {
     return (
     <article>
       <header className="flex flex-row justify-between my-4">
-        <h2 className="font-bold text-2xl">Tenant Managmement</h2>
+        <h2 className="font-bold text-2xl">Tenant Management</h2>
       </header>
       <section>
         <ul className="flex flex-col gap-4">
