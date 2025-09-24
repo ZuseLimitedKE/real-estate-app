@@ -33,11 +33,14 @@ const step1Schema = z.object({
 });
 
 const appartmentDetailsStepSchema = z.object({
-  units: z.array(z.object({
-    name: z.string("You must enter unit's name")
-  }), "You must enter unit details"),
-  floors: z.int("Floors must be a whole number").gt(0, "An apartment must have at least 1 floor"),
-  parkingSpace: z.int("Number of parking spaces must be a whole number")
+  apartmentDetails: z.object({
+    units: z.array(z.object({
+      name: z.string("You must enter unit's name")
+    }), "You must enter unit details"),
+    floors: z.int("Floors must be a whole number").gt(0, "An apartment must have at least 1 floor"),
+    parkingSpace: z.int("Number of parking spaces must be a whole number"),
+    numUnits: z.int("Number of units must be a whole number").gt(0, "An apartment must have more than 1 unit")
+  })
 })
 
 const step2Schema = z.object({
@@ -122,7 +125,7 @@ const step7Schema = z.object({
 });
 export const addPropertySchema = z.object({
   ...step1Schema.shape,
-  apartmentDetails: appartmentDetailsStepSchema.optional(),
+  apartmentDetails: appartmentDetailsStepSchema.shape.apartmentDetails.optional(),
   ...step2Schema.shape,
   ...step3Schema.shape,
   ...step4Schema.shape,

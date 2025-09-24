@@ -31,7 +31,12 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
     name: "",
     type: PropertyType.SINGLE,
     description: "",
-    apartmentDetails: undefined,
+    apartmentDetails: {
+      numUnits: 0,
+      units: [],
+      floors: 0,
+      parkingSpaces: 0
+    },
     amenities: {
       bedrooms: null,
       bathrooms: null,
@@ -125,6 +130,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
       images: data.images ?? [],
       documents: data.documents ?? [],
       secondary_market_listings: data.secondary_market_listings ?? [],
+      apartmentDetails: data.apartmentDetails ?? undefined,
     };
   };
   // Restore form state from Local Storage
@@ -139,6 +145,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
 
   const saveFormState = (stepIndex: number) => {
     const formValues = form.getValues();
+    console.log("Saved form state", formValues);
     setSavedFormState({
       currentStepIndex: stepIndex ?? currentStepIndex,
       formValues: formValues,
@@ -189,11 +196,15 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
         currentStepValues[index] || "",
       ]),
     );
+    console.log("Next button field", formValues);
 
     if (currentStep.validationSchema) {
+      console.log("Validation schema there");
       const validationResult =
         currentStep.validationSchema.safeParse(formValues);
+      console.log("Validation result", validationResult);
       if (!validationResult.success) {
+        console.log("Not valid");
         validationResult.error.issues.forEach((err) => {
           form.setError(err.path.join(".") as Path<AddPropertyFormData>, {
             type: "manual",
@@ -213,6 +224,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
     }
 
     // Otherwise, navigate to next step
+    console.log("Current step", currentStepIndex, "Total steps", steps.length);
     if (currentStepIndex < steps.length - 1) {
       console.log("ran");
       saveFormState(currentStepIndex + 1);
