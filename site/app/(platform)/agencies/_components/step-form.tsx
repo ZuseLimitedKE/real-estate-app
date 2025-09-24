@@ -1,9 +1,6 @@
 import { addPropertySchema, AddPropertyFormData } from "@/types/property";
 import { createContext, useState, useEffect, useMemo } from "react";
-import type {
-  MultiStepFormContextProps,
-  SavedFormState,
-} from "@/types/form";
+import type { MultiStepFormContextProps, SavedFormState } from "@/types/form";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AddProperty } from "@/server-actions/property/add-property";
@@ -16,7 +13,11 @@ import type { DefaultValues, Path } from "react-hook-form";
 import { NextButton } from "./next-button";
 import { MyError } from "@/constants/errors";
 import { PropertyType } from "@/constants/properties";
-import { apartmentDetailsStep, baseSteps, remainingSteps } from "./property-form";
+import {
+  apartmentDetailsStep,
+  baseSteps,
+  remainingSteps,
+} from "./property-form";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
@@ -35,7 +36,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
       numUnits: 0,
       units: [],
       floors: 0,
-      parkingSpace: 0
+      parkingSpace: 0,
     },
     amenities: {
       bedrooms: null,
@@ -95,7 +96,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
     const allSteps = [...baseSteps];
 
     if (propertyType === PropertyType.APARTMENT) {
-      allSteps.splice(1, 0, apartmentDetailsStep)
+      allSteps.splice(1, 0, apartmentDetailsStep);
     }
 
     const finalSteps = allSteps.concat(
@@ -103,7 +104,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
         ...step,
         position: allSteps.length + index + 1,
         title: `Step ${allSteps.length + index + 1}: ${step.title}`,
-      }))
+      })),
     );
     return finalSteps;
   }, [propertyType]);
@@ -178,13 +179,15 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
     }
 
     if (currentStepIndex === 0) {
-      const newPropertyType = form.getValues('type');
-      const wasApartment = steps.some(step => step.fields.includes('apartmentDetails'));
+      const newPropertyType = form.getValues("type");
+      const wasApartment = steps.some((step) =>
+        step.fields.includes("apartmentDetails"),
+      );
       const isNowApartment = newPropertyType === PropertyType.APARTMENT;
-      
+
       if (wasApartment && !isNowApartment) {
         // Clear apartment details if switching away from apartment
-        form.setValue('apartmentDetails', undefined);
+        form.setValue("apartmentDetails", undefined);
       }
     }
 

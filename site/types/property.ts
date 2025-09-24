@@ -4,7 +4,10 @@ import z from "zod";
 const step1Schema = z.object({
   //STEP 1: property details
   name: z.string().trim().min(2, "The property name is too short"),
-  type: z.enum([PropertyType.APARTMENT, PropertyType.SINGLE], "Invalid property type"),
+  type: z.enum(
+    [PropertyType.APARTMENT, PropertyType.SINGLE],
+    "Invalid property type",
+  ),
   description: z
     .string()
     .trim()
@@ -34,14 +37,23 @@ const step1Schema = z.object({
 
 const appartmentDetailsStepSchema = z.object({
   apartmentDetails: z.object({
-    units: z.array(z.object({
-      name: z.string("You must enter unit's name").min(1, "You must enter unit's name")
-    }), "You must enter unit details"),
-    floors: z.int("Floors must be a whole number").gt(0, "An apartment must have at least 1 floor"),
+    units: z.array(
+      z.object({
+        name: z
+          .string("You must enter unit's name")
+          .min(1, "You must enter unit's name"),
+      }),
+      "You must enter unit details",
+    ),
+    floors: z
+      .int("Floors must be a whole number")
+      .gt(0, "An apartment must have at least 1 floor"),
     parkingSpace: z.int("Number of parking spaces must be a whole number"),
-    numUnits: z.int("Number of units must be a whole number").gt(0, "An apartment must have more than 1 unit")
-  })
-})
+    numUnits: z
+      .int("Number of units must be a whole number")
+      .gt(0, "An apartment must have more than 1 unit"),
+  }),
+});
 
 const step2Schema = z.object({
   // STEP 2 : location info
@@ -67,13 +79,18 @@ const step3Schema = z.object({
         .max(31, "Day must be between 1 and 31"),
       name: z.string("Enter tenant's name"),
       email: z.email("Enter a valid email"),
-      number: z.string("Invalid phone number").min(1, "Phone number is required").regex(/^(\+254|0)[175]\d{8}$/, "Please enter valid phone number"),
+      number: z
+        .string("Invalid phone number")
+        .min(1, "Phone number is required")
+        .regex(/^(\+254|0)[175]\d{8}$/, "Please enter valid phone number"),
       joinDate: z.date("You must enter the date the tenant joined"),
-      payments: z.array(z.object({
-        date: z.date(),
-        amount: z.number(),
-        status: z.string()
-      })).optional().default([])
+      payments: z.array(
+        z.object({
+          date: z.date(),
+          amount: z.number(),
+          status: z.string(),
+        }),
+      ),
     })
     .optional(),
 });
@@ -99,7 +116,7 @@ const step6Schema = z.object({
         name: z.string(),
         url: z.url({ protocol: /^https$/ }),
         type: z.string("Set file type"),
-        size: z.string("Set file size")
+        size: z.string("Set file size"),
       }),
     )
     .min(1, "Upload your legal documents"),
@@ -136,7 +153,8 @@ const step7Schema = z.object({
 });
 export const addPropertySchema = z.object({
   ...step1Schema.shape,
-  apartmentDetails: appartmentDetailsStepSchema.shape.apartmentDetails.optional(),
+  apartmentDetails:
+    appartmentDetailsStepSchema.shape.apartmentDetails.optional(),
   ...step2Schema.shape,
   ...step3Schema.shape,
   ...step4Schema.shape,
