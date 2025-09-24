@@ -255,8 +255,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
       const totalFractions = Math.floor(
         data.property_value / initialPricePerToken,
       );
-      //FIXME: ADD THE MISSING TYPES ROMAN
-      //@ts-ignore
+
       await AddProperty({ ...data, totalFractions });
       toast.success(
         "The property is under review ,we will get back to you shortly",

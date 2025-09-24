@@ -65,6 +65,15 @@ const step3Schema = z.object({
         .number()
         .min(1, "Day must be between 1 and 31")
         .max(31, "Day must be between 1 and 31"),
+      name: z.string("Enter tenant's name"),
+      email: z.email("Enter a valid email"),
+      number: z.string("Invalid phone number").min(1, "Phone number is required").regex(/^(\+254|0)[175]\d{8}$/, "Please enter valid phone number"),
+      joinDate: z.date("You must enter the date the tenant joined"),
+      payments: z.array(z.object({
+        date: z.date(),
+        amount: z.number(),
+        status: z.string()
+      })).optional().default([])
     })
     .optional(),
 });
@@ -89,6 +98,8 @@ const step6Schema = z.object({
       z.object({
         name: z.string(),
         url: z.url({ protocol: /^https$/ }),
+        type: z.string("Set file type"),
+        size: z.string("Set file size")
       }),
     )
     .min(1, "Upload your legal documents"),

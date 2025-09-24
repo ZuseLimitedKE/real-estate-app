@@ -9,6 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 function formatOrdinal(n: number) {
   const v = n % 100;
   if (v >= 11 && v <= 13) return `${n}th`;
@@ -34,6 +40,20 @@ export const Step3 = () => {
     <>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
+          <Label htmlFor="tenant.name">Tenant Name</Label>
+          <Input
+            id="tenant.name"
+            {...register("tenant.name")}
+            placeholder="Tenant name"
+          />
+          {errors.tenant?.name && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.tenant.name.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="tenant.address">Tenant Address</Label>
           <Input
             id="tenant.address"
@@ -46,6 +66,36 @@ export const Step3 = () => {
             </p>
           )}
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="tenant.email">Tenant Email</Label>
+          <Input
+            id="tenant.email"
+            type="email"
+            {...register("tenant.email")}
+            placeholder="Tenant email"
+          />
+          {errors.tenant?.address && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.tenant.address.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="tenant.number">Tenant Phone number</Label>
+          <Input
+            id="tenant.number"
+            {...register("tenant.number")}
+            placeholder="0700000000"
+          />
+          {errors.tenant?.address && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.tenant.address.message}
+            </p>
+          )}
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="tenant.rentAmount">Rent Amount (KSH)</Label>
           <Input
@@ -94,6 +144,52 @@ export const Step3 = () => {
           </p>
         )}
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="tenant.joinDate">Tenant Join Date</Label>
+        <Controller
+          name="tenant.joinDate"
+          control={control}
+          render={({ field }) => (
+            <Popover >
+              <PopoverTrigger asChild>
+                <Button
+                  id="tenant.joinDate"
+                  variant={"outline"}
+                  className={cn(
+                    "w-full pl-3 text-left font-normal",
+                    !field.value && "text-muted-foreground"
+                  )}
+                >
+                  {field.value ? (
+                    format(field.value, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("1900-01-01")
+                  }
+                  captionLayout="dropdown"
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+        />
+        {errors.tenant?.joinDate && (
+          <p className="text-sm text-red-500 mt-1">
+            {errors.tenant.joinDate.message}
+          </p>
+        )}
+      </div>
+
     </>
   );
 };

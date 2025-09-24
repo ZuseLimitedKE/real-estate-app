@@ -52,8 +52,8 @@ export const ApartmentDetailsStep = () => {
                     {...register("apartmentDetails.floors", {valueAsNumber: true})}
                     placeholder="Enter the number of floors in your appartment"
                 />
-                {errors.name && (
-                    <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
+                {errors.apartmentDetails?.floors && (
+                    <p className="text-sm text-red-500 mt-1">{errors.apartmentDetails?.floors.message}</p>
                 )}
             </div>
 
@@ -65,8 +65,8 @@ export const ApartmentDetailsStep = () => {
                     {...register("apartmentDetails.parkingSpace", {valueAsNumber: true})}
                     placeholder="Enter total number of parking spaces in the apartment"
                 />
-                {errors.name && (
-                    <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
+                {errors.apartmentDetails?.parkingSpace && (
+                    <p className="text-sm text-red-500 mt-1">{errors.apartmentDetails?.parkingSpace.message}</p>
                 )}
             </div>
 
@@ -78,8 +78,8 @@ export const ApartmentDetailsStep = () => {
                     {...register("apartmentDetails.numUnits", {valueAsNumber: true})}
                     placeholder="Enter number of units in the apartment"
                 />
-                {errors.name && (
-                    <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
+                {errors.apartmentDetails?.numUnits && (
+                    <p className="text-sm text-red-500 mt-1">{errors.apartmentDetails?.numUnits.message}</p>
                 )}
             </div>
 
