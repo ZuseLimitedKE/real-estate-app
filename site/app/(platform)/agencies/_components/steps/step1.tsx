@@ -35,9 +35,9 @@ export const Step1 = () => {
         render={({ field }) => (
           <div className="space-y-2">
             <Label htmlFor="type">Property Type</Label>
-            <RadioGroup 
-              id="type" 
-              defaultValue={field.value}
+            <RadioGroup
+              id="type"
+              value={field.value}
               className="flex flex-row flex-wrap gap-4 items-center"
               onValueChange={field.onChange}
             >
