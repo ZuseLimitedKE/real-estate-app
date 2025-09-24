@@ -10,10 +10,10 @@ import LoadingAgentDashboardProperties from "./_components/loadingAgentDashboard
 import LoadingAgentDashboardTenants from "./_components/loadingAgentDashboardTenants";
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     propertiesPage?: string;
     tenantsPage?: string;
-  };
+  }>;
 }
 
 export default async function AgentDashboard({ searchParams }: PageProps) {
