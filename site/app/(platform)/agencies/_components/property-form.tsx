@@ -26,49 +26,44 @@ export const apartmentDetailsStep: FormStep = {
   title: "Step 1.5: Appartment Details",
   component: <ApartmentDetailsStep />,
   icon: HousePlus,
-  position: 1.5,
+  position: 2,
   validationSchema: stepSchemas.apartmentsStep,
   fields: ["apartmentDetails"]
 }
 
-export const remainingSteps: FormStep[] = [
+export const remainingSteps: Omit<FormStep, 'position'>[] = [
 {
-    title: "Step 2: Address Details",
+    title: "Address Details",
     component: <Step2 />,
     icon: MapIcon,
-    position: 2,
     validationSchema: stepSchemas.step2,
     fields: ["location"],
   },
   {
-    title: "Step 3: Tenant Information",
+    title: "Tenant Information",
     component: <Step3 />,
     icon: User,
-    position: 3,
     validationSchema: stepSchemas.step3,
     fields: ["tenant"],
   },
   {
-    title: "Step 4:  Financial Information",
+    title: "Financial Information",
     component: <Step4 />,
     icon: Wallet,
-    position: 4,
     validationSchema: stepSchemas.step4,
     fields: ["proposedRentPerMonth", "serviceFeePercent", "property_value"],
   },
   {
-    title: "Step 5: Property Images",
+    title: "Property Images",
     component: <Step5 />,
     icon: Camera,
-    position: 5,
     validationSchema: stepSchemas.step5,
     fields: ["images"],
   },
   {
-    title: "Step 6: Legal Documents",
+    title: "Legal Documents",
     component: <Step6 />,
     icon: FileIcon,
-    position: 6,
     validationSchema: stepSchemas.step6,
     fields: ["documents"],
   },

@@ -37,7 +37,7 @@ export const Step1 = () => {
             <Label htmlFor="type">Property Type</Label>
             <RadioGroup 
               id="type" 
-              defaultValue={PropertyType.SINGLE} 
+              defaultValue={field.value}
               className="flex flex-row flex-wrap gap-4 items-center"
               onValueChange={field.onChange}
             >

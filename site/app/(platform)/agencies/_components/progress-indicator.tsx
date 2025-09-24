@@ -23,7 +23,13 @@ export default function ProgressIndicator() {
       allSteps.splice(1, 0, apartmentDetailsStep)
     }
 
-    const finalSteps = allSteps.concat(remainingSteps);
+    const finalSteps = allSteps.concat(
+      remainingSteps.map((step, index) => ({
+        ...step,
+        position: allSteps.length + index + 1,
+        title: `Step ${allSteps.length + index + 1}: ${step.title}`,
+      }))
+    );
     return finalSteps;
   }, [propertyType]);
 
