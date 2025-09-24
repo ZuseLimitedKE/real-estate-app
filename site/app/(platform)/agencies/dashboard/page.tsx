@@ -19,8 +19,12 @@ interface PageProps {
 }
 
 export default async function AgentDashboard({ searchParams }: PageProps) {
-    const propertiesPageNum = Number(searchParams.propertiesPage) || 1;
-    const tenantsPageNum = Number(searchParams.tenantsPage) || 1;
+    const parsePage = (v?: string) => {
+        const n = Number.parseInt(v ?? "1", 10)
+        return Number.isFinite(n) && n > 0 ? n : 1
+    }
+    const propertiesPageNum = parsePage(searchParams.propertiesPage);
+    const tenantsPageNum = parsePage(searchParams.tenantsPage);
 
     return (
         <main>
