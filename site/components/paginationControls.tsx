@@ -15,8 +15,10 @@ export default function PaginationControls({ currentPage, totalPages, paramName 
     const searchParams = useSearchParams()
 
     const updatePage = (newPage: number) => {
+        const clamped = Math.max(1, Math.min(newPage, totalPages))
+        if (clamped === currentPage) return
         const params = new URLSearchParams(searchParams.toString())
-        params.set(paramName, newPage.toString())
+        params.set(paramName, clamped.toString())
         router.push(`?${params.toString()}`)
     }
 
