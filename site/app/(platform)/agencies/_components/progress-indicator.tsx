@@ -1,10 +1,31 @@
 import { useMultiStepForm } from "@/hooks/use-stepped-form";
-import { addPropertySteps } from "./property-form";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { useFormContext } from "react-hook-form";
+import { AddPropertyFormData, addPropertySchema } from "@/types/property";
+import { useMemo } from "react";
+import { apartmentDetailsStep, baseSteps, remainingSteps } from "./property-form";
+import { PropertyType } from "@/constants/properties";
 
 export default function ProgressIndicator() {
   const { goToStep, currentStepIndex } = useMultiStepForm();
+  const {
+    watch,
+  } = useFormContext<AddPropertyFormData>();
+
+  // Handling dynamic form steps
+  const propertyType = watch("type");
+
+  const steps = useMemo(() => {
+    const allSteps = [...baseSteps];
+
+    if (propertyType === PropertyType.APPARTMENT) {
+      allSteps.splice(1, 0, apartmentDetailsStep)
+    }
+
+    const finalSteps = allSteps.concat(remainingSteps);
+    return finalSteps;
+  }, [propertyType]);
 
   const handleStepClick = (stepPosition: number) => {
     // Optional: Only allow going back to completed steps
@@ -23,14 +44,14 @@ export default function ProgressIndicator() {
               className="h-full bg-primary"
               initial={{ width: "0%" }}
               animate={{
-                width: `${(currentStepIndex / (addPropertySteps.length - 1)) * 100}%`,
+                width: `${(currentStepIndex / (steps.length - 1)) * 100}%`,
               }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             />
           </div>
 
           {/* Steps */}
-          {addPropertySteps.map((step) => {
+          {steps.map((step) => {
             const isCompleted = currentStepIndex > step.position - 1;
             const isCurrent = currentStepIndex === step.position - 1;
             const isClickable = step.position - 1 <= currentStepIndex; // Only allow clicking completed or current steps
@@ -42,10 +63,10 @@ export default function ProgressIndicator() {
                   onClick={() => handleStepClick(step.position)}
                   disabled={!isClickable}
                   className={`flex size-14 items-center justify-center rounded-full border-2 transition-colors ${isCompleted || isCurrent
-                      ? "border-primary bg-primary text-white"
-                      : isClickable
-                        ? "border-gray-300 bg-white text-gray-500 hover:border-primary/50"
-                        : "border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed"
+                    ? "border-primary bg-primary text-white"
+                    : isClickable
+                      ? "border-gray-300 bg-white text-gray-500 hover:border-primary/50"
+                      : "border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed"
                     }`}
                   animate={{
                     scale: isCurrent ? 1.1 : 1,

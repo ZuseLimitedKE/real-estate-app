@@ -1,7 +1,6 @@
 import { addPropertySchema, AddPropertyFormData } from "@/types/property";
 import { createContext, useState, useEffect, useMemo } from "react";
 import type {
-  FormStep,
   MultiStepFormContextProps,
   SavedFormState,
 } from "@/types/form";
@@ -22,7 +21,6 @@ export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
   userId: string;
-  steps: FormStep[];
 }
 
 export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
