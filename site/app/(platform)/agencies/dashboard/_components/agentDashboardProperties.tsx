@@ -28,7 +28,7 @@ export default async function AgentDashboardProperties(props: { page: number }) 
                                 alt={p.name}
                                 width={500}
                                 height={500}
-                                className="max-w-full object-fit lg:mx-auto"
+                                className="max-w-full object-cover lg:mx-auto"
                             />
                         </div>
 
