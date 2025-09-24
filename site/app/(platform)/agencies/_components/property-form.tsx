@@ -1,7 +1,7 @@
 "use client";
 import { stepSchemas } from "@/types/property";
 import { MultiStepForm } from "./step-form";
-import { House, MapIcon, User, Wallet, Camera, FileIcon } from "lucide-react";
+import { House, MapIcon, User, Wallet, Camera, FileIcon, HousePlus } from "lucide-react";
 import { Step1 } from "./steps/step1";
 import { Step2 } from "./steps/step2";
 import { Step3 } from "./steps/step3";
@@ -9,8 +9,9 @@ import { Step4 } from "./steps/step4";
 import { Step5 } from "./steps/step5";
 import { Step6 } from "./steps/step6";
 import { FormStep } from "@/types/form";
+import { ApartmentDetailsStep } from "./steps/apartmentDetailsStep";
 
-export const addPropertySteps: FormStep[] = [
+export const baseSteps: FormStep[] = [
   {
     title: "Step 1: Property Information",
     component: <Step1 />,
@@ -19,7 +20,19 @@ export const addPropertySteps: FormStep[] = [
     validationSchema: stepSchemas.step1,
     fields: ["name", "type", "description", "gross_property_size", "amenities"],
   },
-  {
+];
+
+export const apartmentDetailsStep: FormStep = {
+  title: "Step 1.5: Appartment Details",
+  component: <ApartmentDetailsStep />,
+  icon: HousePlus,
+  position: 1.5,
+  validationSchema: stepSchemas.apartmentsStep,
+  fields: ["apartmentDetails"]
+}
+
+export const remainingSteps: FormStep[] = [
+{
     title: "Step 2: Address Details",
     component: <Step2 />,
     icon: MapIcon,
@@ -59,8 +72,8 @@ export const addPropertySteps: FormStep[] = [
     validationSchema: stepSchemas.step6,
     fields: ["documents"],
   },
-];
+]
 
 export function AddPropertyForm({ userId }: { userId: string }) {
-  return <MultiStepForm steps={addPropertySteps} userId={userId} />;
+  return <MultiStepForm userId={userId} />;
 }
