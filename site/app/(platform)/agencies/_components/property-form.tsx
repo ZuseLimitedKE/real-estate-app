@@ -23,7 +23,7 @@ export const baseSteps: FormStep[] = [
 ];
 
 export const apartmentDetailsStep: FormStep = {
-  title: "Step 1.5: Appartment Details",
+  title: "Apartment Details",
   component: <ApartmentDetailsStep />,
   icon: HousePlus,
   position: 2,
