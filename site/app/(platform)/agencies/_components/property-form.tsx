@@ -1,7 +1,7 @@
 "use client";
 import { stepSchemas } from "@/types/property";
 import { MultiStepForm } from "./step-form";
-import { House, MapIcon, User, Wallet, Camera, FileIcon, HousePlus } from "lucide-react";
+import { House, MapIcon, User, Wallet, Camera, File, HousePlus } from "lucide-react";
 import { Step1 } from "./steps/step1";
 import { Step2 } from "./steps/step2";
 import { Step3 } from "./steps/step3";
@@ -63,7 +63,7 @@ export const remainingSteps: Omit<FormStep, 'position'>[] = [
   {
     title: "Legal Documents",
     component: <Step6 />,
-    icon: FileIcon,
+    icon: File,
     validationSchema: stepSchemas.step6,
     fields: ["documents"],
   },
