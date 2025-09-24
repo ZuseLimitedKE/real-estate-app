@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PropertyType } from "@/constants/properties";
+import { RadioGroupItem, RadioGroup } from "@/components/ui/radio-group";
 
 export const Step1 = () => {
   const {
@@ -25,6 +27,22 @@ export const Step1 = () => {
           <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
         )}
       </div>
+
+      {/* Property type */}
+      <div className="space-y-2">
+        <Label htmlFor="type">Property Type</Label>
+        <RadioGroup id="type" defaultValue={PropertyType.SINGLE} className="flex flex-row flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-3">
+            <RadioGroupItem value={PropertyType.SINGLE} id="r1" />
+            <Label htmlFor="r1">Single</Label>
+          </div>
+          <div className="flex items-center gap-3">
+            <RadioGroupItem value={PropertyType.APPARTMENT} id="r2" />
+            <Label htmlFor="r2">Apartment</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
 
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>

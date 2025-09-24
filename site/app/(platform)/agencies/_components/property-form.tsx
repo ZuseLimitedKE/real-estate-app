@@ -17,7 +17,7 @@ export const addPropertySteps: FormStep[] = [
     icon: House,
     position: 1,
     validationSchema: stepSchemas.step1,
-    fields: ["name", "description", "gross_property_size", "amenities"],
+    fields: ["name", "type", "description", "gross_property_size", "amenities"],
   },
   {
     title: "Step 2: Address Details",

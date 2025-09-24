@@ -1,8 +1,10 @@
+import { PropertyType } from "@/constants/properties";
 import z from "zod";
 
 const step1Schema = z.object({
   //STEP 1: property details
   name: z.string().trim().min(2, "The property name is too short"),
+  type: z.enum([PropertyType.APPARTMENT, PropertyType.SINGLE], "Invalid property type"),
   description: z
     .string()
     .trim()

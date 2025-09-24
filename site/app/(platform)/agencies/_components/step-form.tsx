@@ -16,6 +16,7 @@ import { useLocalStorage } from "@mantine/hooks";
 import type { DefaultValues, Path } from "react-hook-form";
 import { NextButton } from "./next-button";
 import { MyError } from "@/constants/errors";
+import { PropertyType } from "@/constants/properties";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
@@ -30,6 +31,7 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
   const localStorageKey = "add-property-form";
   const defaultValues = {
     name: "",
+    type: PropertyType.SINGLE,
     description: "",
     amenities: {
       bedrooms: null,
