@@ -3,6 +3,7 @@ import type { HardhatUserConfig } from "hardhat/config";
 import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
 import hardhatVerify from "@nomicfoundation/hardhat-verify";
 import { configVariable } from "hardhat/config";
+import { version } from "os";
 
 const ETHERSCAN_API_KEY = configVariable("ETHERSCAN_API_KEY");
 
@@ -13,6 +14,7 @@ const config: HardhatUserConfig = {
       default: {
         version: "0.8.28",
       },
+
       production: {
         version: "0.8.28",
         settings: {
@@ -22,7 +24,8 @@ const config: HardhatUserConfig = {
           },
         },
       },
-    },
+    }
+
   },
   networks: {
     hedera: {
