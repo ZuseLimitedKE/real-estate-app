@@ -35,7 +35,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
       numUnits: 0,
       units: [],
       floors: 0,
-      parkingSpaces: 0
+      parkingSpace: 0
     },
     amenities: {
       bedrooms: null,

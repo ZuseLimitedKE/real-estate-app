@@ -60,7 +60,7 @@ export const ApartmentDetailsStep = () => {
             <div className="space-y-2">
                 <Label htmlFor="apartmentDetails.parkingSpace">Total number of parking spaces</Label>
                 <Input
-                    id="apartmentDetails.parkingSpaces"
+                    id="apartmentDetails.parkingSpace"
                     type="number"
                     {...register("apartmentDetails.parkingSpace", {valueAsNumber: true})}
                     placeholder="Enter total number of parking spaces in the apartment"
