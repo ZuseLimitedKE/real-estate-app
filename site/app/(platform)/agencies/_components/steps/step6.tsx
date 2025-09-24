@@ -57,10 +57,18 @@ export const Step6 = () => {
                 ?.map((file) => ({
                   url: file.ufsUrl,
                   name: file.name,
+                  type: file.type,
+                  size: file.size < 1024
+                    ? `${file.size} B`
+                    : file.size < 1_048_576
+                      ? `${(file.size / 1024).toFixed(1)} KB`
+                      : file.size < 1_073_741_824
+                        ? `${(file.size / 1_048_576).toFixed(1)} MB`
+                        : `${(file.size / 1_073_741_824).toFixed(1)} GB`
                 }))
                 .filter(Boolean) || [];
             const currentDocuments = getValues("documents") || [];
-            const byUrl = new Map<string, { url: string; name: string }>();
+            const byUrl = new Map<string, { url: string; name: string, type: string, size: string }>();
             [...(currentDocuments || []), ...newDocuments].forEach((d) => {
               if (d?.url) byUrl.set(d.url, d);
             });
