@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
+
 interface AgentDashboardStatisticsData {
-    title: string,
-    icon: React.ReactNode,
-    value: string,
+    title: string;
+    icon: ReactNode;
+    value: string;
 }
 
 export default function AgentDashboardStatisticsItem(props: AgentDashboardStatisticsData) {
