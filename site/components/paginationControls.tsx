@@ -31,7 +31,7 @@ export default function PaginationControls({
       <Button
         aria-label="Previous page"
         onClick={() => updatePage(currentPage - 1)}
-        disabled={currentPage === 1}
+        disabled={currentPage <= 1}
       >
         <ChevronLeft className="w-2 h-4" />
       </Button>
@@ -41,7 +41,7 @@ export default function PaginationControls({
       <Button
         aria-label="Next page"
         onClick={() => updatePage(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage >= totalPages}
       >
         <ChevronRight className="w-2 h-4" />
       </Button>
