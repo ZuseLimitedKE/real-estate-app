@@ -69,6 +69,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
         feeCollector = _feeCollector;
         feeBps = _feeBps;
     }
+
     /*Order helpers */
     struct BuyOrder {
         address maker;
@@ -86,6 +87,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
         uint64 expiry;
         uint64 nonce;
     }
+
     function _hashBuyOrder(BuyOrder memory o) internal view returns (bytes32) {
         return
             _hashTypedDataV4(
@@ -102,6 +104,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
                 )
             );
     }
+
     function _hashSellOrder(
         SellOrder memory o
     ) internal view returns (bytes32) {
@@ -120,12 +123,14 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
                 )
             );
     }
+
     function _recover(
         bytes32 digest,
         bytes memory sig
     ) internal pure returns (address) {
         return ECDSA.recover(digest, sig);
     }
+
     /**Escrow functions */
     /**
      * Deposit tokens into the escrow
@@ -144,6 +149,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
         escrowBalances[token][msg.sender] += amount;
         emit Deposited(msg.sender, token, amount);
     }
+
     /**
      * Withdraw tokens from the escrow
      * @param token The address of the token to withdraw
@@ -168,6 +174,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
         require(rc == 22 || rc == 0, "HTS transfer failed");
         emit Withdrawn(msg.sender, token, amount);
     }
+
     /**
      * Initialize a buy order
      * @param nonce Unique identifier for the order
@@ -211,6 +218,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
         );
         remaining[msg.sender][nonce] = amount;
     }
+
     /**
      * Initialize a cancel order
      * @param nonce Unique identifier for the order
@@ -219,19 +227,43 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
         cancelled[msg.sender][nonce] = true;
         emit OrderCancelled(msg.sender, nonce);
     }
-    /**
-     * Settle a trade between a buyer and a seller
-     * @param buy BuyOrder struct containing the details of the buy order
-     * @param buySig Signature of the buy order
-     * @param sell SellOrder struct containing the details of the sell order
-     * @param sellSig Signature of the sell order
-     */
+
     function settle(
         BuyOrder calldata buy,
         bytes calldata buySig,
         SellOrder calldata sell,
         bytes calldata sellSig
     ) external nonReentrant {
+        _validateOrders(buy, sell);
+        _verifySignatures(buy, buySig, sell, sellSig);
+
+        (
+            uint64 fill,
+            uint256 executionPrice,
+            uint256 totalNotional,
+            uint256 fee,
+            uint256 sellerProceeds
+        ) = _determineTrade(buy, sell);
+
+        _checkEscrow(buy, sell, fill, totalNotional);
+
+        _updateBalances(buy, sell, fill, totalNotional, fee, sellerProceeds);
+
+        _performTransfers(
+            buy,
+            sell,
+            fill,
+            executionPrice,
+            totalNotional,
+            fee,
+            sellerProceeds
+        );
+    }
+
+    function _validateOrders(
+        BuyOrder calldata buy,
+        SellOrder calldata sell
+    ) internal view {
         require(buy.propertyToken == sell.propertyToken, "property mismatch");
         require(buy.pricePerShare >= sell.pricePerShare, "price mismatch");
         require(
@@ -243,8 +275,14 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
                 !cancelled[sell.maker][sell.nonce],
             "order cancelled"
         );
+    }
 
-        // Verify signatures
+    function _verifySignatures(
+        BuyOrder calldata buy,
+        bytes calldata buySig,
+        SellOrder calldata sell,
+        bytes calldata sellSig
+    ) internal view {
         bytes32 buyDigest = _hashBuyOrder(buy);
         bytes32 sellDigest = _hashSellOrder(sell);
         require(_recover(buyDigest, buySig) == buy.maker, "invalid buy sig");
@@ -252,8 +290,21 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
             _recover(sellDigest, sellSig) == sell.maker,
             "invalid sell sig"
         );
+    }
 
-        // Ensure orders were initialized on-chain
+    function _determineTrade(
+        BuyOrder calldata buy,
+        SellOrder calldata sell
+    )
+        internal
+        returns (
+            uint64 fill,
+            uint256 executionPrice,
+            uint256 totalNotional,
+            uint256 fee,
+            uint256 sellerProceeds
+        )
+    {
         uint64 buyRemain = remaining[buy.maker][buy.nonce];
         uint64 sellRemain = remaining[sell.maker][sell.nonce];
         require(
@@ -261,49 +312,68 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
             "order not initialized or already filled"
         );
 
-        // Determine fill amount
-        uint64 fill = buyRemain < sellRemain ? buyRemain : sellRemain;
+        fill = buyRemain < sellRemain ? buyRemain : sellRemain;
         require(fill > 0, "nothing to fill");
 
-        // Verify both parties are verified and KYC'd
         (, bool buyerKyc) = HTS.isKyc(buy.propertyToken, buy.maker);
         require(buyerKyc, "buyer not kyc");
-        
+
         (, bool sellerKyc) = HTS.isKyc(sell.propertyToken, sell.maker);
         require(sellerKyc, "seller not kyc");
 
-        // Compute totals
-        uint256 executionPrice = sell.pricePerShare;
-        uint256 totalNotional = uint256(fill) * executionPrice;
-        uint256 fee = (totalNotional * feeBps) / 10000;
-        uint256 sellerProceeds = totalNotional - fee;
+        executionPrice = sell.pricePerShare;
+        totalNotional = uint256(fill) * executionPrice;
+        fee = (totalNotional * feeBps) / 10000;
+        sellerProceeds = totalNotional - fee;
+    }
 
-        // Check escrow sufficiency
+    function _checkEscrow(
+        BuyOrder calldata buy,
+        SellOrder calldata sell,
+        uint64 fill,
+        uint256 totalNotional
+    ) internal view {
         require(
-            escrowBalances[usdcToken][buy.maker] >=
-                totalNotional,
+            escrowBalances[usdcToken][buy.maker] >= totalNotional,
             "buyer insufficient USDC escrow"
         );
         require(
             escrowBalances[buy.propertyToken][sell.maker] >= fill,
             "seller insufficient property escrow"
         );
+    }
 
-        // Update remaning balances and escrow before external calls
-        remaining[buy.maker][buy.nonce] = buyRemain - fill;
-        remaining[sell.maker][sell.nonce] = sellRemain - fill;
+    function _updateBalances(
+        BuyOrder calldata buy,
+        SellOrder calldata sell,
+        uint64 fill,
+        uint256 totalNotional,
+        uint256 fee,
+        uint256 sellerProceeds
+    ) internal {
+        remaining[buy.maker][buy.nonce] -= fill;
+        remaining[sell.maker][sell.nonce] -= fill;
 
         escrowBalances[buy.propertyToken][sell.maker] -= fill;
-        escrowBalances[buy.propertyToken][buy.maker] += fill; // credit property to buyer in escrow
+        escrowBalances[buy.propertyToken][buy.maker] += fill;
 
         escrowBalances[usdcToken][buy.maker] -= totalNotional;
         escrowBalances[usdcToken][sell.maker] += sellerProceeds;
+
         if (fee > 0) {
             escrowBalances[usdcToken][feeCollector] += fee;
         }
+    }
 
-        // Optionally, immediately release to participants (transfer out of escrow to their accounts)
-        // Here we transfer property shares (contract -> buyer) and USDC (contract -> seller) using HTS transfer
+    function _performTransfers(
+        BuyOrder calldata buy,
+        SellOrder calldata sell,
+        uint64 fill,
+        uint256 executionPrice,
+        uint256 totalNotional,
+        uint256 fee,
+        uint256 sellerProceeds
+    ) internal {
         int256 rc1 = HTS.transferToken(
             buy.propertyToken,
             address(this),
@@ -329,6 +399,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
             );
             require(rc3 == 22 || rc3 == 0, "fee transfer failed");
         }
+
         emit TradeExecuted(
             buy.maker,
             sell.maker,
@@ -343,9 +414,11 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
     function setFeeCollector(address fc) external onlyOwner {
         feeCollector = fc;
     }
+
     function setFeeBps(uint256 bps) external onlyOwner {
         feeBps = bps;
     }
+
     function setUSDC(address token) external onlyOwner {
         usdcToken = token;
     }
