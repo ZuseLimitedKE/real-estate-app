@@ -58,7 +58,13 @@ export const Step6 = () => {
                   url: file.ufsUrl,
                   name: file.name,
                   type: file.type,
-                  size: file.size < 1000 ? `${file.size} B` : file.size < 1_000_000 ? `${file.size / 1_000_000} KB`: `${file.size / 1_000_000_000} MB`
+                  size: file.size < 1024
+                    ? `${file.size} B`
+                    : file.size < 1_048_576
+                      ? `${(file.size / 1024).toFixed(1)} KB`
+                      : file.size < 1_073_741_824
+                        ? `${(file.size / 1_048_576).toFixed(1)} MB`
+                        : `${(file.size / 1_073_741_824).toFixed(1)} GB`
                 }))
                 .filter(Boolean) || [];
             const currentDocuments = getValues("documents") || [];

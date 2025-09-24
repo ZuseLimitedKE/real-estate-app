@@ -94,7 +94,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
   const steps = useMemo(() => {
     const allSteps = [...baseSteps];
 
-    if (propertyType === PropertyType.APPARTMENT) {
+    if (propertyType === PropertyType.APARTMENT) {
       allSteps.splice(1, 0, apartmentDetailsStep)
     }
 
@@ -180,7 +180,7 @@ export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
     if (currentStepIndex === 0) {
       const newPropertyType = form.getValues('type');
       const wasApartment = steps.some(step => step.fields.includes('apartmentDetails'));
-      const isNowApartment = newPropertyType === PropertyType.APPARTMENT;
+      const isNowApartment = newPropertyType === PropertyType.APARTMENT;
       
       if (wasApartment && !isNowApartment) {
         // Clear apartment details if switching away from apartment

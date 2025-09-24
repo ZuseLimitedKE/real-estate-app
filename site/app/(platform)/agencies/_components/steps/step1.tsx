@@ -46,7 +46,7 @@ export const Step1 = () => {
                 <Label htmlFor="r1">Single</Label>
               </div>
               <div className="flex items-center gap-3">
-                <RadioGroupItem value={PropertyType.APPARTMENT} id="r2" />
+                <RadioGroupItem value={PropertyType.APARTMENT} id="r2" />
                 <Label htmlFor="r2">Apartment</Label>
               </div>
             </RadioGroup>

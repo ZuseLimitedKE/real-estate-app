@@ -75,9 +75,9 @@ export const Step3 = () => {
             {...register("tenant.email")}
             placeholder="Tenant email"
           />
-          {errors.tenant?.address && (
+          {errors.tenant?.email && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.tenant.address.message}
+              {errors.tenant.email.message}
             </p>
           )}
         </div>
@@ -89,9 +89,9 @@ export const Step3 = () => {
             {...register("tenant.number")}
             placeholder="0700000000"
           />
-          {errors.tenant?.address && (
+          {errors.tenant?.number && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.tenant.address.message}
+              {errors.tenant.number.message}
             </p>
           )}
         </div>

@@ -1,4 +1,4 @@
 export enum PropertyType {
-    APPARTMENT = "apartment",
+    APARTMENT = "apartment",
     SINGLE = "single"
 }

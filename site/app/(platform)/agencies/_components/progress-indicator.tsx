@@ -19,7 +19,7 @@ export default function ProgressIndicator() {
   const steps = useMemo(() => {
     const allSteps = [...baseSteps];
 
-    if (propertyType === PropertyType.APPARTMENT) {
+    if (propertyType === PropertyType.APARTMENT) {
       allSteps.splice(1, 0, apartmentDetailsStep)
     }
 
