@@ -46,7 +46,7 @@ export default function PropertyDetailModal({
   };
 
   const amenitiesList = Object.entries(property.amenities)
-    .filter(([_, value]) => value !== null && value !== false && value !== 0)
+    .filter(([_, value]) => value !== null && value !== undefined && value !== false && value !== 0)
     .map(([key, value]) => ({
       name: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
       value: typeof value === 'boolean' ? 'Yes' : value
