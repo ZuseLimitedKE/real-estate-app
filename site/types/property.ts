@@ -1,5 +1,6 @@
 import { PropertyType } from "@/constants/properties";
 import z from "zod";
+import type { Properties } from "@/db/collections";
 
 const step1Schema = z.object({
   //STEP 1: property details
@@ -176,3 +177,42 @@ export const stepSchemas = {
 
 // Create a type for the form data
 export type AddPropertyFormData = z.infer<typeof addPropertySchema>;
+
+// UI-facing property type with derived fields while retaining full backend document
+export interface PropertyDetailView {
+  // Full backend document for completeness and future access
+  original: Properties;
+
+  // Core identifiers and display
+  id: string;
+  title: string;
+  location: string; // flattened address for UI
+
+  // Hero and gallery
+  image: string;
+  gallery: string[];
+
+  // Financials (pre-formatted for UI)
+  value: string; // e.g., "KSh 1,000,000"
+  monthlyRent: string; // e.g., "KSh 25,000"
+  yield: string; // e.g., "7.5%"
+  minInvestment: string; // e.g., "10% fee"
+
+  // Investment stats
+  investors: number;
+  availableShares: number; // percent 0-100
+  verified: boolean;
+
+  // Description and details (as display strings for current UI)
+  description: string;
+  propertyType: string;
+  bedrooms: string;
+  bathrooms: string;
+  area: string; // e.g., "1200 sq ft"
+  yearBuilt: string;
+  totalUnits: string | number;
+  occupancyRate: string | number;
+
+  // Amenities presented as prettified list
+  amenities: string[];
+}

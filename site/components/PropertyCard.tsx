@@ -108,7 +108,7 @@ const PropertyCard = ({
         </CardContent>
 
         <CardFooter className="p-6 pt-0">
-          <Button variant="default" className="w-full">
+          <Button variant="default" className="w-full cursor-pointer">
             Invest Now
           </Button>
         </CardFooter>
