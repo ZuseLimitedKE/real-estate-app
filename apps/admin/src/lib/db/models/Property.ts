@@ -83,6 +83,9 @@ export class PropertyModel {
 
   static async updateStatus(id: string, status: "approved" | "rejected"): Promise<boolean> {
     const collection = await this.getCollection();
+    if (!ObjectId.isValid(id)) {
+      return false;
+    }
     const result = await collection.updateOne(
       { _id: new ObjectId(id) },
       { 
