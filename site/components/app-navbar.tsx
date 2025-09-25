@@ -40,9 +40,7 @@ export function AppNavbar() {
         <NavbarLogo />
         <NavItems items={navItems} />
         <div className="flex items-center gap-4">
-          <NavbarButton variant="secondary">
-            <WalletConnect />
-          </NavbarButton>
+          <WalletConnect />
           <NavbarButton
             variant="primary"
             as="button"
