@@ -152,13 +152,29 @@ export class UserModel {
       updateData.rejectionReason = rejectionReason;
     }
 
-    const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
+    static async updateStatus(
+      id: string,
+      status: UserStatus,
+      approvedBy?: string,
+      rejectionReason?: string
+    ): Promise<boolean> {
+      const collection = await this.getCollection();
+      if (!ObjectId.isValid(id)) {
+        return false;
+      }
 
-    return result.modifiedCount > 0;
-  }
+      const updateData: any = {
+        status,
+        updatedAt: new Date(),
+      };
+
+      const result = await collection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData }
+      );
+
+      return result.modifiedCount > 0;
+    }
 
   static async getAgencyStats() {
     const collection = await this.getCollection();
