@@ -10,16 +10,19 @@ export interface ActionResult {
   message?: string;
 }
 
+const requireAdmin = async () => {
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error('Not authenticated');
+  }
+  if (session.user.role !== 'ADMIN') {
+    throw new Error('Not authorized');
+  }
+};
+
 export async function approveAgency(agencyId: string, welcomeMessage?: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    if (session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Not authorized' };
-      }
+    requireAdmin();
     
     const agency = await UserModel.findById(agencyId);
     if (!agency || agency.role !== 'AGENCY') {
@@ -30,7 +33,7 @@ export async function approveAgency(agencyId: string, welcomeMessage?: string): 
       return { success: false, error: 'Agency is not in pending status' };
     }
 
-    const success = await UserModel.updateStatus(agencyId, 'APPROVED', session.user.email);
+    const success = await UserModel.updateStatus(agencyId, 'APPROVED');
     if (!success) {
       return { success: false, error: 'Failed to update agency status' };
     }
@@ -54,14 +57,7 @@ export async function approveAgency(agencyId: string, welcomeMessage?: string): 
 
 export async function rejectAgency(agencyId: string, rejectionReason: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-    
-    if (!session?.user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    if (session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Not authorized' };
-      }
+    requireAdmin();
   
     const agency = await UserModel.findById(agencyId);
     if (!agency || agency.role !== 'AGENCY') {
@@ -70,8 +66,7 @@ export async function rejectAgency(agencyId: string, rejectionReason: string): P
 
     const success = await UserModel.updateStatus(
       agencyId, 
-      'REJECTED', 
-      session.user.email, 
+      'REJECTED',
       rejectionReason
     );
 
@@ -98,14 +93,7 @@ export async function rejectAgency(agencyId: string, rejectionReason: string): P
 
 export async function suspendAgency(agencyId: string, reason: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-    
-    if (!session?.user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    if (session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Not authorized' };
-    }
+    requireAdmin();
 
     const agency = await UserModel.findById(agencyId);
     if (!agency || agency.role !== 'AGENCY') {
@@ -115,7 +103,6 @@ export async function suspendAgency(agencyId: string, reason: string): Promise<A
     const success = await UserModel.updateStatus(
       agencyId, 
       'SUSPENDED', 
-      session.user.email, 
       reason
     );
 
@@ -135,21 +122,14 @@ export async function suspendAgency(agencyId: string, reason: string): Promise<A
 
 export async function reactivateAgency(agencyId: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-    
-    if (!session?.user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    if (session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Not authorized' };
-      }
+    requireAdmin();
 
     const agency = await UserModel.findById(agencyId);
     if (!agency || agency.role !== 'AGENCY') {
       return { success: false, error: 'Agency not found' };
     }
 
-    const success = await UserModel.updateStatus(agencyId, 'APPROVED', session.user.email);
+    const success = await UserModel.updateStatus(agencyId, 'APPROVED');
     if (!success) {
       return { success: false, error: 'Failed to reactivate agency' };
     }

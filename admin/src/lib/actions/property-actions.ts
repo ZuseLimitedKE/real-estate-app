@@ -11,16 +11,19 @@ export interface ActionResult {
   message?: string;
 }
 
+const requireAdmin = async () => {
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error('Not authenticated');
+  }
+  if (session.user.role !== 'ADMIN') {
+    throw new Error('Not authorized');
+  }
+};
+
 export async function approveProperty(propertyId: string, approvalNotes?: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    if (session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Not authorized' };
-      }
+    requireAdmin();
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -59,14 +62,7 @@ export async function approveProperty(propertyId: string, approvalNotes?: string
 
 export async function rejectProperty(propertyId: string, rejectionReason: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-    
-    if (!session?.user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    if (session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Not authorized' };
-      }
+    requireAdmin();
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -101,14 +97,7 @@ export async function rejectProperty(propertyId: string, rejectionReason: string
 
 export async function suspendProperty(propertyId: string, reason: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-    
-    if (!session?.user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    if (session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Not authorized' };
-      }
+    requireAdmin();
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -134,14 +123,7 @@ export async function suspendProperty(propertyId: string, reason: string): Promi
 
 export async function reactivateProperty(propertyId: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    if (session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Not authorized' };
-      }
+    requireAdmin();
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {

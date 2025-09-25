@@ -31,7 +31,7 @@ export default function AdminShell({ session, children }: AdminShellProps) {
       {/* Desktop in-flow sidebar */}
       <Sidebar currentPath={''} open={open} setOpen={setOpen} />
 
-      {/* Page area (header + content). Because Sidebar is in-flow on lg, this will shrink/expand */}
+      {/* Page area (header + content). Because Sidebar is in-flow on lg, this will shrink/expand  */}
       <div className="flex-1 flex flex-col min-h-screen transition-all duration-300">
         <Header session={session} onMenu={() => setOpen(prev => !prev)} />
         <main className="flex-1 overflow-auto p-6 transition-all duration-300">

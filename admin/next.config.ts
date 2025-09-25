@@ -9,7 +9,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['bcrypt', 'mongodb'],
+  experimental: {
+    serverComponentsExternalPackages: ['bcrypt', 'mongodb'],
+  },
 }
 
 export default nextConfig

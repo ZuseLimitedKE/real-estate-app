@@ -28,7 +28,7 @@ export default function Header({ session, onMenu }: HeaderProps) {
           <Menu className="h-5 w-5 text-secondary-600" />
         </button>
 
-        <h1 className="text-2xl font-semibold text-secondary-500">Welcome Back, Admin</h1>
+        <h1 className="text-xl font-semibold text-secondary-500">Welcome Back, Admin</h1>
       </div>
 
       <div className="flex items-center space-x-4">

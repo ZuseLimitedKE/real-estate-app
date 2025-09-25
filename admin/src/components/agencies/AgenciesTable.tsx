@@ -85,7 +85,7 @@ export default function AgenciesTable({
           </thead>
           <tbody className="bg-white divide-y divide-secondary-200">
             {agencies.map((agency) => (
-              <tr key={agency._id?.toString()} className="hover:bg-secondary-50">
+              <tr key={agency._id ? agency._id.toString() : agency.email} className="hover:bg-secondary-50">
                 <td className="table-cell">
                   <div className="flex items-center">
                     <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">

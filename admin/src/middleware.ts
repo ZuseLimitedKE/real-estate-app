@@ -13,7 +13,9 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from login page
   if (isAuthPage && token) {
-    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+    const role = (token as any).role;
+    const destination = role === "ADMIN" ? "/admin/dashboard" : "/";
+    return NextResponse.redirect(new URL(destination, request.url));
   }
 
   // Protect admin routes
@@ -22,7 +24,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
     if ((token as any).role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/", request.url));
     }
   }
 

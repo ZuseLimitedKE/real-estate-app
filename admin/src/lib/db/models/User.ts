@@ -20,22 +20,22 @@ export interface BaseUser {
   licenseNumber?: string;
   taxId?: string;
   establishedDate?: Date;
-  contactPerson: {
+  contactPerson?: {
     firstName: string;
     lastName: string;
     position: string;
     email: string;
     phoneNumber: string;
   };
-  businessAddress: {
+  businessAddress?: {
     street: string;
     city: string;
     state: string;
     zipCode: string;
     country: string;
   };
-  businessType: string;
-  verificationDocuments: {
+  businessType?: string;
+  verificationDocuments?: {
     businessRegistration: string;
     businessLicense: string;
     taxCertificate: string;
@@ -91,7 +91,11 @@ export interface AdminUser extends BaseUser {
   isSuper: boolean;
 }
 
-export type User = BaseUser | AgencyUser | AdminUser;
+export interface InvestorUser extends BaseUser {
+  role: "INVESTOR";
+}
+
+export type User = InvestorUser | AgencyUser | AdminUser;
 
 export class UserModel {
   private static collection: Collection<User> | null = null;
@@ -169,27 +173,27 @@ export class UserModel {
       return false;
     }
 
-    const updateData: Record<string, unknown> = {
+    const setData: Record<string, unknown> = {
       status,
       updatedAt: new Date(),
     };
+    const unsetData: Record<string, "" | true> = {};
 
     if (status === "APPROVED" && approvedBy) {
-      updateData.approvedBy = approvedBy;
-      updateData.approvedAt = new Date();
-      updateData.rejectionReason = undefined;
+      setData.approvedBy = approvedBy;
+      setData.approvedAt = new Date();
+      unsetData.rejectionReason = "";
     }
 
     if (status === "REJECTED" && rejectionReason) {
-      updateData.rejectionReason = rejectionReason;
-      updateData.approvedBy = undefined;
-      updateData.approvedAt = undefined;
+      setData.rejectionReason = rejectionReason;
+      unsetData.approvedBy = "";
+      unsetData.approvedAt = "";
     }
 
-    const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
+    const update: Record<string, unknown> = { $set: setData };
+    if (Object.keys(unsetData).length) update.$unset = unsetData;
+    const result = await collection.updateOne({ _id: new ObjectId(id) }, update);
 
     return result.modifiedCount > 0;
   }

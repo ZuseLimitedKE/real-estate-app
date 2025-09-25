@@ -18,7 +18,9 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const raw = searchParams.get('callbackUrl');
   const callbackUrl =
-    raw && raw.startsWith('/') ? raw : '/admin/dashboard';
+    raw && raw.startsWith('/') && !raw.startsWith('//')
+      ? raw
+      : '/admin/dashboard';
 
   useEffect(() => {
     const checkAuth = async () => {
