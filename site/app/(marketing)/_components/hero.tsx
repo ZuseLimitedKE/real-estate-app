@@ -67,14 +67,13 @@ export function Hero() {
           variants={itemVariants}
           className="flex flex-col sm:flex-row gap-4 pt-4"
         >
-          <Link href="/auth/login">
-            <Button
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
-            >
-              Get Started
-            </Button>
-          </Link>
+          <Button
+            asChild
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+          >
+            <Link href="/auth/login">Get Started</Link>
+          </Button>
           <Button
             asChild
             size="lg"

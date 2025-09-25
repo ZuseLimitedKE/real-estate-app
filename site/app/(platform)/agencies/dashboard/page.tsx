@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import LoadingAgentDashboardStatistics from "./_components/loadingDashboardStatistics";
 import LoadingAgentDashboardProperties from "./_components/loadingAgentDashboardProperties";
 import LoadingAgentDashboardTenants from "./_components/loadingAgentDashboardTenants";
+import Link from "next/link";
 
 interface PageProps {
   searchParams: Promise<{
@@ -26,18 +27,20 @@ export default async function AgentDashboard({ searchParams }: PageProps) {
   const tenantsPageNum = parsePage(tenantsPage);
 
   return (
-    <main>
+    <main className="md:p-12 p-2">
       <header className="flex lg:flex-row flex-col lg:justify-between gap-4 my-4">
         <div>
           <h1 className="text-2xl font-bold">Agent Dashboard</h1>
-          <p className="font-light text-slate-500">
+          <p className="font-light text-sm md:text-base text-slate-500">
             Manage your properties and track tenants
           </p>
         </div>
 
-        <Button>
-          <Plus />
-          <p>Add New Property</p>
+        <Button className="font-semibold" asChild>
+          <Link href={"/agencies/register"}>
+            <Plus />
+            <p>Add New Property</p>
+          </Link>
         </Button>
       </header>
 
