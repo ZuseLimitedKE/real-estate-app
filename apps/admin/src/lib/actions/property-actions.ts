@@ -18,6 +18,9 @@ export async function approveProperty(propertyId: string, approvalNotes?: string
     if (!session?.user) {
       return { success: false, error: 'Not authenticated' };
     }
+    if (session.user.role !== 'ADMIN') {
+        return { success: false, error: 'Not authorized' };
+      }
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -61,6 +64,9 @@ export async function rejectProperty(propertyId: string, rejectionReason: string
     if (!session?.user) {
       return { success: false, error: 'Not authenticated' };
     }
+    if (session.user.role !== 'ADMIN') {
+        return { success: false, error: 'Not authorized' };
+      }
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -100,6 +106,9 @@ export async function suspendProperty(propertyId: string, reason: string): Promi
     if (!session?.user) {
       return { success: false, error: 'Not authenticated' };
     }
+    if (session.user.role !== 'ADMIN') {
+        return { success: false, error: 'Not authorized' };
+      }
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -130,6 +139,9 @@ export async function reactivateProperty(propertyId: string): Promise<ActionResu
     if (!session?.user) {
       return { success: false, error: 'Not authenticated' };
     }
+    if (session.user.role !== 'ADMIN') {
+        return { success: false, error: 'Not authorized' };
+      }
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {

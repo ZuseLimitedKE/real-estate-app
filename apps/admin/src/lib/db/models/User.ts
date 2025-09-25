@@ -15,6 +15,34 @@ export interface BaseUser {
   lastLoginAt?: Date;
   emailVerified: boolean;
   twoFactorEnabled: boolean;
+  companyName?: string;
+  registrationNumber?: string;
+  licenseNumber?: string;
+  taxId?: string;
+  establishedDate?: Date;
+  contactPerson: {
+    firstName: string;
+    lastName: string;
+    position: string;
+    email: string;
+    phoneNumber: string;
+  };
+  businessAddress: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  businessType: string;
+  verificationDocuments: {
+    businessRegistration: string;
+    businessLicense: string;
+    taxCertificate: string;
+    insuranceCertificate?: string;
+    proofOfAddress: string;
+    bankStatement: string;
+  };
 }
 
 export interface AgencyUser extends BaseUser {
@@ -137,8 +165,11 @@ export class UserModel {
     rejectionReason?: string
   ): Promise<boolean> {
     const collection = await this.getCollection();
-    
-    const updateData: any = {
+    if (!ObjectId.isValid(id)) {
+      return false;
+    }
+
+    const updateData: Record<string, unknown> = {
       status,
       updatedAt: new Date(),
     };
@@ -146,10 +177,13 @@ export class UserModel {
     if (status === "APPROVED" && approvedBy) {
       updateData.approvedBy = approvedBy;
       updateData.approvedAt = new Date();
+      updateData.rejectionReason = undefined;
     }
 
     if (status === "REJECTED" && rejectionReason) {
       updateData.rejectionReason = rejectionReason;
+      updateData.approvedBy = undefined;
+      updateData.approvedAt = undefined;
     }
 
     const result = await collection.updateOne(

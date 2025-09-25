@@ -1,46 +1,60 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { UserModel } from '@/lib/db/models/User';
-import AgenciesTable from '@/components/agencies/AgenciesTable';
-import AgenciesFilters from '@/components/agencies/AgenciesFilters';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { serializeDocuments } from '@/lib/utils/serialization';
+import { UserModel } from "@/lib/db/models/User";
+import AgenciesTable from "@/components/agencies/AgenciesTable";
+import AgenciesFilters from "@/components/agencies/AgenciesFilters";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { serializeDocuments } from "@/lib/utils/serialization";
 
 interface AgenciesPageProps {
-  searchParams: Promise<{
+  searchParams?: {
     status?: string;
     search?: string;
     page?: string;
-  }>;
+  };
 }
 
-export default async function AgenciesPage({ searchParams }: AgenciesPageProps) {
-  const params = await searchParams;  // Await here to resolve the Promise
-  const status = params.status || 'pending';
-  const search = params.search || '';
-  const page = parseInt(params.page || '1', 10);
+export default async function AgenciesPage({
+  searchParams,
+}: AgenciesPageProps) {
+  const status = searchParams?.status ?? "pending";
+  const search = searchParams?.search ?? "";
+  const page = parseInt(searchParams?.page ?? "1", 10) || 1;
   const limit = 10;
 
   let agencies = [];
   let totalCount = 0;
 
-  if (status === 'all') {
-    agencies = await UserModel.findAgenciesByStatus('PENDING', limit, (page - 1) * limit);
+  if (status === "all") {
+    // Fetch all agencies regardless of status
+    agencies = await UserModel.findByRole("AGENCY", limit, (page - 1) * limit);
     totalCount = await UserModel.countAgencies();
   } else {
-    agencies = await UserModel.findAgenciesByStatus(status.toUpperCase() as any, limit, (page - 1) * limit);
-    totalCount = agencies.length;
+    const normalized = status.toUpperCase() as any;
+    agencies = await UserModel.findAgenciesByStatus(
+      normalized,
+      limit,
+      (page - 1) * limit
+    );
+    // Derive total by status using aggregate stats
+    const stats = await UserModel.getAgencyStats();
+    const match = stats.find((s: any) => s._id === normalized);
+    totalCount = match?.count ?? 0;
   }
 
   // Serialize MongoDB documents to plain objects
   const serializedAgencies = serializeDocuments(agencies);
 
-  const totalPages = Math.ceil(totalCount / limit);
+  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-secondary-900">Agencies Management</h1>
-        <p className="text-secondary-600 mt-2">Review and manage agency applications</p>
+        <h1 className="text-3xl font-bold text-secondary-900">
+          Agencies Management
+        </h1>
+        <p className="text-secondary-600 mt-2">
+          Review and manage agency applications
+        </p>
       </div>
 
       <Card>
@@ -51,8 +65,8 @@ export default async function AgenciesPage({ searchParams }: AgenciesPageProps) 
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <AgenciesTable 
-            agencies={serializedAgencies} 
+          <AgenciesTable
+            agencies={serializedAgencies}
             currentPage={page}
             totalPages={totalPages}
             currentStatus={status}

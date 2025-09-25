@@ -17,6 +17,9 @@ export async function approveAgency(agencyId: string, welcomeMessage?: string): 
     if (!session?.user) {
       return { success: false, error: 'Not authenticated' };
     }
+    if (session.user.role !== 'ADMIN') {
+        return { success: false, error: 'Not authorized' };
+      }
     
     const agency = await UserModel.findById(agencyId);
     if (!agency || agency.role !== 'AGENCY') {
@@ -56,6 +59,9 @@ export async function rejectAgency(agencyId: string, rejectionReason: string): P
     if (!session?.user) {
       return { success: false, error: 'Not authenticated' };
     }
+    if (session.user.role !== 'ADMIN') {
+        return { success: false, error: 'Not authorized' };
+      }
   
     const agency = await UserModel.findById(agencyId);
     if (!agency || agency.role !== 'AGENCY') {
@@ -97,6 +103,9 @@ export async function suspendAgency(agencyId: string, reason: string): Promise<A
     if (!session?.user) {
       return { success: false, error: 'Not authenticated' };
     }
+    if (session.user.role !== 'ADMIN') {
+        return { success: false, error: 'Not authorized' };
+    }
 
     const agency = await UserModel.findById(agencyId);
     if (!agency || agency.role !== 'AGENCY') {
@@ -131,6 +140,9 @@ export async function reactivateAgency(agencyId: string): Promise<ActionResult> 
     if (!session?.user) {
       return { success: false, error: 'Not authenticated' };
     }
+    if (session.user.role !== 'ADMIN') {
+        return { success: false, error: 'Not authorized' };
+      }
 
     const agency = await UserModel.findById(agencyId);
     if (!agency || agency.role !== 'AGENCY') {
