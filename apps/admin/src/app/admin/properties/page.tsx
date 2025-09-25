@@ -13,6 +13,12 @@ interface PropertiesPageProps {
   }>;
 }
 
+/**
+ * Render the Properties Management admin page with filters and a paginated properties table.
+ *
+ * @param searchParams - Promise resolving to query parameters containing optional `status`, `search`, and `page` strings used to filter and paginate the listings
+ * @returns A React element representing the Properties Management page, including a filters control and a paginated table of properties
+ */
 export default async function PropertiesPage({ searchParams }: PropertiesPageProps) {
   const params = await searchParams;
   const status = params.status as any || 'pending';

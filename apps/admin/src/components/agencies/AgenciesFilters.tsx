@@ -11,6 +11,13 @@ interface AgenciesFiltersProps {
   searchQuery: string;
 }
 
+/**
+ * Renders search, status filter, and reset controls for the admin agencies list.
+ *
+ * @param currentStatus - Currently selected status filter value (e.g., "pending", "approved", "rejected", "all").
+ * @param searchQuery - Initial search query to populate the search input; kept in sync when this prop changes.
+ * @returns The component's JSX: a search input with submit, a status dropdown that updates URL query parameters, and a reset button that clears filters.
+ */
 export default function AgenciesFilters({ currentStatus, searchQuery }: AgenciesFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();

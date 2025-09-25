@@ -26,6 +26,20 @@ interface AgenciesTableProps {
   searchQuery: string;
 }
 
+/**
+ * Renders a paginated table of agency applications with controls to view details and approve or reject pending entries.
+ *
+ * Displays agency rows with contact and registration details, status badges, date applied, and contextual action buttons.
+ * Preserves `currentStatus` and `searchQuery` when changing pages, shows an empty state when no agencies match, and opens
+ * modals for viewing details and confirming approval/rejection. Refreshes the page after successful approval/rejection.
+ *
+ * @param agencies - List of agency records to display
+ * @param currentPage - Currently active page number (1-based)
+ * @param totalPages - Total number of available pages
+ * @param currentStatus - Active status filter (e.g., `'all'`, `'PENDING'`, `'APPROVED'`, etc.)
+ * @param searchQuery - Current search query used to filter results
+ * @returns The table UI including pagination controls and modals for agency details and approval actions
+ */
 export default function AgenciesTable({ 
   agencies, 
   currentPage, 

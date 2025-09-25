@@ -35,6 +35,17 @@ interface SpinnerContentProps
   children?: React.ReactNode;
 }
 
+/**
+ * Renders a spinner with configurable size and visibility.
+ *
+ * Renders a span containing a spinning Loader2 icon and any provided children. The `show` prop controls whether the spinner is visible, and the `size` prop selects the icon size.
+ *
+ * @param size - Icon size variant; defaults to `"medium"`.
+ * @param show - Whether the spinner is visible; defaults to `true`.
+ * @param className - Additional class names applied to the icon.
+ * @param children - Optional content rendered after the icon.
+ * @returns A span element containing the spinning icon and any children.
+ */
 export function Spinner({
   size,
   show,

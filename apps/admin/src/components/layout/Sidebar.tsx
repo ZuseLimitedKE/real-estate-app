@@ -27,6 +27,14 @@ interface SidebarProps {
   setOpen: (v: boolean) => void;
 }
 
+/**
+ * Render a responsive admin sidebar that provides a collapsible desktop layout and a slide-in mobile drawer.
+ *
+ * @param currentPath - The current route path used to highlight the active navigation item
+ * @param open - `true` when the sidebar is expanded (desktop) or the mobile drawer is visible
+ * @param setOpen - State updater called with the new open state to toggle or close the sidebar/drawer
+ * @returns The sidebar React element including navigation, header, and user panel for desktop and a mobile overlay drawer
+ */
 export default function Sidebar({ currentPath, open, setOpen }: SidebarProps) {
   return (
     <>

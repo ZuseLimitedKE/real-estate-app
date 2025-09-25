@@ -7,6 +7,11 @@ import {
   Plus
 } from 'lucide-react';
 
+/**
+ * Render a "Quick Actions" card with links for common admin tasks.
+ *
+ * @returns A JSX element containing a card with three action rows: reviewing agencies, reviewing properties, and generating a platform report.
+ */
 export default function QuickActions() {
   const actions = [
     {

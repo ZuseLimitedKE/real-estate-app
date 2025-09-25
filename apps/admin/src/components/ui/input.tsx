@@ -2,6 +2,14 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Render a styled native input element with a comprehensive set of Tailwind utility classes.
+ *
+ * @param className - Additional class names to merge with the component's base styles
+ * @param type - HTML input `type` attribute
+ * @param props - Remaining native input props that are spread onto the underlying element
+ * @returns A styled HTMLInputElement React node with merged class names and all provided props applied
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input

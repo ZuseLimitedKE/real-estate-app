@@ -17,6 +17,16 @@ interface PropertyApprovalModalProps {
   onSuccess: () => void;
 }
 
+/**
+ * Render a modal dialog for approving or rejecting a property listing.
+ *
+ * @param property - The property being reviewed; used to display name and to identify the property for the action
+ * @param action - Either `"approve"` or `"reject"` to determine modal copy, validation, and action behavior
+ * @param open - Controls whether the modal is visible
+ * @param onClose - Callback invoked to close the modal
+ * @param onSuccess - Callback invoked after a successful approve or reject action
+ * @returns A JSX element that renders the approval/rejection modal with input, validation, and action buttons
+ */
 export default function PropertyApprovalModal({
   property,
   action,

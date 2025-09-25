@@ -10,6 +10,13 @@ export interface ActionResult {
   message?: string;
 }
 
+/**
+ * Approves a pending agency and sends an approval email.
+ *
+ * @param agencyId - The ID of the agency to approve
+ * @param welcomeMessage - Optional custom welcome message to include in the approval email
+ * @returns An ActionResult with `success: true` and a confirmation `message` when the agency is approved; otherwise `success: false` and an `error` explaining the failure (e.g., not authenticated, agency not found, invalid status, update failure, or other errors).
+ */
 export async function approveAgency(agencyId: string, welcomeMessage?: string): Promise<ActionResult> {
   try {
     const session = await auth();
@@ -49,6 +56,13 @@ export async function approveAgency(agencyId: string, welcomeMessage?: string): 
   }
 }
 
+/**
+ * Rejects an agency application, updates its status to "REJECTED", and notifies the agency by email.
+ *
+ * @param agencyId - ID of the agency to reject
+ * @param rejectionReason - Reason for rejection included in the audit record and in the notification email
+ * @returns An ActionResult: `success` true and a confirmation `message` on success; `success` false and an `error` message on failure
+ */
 export async function rejectAgency(agencyId: string, rejectionReason: string): Promise<ActionResult> {
   try {
     const session = await auth();
@@ -90,6 +104,13 @@ export async function rejectAgency(agencyId: string, rejectionReason: string): P
   }
 }
 
+/**
+ * Suspend an agency by setting its status to "SUSPENDED" and recording the provided reason.
+ *
+ * @param agencyId - The identifier of the agency to suspend
+ * @param reason - The reason for suspension to record with the status update
+ * @returns An ActionResult: on success `success: true` with a confirmation `message`; on failure `success: false` with an `error` describing the failure
+ */
 export async function suspendAgency(agencyId: string, reason: string): Promise<ActionResult> {
   try {
     const session = await auth();
@@ -124,6 +145,12 @@ export async function suspendAgency(agencyId: string, reason: string): Promise<A
   }
 }
 
+/**
+ * Reactivates an agency by setting its status to "APPROVED".
+ *
+ * @param agencyId - The ID of the agency user to reactivate
+ * @returns An ActionResult: `success` is `true` and `message` contains a confirmation when reactivation succeeds; `success` is `false` and `error` contains a reason on failure.
+ */
 export async function reactivateAgency(agencyId: string): Promise<ActionResult> {
   try {
     const session = await auth();

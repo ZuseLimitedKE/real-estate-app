@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
+/**
+ * Enforces admin-area access rules and attaches security headers to all responses.
+ *
+ * Retrieves the authentication token from the incoming request, redirects authenticated users away from the login page to `/admin/dashboard`, redirects unauthenticated requests to admin routes to `/login`, and otherwise returns a response with security headers applied (including a production-only Content-Security-Policy).
+ *
+ * @returns A `NextResponse` that either continues processing the request or redirects to `/login` or `/admin/dashboard` based on authentication state.
+ */
 export async function middleware(request: NextRequest) {
   const token = await getToken({ 
     req: request, 

@@ -9,6 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Loader, Building2 } from 'lucide-react';
 
+/**
+ * Render the admin login page and handle credential-based authentication and redirects.
+ *
+ * This component displays the administrator login UI, manages local form state and loading/error indicators, redirects authenticated users to the configured callback URL, and navigates after successful sign-in.
+ *
+ * @returns The login page UI as a JSX element.
+ */
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
