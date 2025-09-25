@@ -31,7 +31,7 @@ export default async function AgentDashboard({ searchParams }: PageProps) {
       <header className="flex lg:flex-row flex-col lg:justify-between gap-4 my-4">
         <div>
           <h1 className="text-2xl font-bold">Agent Dashboard</h1>
-          <p className="font-light text-sm md:text-base text-slate-500">
+          <p className=" text-sm mt-1  text-muted-foreground">
             Manage your properties and track tenants
           </p>
         </div>
