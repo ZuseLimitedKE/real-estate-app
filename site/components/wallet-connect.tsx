@@ -1,7 +1,8 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
+import { NavbarButton } from "./ui/resizable-navbar";
 import { useState } from "react";
 import { toast } from "sonner";
 export function WalletConnect() {
@@ -27,24 +28,20 @@ export function WalletConnect() {
 
   if (isConnected && address) {
     return (
-      <Button
-        variant="outline"
-        onClick={() => disconnect()}
-        className="cursor-pointer font-semibold hover:bg-accent hover:text-accent-foreground transition-colors"
-      >
-        Disconnect: {`${address.slice(0, 6)}...${address.slice(-4)}`}
-      </Button>
+      <NavbarButton variant="primary" as="button" onClick={() => disconnect()}>
+        Disconnect
+      </NavbarButton>
     );
   }
 
   return (
-    <Button
-      variant="default"
+    <NavbarButton
+      variant="primary"
+      as="button"
       onClick={handleConnect}
-      className="cursor-pointer font-semibold hover:bg-primary/90 transition-colors"
       disabled={isConnecting}
     >
       {isConnecting ? "Connecting..." : "Connect Wallet"}
-    </Button>
+    </NavbarButton>
   );
 }
