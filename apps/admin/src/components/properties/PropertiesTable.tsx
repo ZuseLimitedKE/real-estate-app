@@ -157,15 +157,15 @@ export default function PropertiesTable({
                           variant="default"
                           size="sm"
                           onClick={() => handleApprove(property)}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-green-600 hover:bg-green-700 cursor-pointer"
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
                           Approve
                         </Button>
                         <Button
-                          variant="destructive"
                           size="sm"
                           onClick={() => handleReject(property)}
+                          className="bg-red-600 hover:bg-red-700 cursor-pointer"
                         >
                           <XCircle className="h-4 w-4 mr-1" />
                           Reject

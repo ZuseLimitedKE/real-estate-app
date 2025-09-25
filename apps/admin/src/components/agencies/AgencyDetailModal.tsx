@@ -171,10 +171,10 @@ export default function AgencyDetailModal({
               </h3>
               
               <div className="space-y-2">
-                {Object.entries(agency.verificationDocuments).map(([docType, url]) => (
+                {Object.entries(agency.verificationDocuments).filter(([, url]) => !!url).map(([docType, url]) => (
                   <div key={docType} className="flex items-center justify-between p-2 border border-secondary-200 rounded">
                     <span className="text-sm capitalize">{docType.replace(/([A-Z])/g, ' $1').trim()}</span>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" asChild>
                       <a href={url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-4 w-4 mr-1" />
                         View

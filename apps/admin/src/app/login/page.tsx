@@ -16,13 +16,15 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/admin/dashboard';
+  const raw = searchParams.get('callbackUrl');
+  const callbackUrl =
+    raw && raw.startsWith('/') ? raw : '/admin/dashboard';
 
   useEffect(() => {
     const checkAuth = async () => {
       const session = await getSession();
       if (session) {
-        router.push(callbackUrl);
+        router.replace(callbackUrl);
       }
     };
 

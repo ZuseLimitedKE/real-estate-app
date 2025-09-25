@@ -17,11 +17,13 @@ declare module "next-auth" {
       lastName?: string;
     };
   }
+}
 
+declare module "next-auth/jwt" {
   interface JWT {
-    id: string;
-    role: string;
-    firstName?: string;
-    lastName?: string;
+    id: string
+    role: string
+    firstName?: string
+    lastName?: string
   }
 }
