@@ -23,7 +23,7 @@ const requireAdmin = async () => {
 
 export async function approveProperty(propertyId: string, approvalNotes?: string): Promise<ActionResult> {
   try {
-    requireAdmin();
+    await requireAdmin();
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -62,7 +62,7 @@ export async function approveProperty(propertyId: string, approvalNotes?: string
 
 export async function rejectProperty(propertyId: string, rejectionReason: string): Promise<ActionResult> {
   try {
-    requireAdmin();
+    await requireAdmin();
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -95,9 +95,9 @@ export async function rejectProperty(propertyId: string, rejectionReason: string
   }
 }
 
-export async function suspendProperty(propertyId: string, reason: string): Promise<ActionResult> {
+export async function suspendProperty(propertyId: string): Promise<ActionResult> {
   try {
-    requireAdmin();
+    await requireAdmin();
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {
@@ -123,7 +123,7 @@ export async function suspendProperty(propertyId: string, reason: string): Promi
 
 export async function reactivateProperty(propertyId: string): Promise<ActionResult> {
   try {
-    requireAdmin();
+    await requireAdmin();
     
     const property = await PropertyModel.findById(propertyId);
     if (!property) {

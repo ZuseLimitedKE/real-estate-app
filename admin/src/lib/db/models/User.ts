@@ -179,14 +179,18 @@ export class UserModel {
     };
     const unsetData: Record<string, "" | true> = {};
 
-    if (status === "APPROVED" && approvedBy) {
-      setData.approvedBy = approvedBy;
-      setData.approvedAt = new Date();
+    if (status === "APPROVED") {
+      if (approvedBy) {
+        setData.approvedBy = approvedBy;
+        setData.approvedAt = new Date();
+      }
       unsetData.rejectionReason = "";
     }
 
-    if (status === "REJECTED" && rejectionReason) {
-      setData.rejectionReason = rejectionReason;
+    if (status === "REJECTED") {
+      if (rejectionReason) {
+        setData.rejectionReason = rejectionReason;
+      }
       unsetData.approvedBy = "";
       unsetData.approvedAt = "";
     }

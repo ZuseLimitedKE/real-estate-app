@@ -17,13 +17,17 @@ export default function AdminShell({ session, children }: AdminShellProps) {
     try {
       const cached = localStorage.getItem('admin.sidebar.open');
       if (cached !== null) setOpen(cached === 'true');
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
   useEffect(() => {
     try {
       localStorage.setItem('admin.sidebar.open', String(open));
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
   }, [open]);
 
   return (
