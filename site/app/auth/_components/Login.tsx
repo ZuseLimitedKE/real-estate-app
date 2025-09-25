@@ -45,7 +45,7 @@ const Login = () => {
         const routeByRole: Record<string, string> = {
           ADMIN: "/admin/dashboard",
           AGENCY: "/agencies/dashboard",
-          INVESTOR: "/investors/dashboard",
+          INVESTOR: "/investors",
         };
         router.push(routeByRole[results.role ?? ""] ?? "/");
       } else {
