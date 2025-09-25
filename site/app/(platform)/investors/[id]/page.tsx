@@ -2,7 +2,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import BuyTokensForm from "./_components/BuyTokensForm";
+import type { PropertyDetailView } from "@/types/property";
 
 import {
   MapPin,
@@ -20,7 +21,6 @@ import {
   ArrowLeft,
   Calendar,
   Home,
-
   Building,
   DollarSign,
   Target,
@@ -28,116 +28,147 @@ import {
   Clock,
   CheckCircle,
 } from "lucide-react";
-import property1 from "@/assets/property-1.jpg";
-import property2 from "@/assets/property-2.jpg";
-import property3 from "@/assets/property-3.jpg";
+import { GetProperties } from "@/server-actions/property/get-property";
 
 const PropertyDetailsScreen = () => {
   const { id } = useParams();
   const [isBuyTokensOpen, setIsBuyTokensOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [property, setProperty] = useState<PropertyDetailView | null>(null);
 
-  // Mock property data - in real app, this would come from API/database
-  const properties = [
-    {
-      id: "1",
-      image: property1,
-      title: "Kilimani Heights",
-      location: "Kilimani, Nairobi",
-      value: "KSh 35M",
-      yield: "7.8%",
-      investors: 142,
-      availableShares: 45,
-      minInvestment: "KSh 15,000",
-      verified: true,
-      description:
-        "A premium residential apartment complex in the heart of Kilimani, offering modern amenities and excellent rental yields. This property features contemporary design with high-quality finishes throughout.",
-      propertyType: "Residential Apartments",
-      bedrooms: "1-3 Bedrooms",
-      bathrooms: "1-2 Bathrooms",
-      area: "850 - 1,200 sq ft",
-      yearBuilt: "2021",
-      totalUnits: 48,
-      occupancyRate: 94,
-      monthlyRent: "KSh 45,000 - KSh 85,000",
-      amenities: [
-        "Swimming Pool",
-        "Gym",
-        "Parking",
-        "Security",
-        "Backup Generator",
-        "Water Tank",
-        "CCTV",
-        "Elevator",
-      ],
-      gallery: [property1, property2, property3],
-    },
-    {
-      id: "2",
-      image: property2,
-      title: "Parklands Plaza",
-      location: "Parklands, Nairobi",
-      value: "KSh 52M",
-      yield: "8.9%",
-      investors: 218,
-      availableShares: 32,
-      minInvestment: "KSh 20,000",
-      verified: true,
-      description:
-        "Commercial plaza in the vibrant Parklands area, featuring retail shops and office spaces with high foot traffic and excellent visibility.",
-      propertyType: "Commercial Plaza",
-      bedrooms: "N/A",
-      bathrooms: "Multiple",
-      area: "2,500 - 5,000 sq ft",
-      yearBuilt: "2020",
-      totalUnits: 24,
-      occupancyRate: 96,
-      monthlyRent: "KSh 80,000 - KSh 150,000",
-      amenities: [
-        "Parking",
-        "Security",
-        "Backup Generator",
-        "Elevator",
-        "Reception",
-        "Conference Rooms",
-      ],
-      gallery: [property2, property1, property3],
-    },
-    {
-      id: "3",
-      image: property3,
-      title: "Lavington Gardens",
-      location: "Lavington, Nairobi",
-      value: "KSh 41M",
-      yield: "8.1%",
-      investors: 189,
-      availableShares: 58,
-      minInvestment: "KSh 12,000",
-      verified: true,
-      description:
-        "Luxury residential compound in prestigious Lavington, offering spacious family homes with beautiful gardens and premium amenities.",
-      propertyType: "Townhouses",
-      bedrooms: "3-4 Bedrooms",
-      bathrooms: "3-4 Bathrooms",
-      area: "1,800 - 2,400 sq ft",
-      yearBuilt: "2022",
-      totalUnits: 16,
-      occupancyRate: 100,
-      monthlyRent: "KSh 120,000 - KSh 180,000",
-      amenities: [
-        "Private Garden",
-        "Parking",
-        "Security",
-        "Playground",
-        "Clubhouse",
-        "Swimming Pool",
-      ],
-      gallery: [property3, property1, property2],
-    },
-  ];
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await GetProperties();
+        // Find by id param (string)
+        const found = (res || []).find((p: any) => p._id?.toString?.() === id);
 
-  const property = properties.find((p) => p.id === id);
+        if (!found) {
+          if (isMounted) {
+            setProperty(null);
+          }
+          return;
+        }
 
-  if (!property) {
+        // Map backend document to UI view model with sensible defaults (no dashes)
+        const totalFractions: number =
+          typeof found.totalFractions === "number" ? found.totalFractions : 0;
+        const totalOwned: number = Array.isArray(found.property_owners)
+          ? found.property_owners.reduce(
+              (sum: number, owner: any) => sum + (owner?.amount_owned || 0),
+              0
+            )
+          : 0;
+        const availableSharesPct: number =
+          totalFractions > 0
+            ? Math.max(0, Math.round(100 - (totalOwned / totalFractions) * 100))
+            : 100;
+
+        const valueNumber: number =
+          typeof found.property_value === "number" ? found.property_value : 0;
+        const monthlyRentNumber: number =
+          typeof found.proposedRentPerMonth === "number"
+            ? found.proposedRentPerMonth
+            : 0;
+        const annualYieldPct: string =
+          valueNumber > 0 && monthlyRentNumber > 0
+            ? `${(((monthlyRentNumber * 12) / valueNumber) * 100).toFixed(1)}%`
+            : "0%";
+
+        const units = found.apartmentDetails?.units;
+        const totalUnits = Array.isArray(units)
+          ? units.length
+          : typeof found.apartmentDetails?.numUnits === "number"
+          ? found.apartmentDetails!.numUnits
+          : 0;
+        const occupiedUnits = Array.isArray(units)
+          ? units.filter((u: any) => Boolean(u?.tenant)).length
+          : 0;
+        const occupancyRate =
+          totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
+
+        const mapped: PropertyDetailView = {
+          original: found,
+          id: found._id?.toString?.() ?? "",
+          image:
+            (Array.isArray(found.images) && found.images[0]) || "/logo.png",
+          title: found.name ?? "",
+          location: found.location?.address ?? "",
+          value: `KSh ${new Intl.NumberFormat().format(valueNumber)}`,
+          yield: annualYieldPct,
+          investors: Array.isArray(found.property_owners)
+            ? found.property_owners.length
+            : 0,
+          availableShares: availableSharesPct,
+          minInvestment: `${found.serviceFeePercent ?? 0}% fee`,
+          verified: found.property_status === "approved",
+          description: found.description ?? "",
+          propertyType: found.type ?? "",
+          bedrooms:
+            typeof found.amenities?.bedrooms === "number"
+              ? `${found.amenities.bedrooms} Bedrooms`
+              : "",
+          bathrooms:
+            typeof found.amenities?.bathrooms === "number"
+              ? `${found.amenities.bathrooms} Bathrooms`
+              : "",
+          area:
+            typeof found.gross_property_size === "number"
+              ? `${found.gross_property_size} sq ft`
+              : "",
+          yearBuilt: "",
+          totalUnits: totalUnits,
+          occupancyRate: occupancyRate,
+          monthlyRent: `KSh ${new Intl.NumberFormat().format(
+            monthlyRentNumber
+          )}`,
+          amenities: Object.entries(found.amenities || {})
+            .filter(([_, v]) => Boolean(v))
+            .map(([k]) =>
+              k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+            ),
+          gallery:
+            Array.isArray(found.images) && found.images.length > 0
+              ? found.images
+              : ["/logo.png"],
+        };
+
+        if (isMounted) setProperty(mapped);
+      } catch (e) {
+        console.error(e);
+        if (isMounted) setError("Failed to load property");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="py-12">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              Loading property…
+            </h1>
+            <p className="text-muted-foreground">
+              Please wait while we fetch the latest details.
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!property || error) {
     return (
       <div className="min-h-screen bg-background">
         <main className="py-12">
@@ -174,6 +205,8 @@ const PropertyDetailsScreen = () => {
                 <Image
                   src={property.image}
                   alt={property.title}
+                  width={1200}
+                  height={600}
                   className="w-full h-96 object-cover"
                 />
                 <div className="absolute top-4 left-4 flex gap-2">
@@ -197,11 +230,13 @@ const PropertyDetailsScreen = () => {
 
               {/* Property Gallery */}
               <div className="grid grid-cols-3 gap-4 mb-6">
-                {property.gallery.map((img, index) => (
+                {property.gallery.map((img: string, index: number) => (
                   <Image
                     key={index}
                     src={img}
                     alt={`${property.title} ${index + 1}`}
+                    width={400}
+                    height={200}
                     className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                   />
                 ))}
@@ -330,7 +365,7 @@ const PropertyDetailsScreen = () => {
                           <span className="text-muted-foreground">
                             Property Type
                           </span>
-                          <span className="text-foreground">
+                          <span className="text-foreground capitalize">
                             {property.propertyType}
                           </span>
                         </div>
@@ -412,12 +447,14 @@ const PropertyDetailsScreen = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-3 gap-4">
-                    {property.amenities.map((amenity, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-success" />
-                        <span className="text-foreground">{amenity}</span>
-                      </div>
-                    ))}
+                    {property.amenities.map(
+                      (amenity: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-success" />
+                          <span className="text-foreground">{amenity}</span>
+                        </div>
+                      )
+                    )}
                   </div>
                 </CardContent>
               </Card>
