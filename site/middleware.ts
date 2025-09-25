@@ -54,9 +54,9 @@ export async function middleware(request: NextRequest) {
     const role = userPayload.role.toLowerCase();
     const redirectPath =
       role === "admin"
-        ? "/admin"
+        ? "/admin/dashboard"
         : role === "agency"
-          ? "/agencies"
+          ? "/agencies/dashboard"
           : "/investors";
 
     return NextResponse.redirect(new URL(redirectPath, request.url));
@@ -74,8 +74,8 @@ export async function middleware(request: NextRequest) {
   if (isAuthenticated && userPayload) {
     const role = userPayload.role.toLowerCase();
     const homeByRole: Record<string, string> = {
-      admin: "/admin",
-      agency: "/agencies",
+      admin: "/admin/dashboard",
+      agency: "/agencies/dashboard",
       investor: "/investors",
     };
 
