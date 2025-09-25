@@ -1,13 +1,18 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { AgentPropertyTenants } from "@/types/agent_dashboard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { AgentPropertyTenants } from "@/types/agent_dashboard";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@radix-ui/react-collapsible";
-import { ChevronsUpDown, DollarSign, House } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  DollarSign,
+  Mouse as House,
+} from "lucide-react";
 import { useState } from "react";
 
 export default function PropertyTenants(props: {
@@ -25,58 +30,84 @@ export default function PropertyTenants(props: {
 
   const tenants = props.tenants.map((tenant, index) => {
     const paymentHistoryItems = tenant.paymentHistory.map((payment, i) => (
-      <li className="flex flex-row justify-between" key={i}>
-        <p>{new Date(payment.date).toDateString()}</p>
-        <div className="flex flex-row gap-1">
-          <p className="font-bold">Ksh {payment.amount}</p>
-          <p className="px-2 py-1 rounded-full bg-primary text-white font-bold text-xs">
-            {payment.status}
+      <li
+        className="flex items-center justify-between py-3 border-b border-border last:border-0"
+        key={i}
+      >
+        <p className="text-muted-foreground">
+          {new Date(payment.date).toDateString()}
+        </p>
+        <div className="flex items-center gap-3">
+          <p className="font-semibold text-foreground">
+            Ksh {payment.amount.toLocaleString()}
           </p>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold ${payment.status === "Paid"
+                ? "bg-success/10 text-success"
+                : payment.status === "Pending"
+                  ? "bg-warning/10 text-warning"
+                  : "bg-destructive/10 text-destructive"
+              }`}
+          >
+            {payment.status}
+          </span>
         </div>
       </li>
     ));
 
     return (
-      <li key={index}>
+      <li key={index} className="border border-border rounded-lg bg-card">
         <Collapsible
           open={storeIfOpen[index]}
           onOpenChange={(open) => handleOpenCollapsible(index, open)}
         >
-          <CollapsibleTrigger className="flex w-full flex-row justify-between text-left">
-            <div className="flex flex-row items-center gap-2">
-              <House className="w-6 h-6 text-primary" />
-              <div>
-                <p className="font-bold">{tenant.name}</p>
-                {tenant.unit && (
-                  <p className="text-slate-500">Unit {tenant.unit}</p>
+          <CollapsibleTrigger className="w-full p-6 text-left hover:bg-muted/50 transition-colors rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <House className="w-6 h-6 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-semibold text-foreground text-lg">
+                    {tenant.name}
+                  </p>
+                  {tenant.unit && (
+                    <p className="text-muted-foreground">Unit {tenant.unit}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-right space-y-1">
+                  <p className="font-bold text-foreground text-lg">
+                    Ksh {tenant.rent.toLocaleString()}/month
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    Since {new Date(tenant.joinDate).toDateString()}
+                  </p>
+                </div>
+                {storeIfOpen[index] ? (
+                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 )}
               </div>
-            </div>
-
-            <div className="flex flex-row gap-1 items-center">
-              <div>
-                <p className="font-bold">Ksh {tenant.rent}/month</p>
-                <p className="text-slate-500">
-                  Since {new Date(tenant.joinDate).toDateString()}
-                </p>
-              </div>
-              <ChevronsUpDown className="w-4 h-4" />
             </div>
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <section>
-              <div className="mt-4 bg-slate-100 p-2 lg:px-6">
-                <header className="flex flex-row gap-2 items-center font-bold">
-                  <DollarSign className="w-4 h-4" />
-                  <h3>Payment History</h3>
-                </header>
+            <div className="px-6 pb-6">
+              <div className="mt-4 p-4 rounded-lg bg-muted/30 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <DollarSign className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold text-foreground text-lg">
+                    Payment History
+                  </h3>
+                </div>
 
-                <ul className="flex flex-col gap-2 mt-2">
-                  {paymentHistoryItems}
-                </ul>
+                <ul className="space-y-0">{paymentHistoryItems}</ul>
               </div>
-            </section>
+            </div>
           </CollapsibleContent>
         </Collapsible>
       </li>
@@ -84,18 +115,19 @@ export default function PropertyTenants(props: {
   });
 
   return (
-    <section className="my-4">
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-bold">Property Tenants</h2>
-          <p className="text-sm text-slate-500">
-            {props.tenants.length} active tenants
-          </p>
-        </CardHeader>
-        <CardContent>
-          <ul className="flex flex-col gap-4">{tenants}</ul>
-        </CardContent>
-      </Card>
-    </section>
+    <Card className="border-border">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-foreground">
+          Property Tenants
+        </CardTitle>
+        <p className="text-muted-foreground">
+          {props.tenants.length} active tenant
+          {props.tenants.length !== 1 ? "s" : ""}
+        </p>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-4">{tenants}</ul>
+      </CardContent>
+    </Card>
   );
 }

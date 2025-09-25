@@ -1,199 +1,270 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { AgentPropertyOverview, AMENITIES } from "@/types/agent_dashboard";
-import { Box, Camera, Car, ChevronUp, Dog, Dumbbell, FireExtinguisher, Flower, Heater, Shirt, Snowflake, SoapDispenserDroplet, Waves, Wifi } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { type AgentPropertyOverview, AMENITIES } from "@/types/agent_dashboard";
+import {
+  Box,
+  Camera,
+  Car,
+  ChevronUp,
+  Dog,
+  Dumbbell,
+  FireExtinguisher,
+  Flower,
+  Heater,
+  Shirt,
+  Snowflake,
+  LucideDroplet as SoapDispenserDroplet,
+  Waves,
+} from "lucide-react";
 
-export default function PropertyOverview(props: { overview: AgentPropertyOverview }) {
-    const amenitiesUI = props.overview.amenities.map((amenity, index) => (
-        <div key={index}>
-            {getUIForAmenity(amenity)}
-        </div>
-    ));
+export default function PropertyOverview(props: {
+  overview: AgentPropertyOverview;
+}) {
+  const amenitiesUI = props.overview.amenities.map((amenity, index) => (
+    <div key={index}>{getUIForAmenity(amenity)}</div>
+  ));
 
-    return (
-        <section className="my-4 flex flex-col gap-4">
-            <Card>
-                <CardHeader>
-                    <h2 className="text-lg font-bold">Property Details</h2>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
-                    <p>
-                        <span className="font-bold">Type: </span>
-                        <span>{props.overview.propertyDetails.type}</span>
-                    </p>
+  return (
+    <div className="space-y-8">
+      <Card className="border-border">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-foreground">
+            Property Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Type
+              </span>
+              <p className="text-lg font-semibold text-foreground">
+                {props.overview.propertyDetails.type}
+              </p>
+            </div>
 
-                    <p>
-                        <span className="font-bold">Size: </span>
-                        <span>{props.overview.propertyDetails.size} sqft</span>
-                    </p>
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Size
+              </span>
+              <p className="text-lg font-semibold text-foreground">
+                {props.overview.propertyDetails.size} sqft
+              </p>
+            </div>
 
-                    {props.overview.propertyDetails.units && (
-                        <p>
-                            <span className="font-bold">Units: </span>
-                            <span>{props.overview.propertyDetails.units}</span>
-                        </p>
-                    )}
-
-                    {props.overview.propertyDetails.floors && (
-                        <p>
-                            <span className="font-bold">Floors: </span>
-                            <span>{props.overview.propertyDetails.floors}</span>
-                        </p>
-                    )}
-
-                    {props.overview.propertyDetails.parkingSpace && (
-                        <p>
-                            <span className="font-bold">Parking Spaces: </span>
-                            <span>{props.overview.propertyDetails.parkingSpace}</span>
-                        </p>
-                    )}
-
-                    <p>
-                        <span className="font-bold">Year Built: </span>
-                        <span>{props.overview.propertyDetails.createdAt.getFullYear()}</span>
-                    </p>
-                </CardContent>
-            </Card>
-
-            {props.overview.occupancy && (
-                <Card>
-                    <CardHeader>
-                        <h2 className="text-lg font-bold">Occupancy & Revenue</h2>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="flex flex-row justify-between">
-                            <span>Occupied Units: </span>
-                            <span className="font-bold">{props.overview.occupancy.occupied}/{props.overview.occupancy.totalUnits}</span>
-                        </p>
-
-                        <p className="flex flex-row justify-between">
-                            <span>Occupancy Rate: </span>
-                            <span className="font-bold">{props.overview.occupancy.rate}%</span>
-                        </p>
-
-                        <p className="flex flex-row justify-between">
-                            <span>Monthly Revenue: </span>
-                            <span className="font-bold">Ksh {props.overview.occupancy.monthlyRevenue}</span>
-                        </p>
-                    </CardContent>
-                </Card>
+            {props.overview.propertyDetails.units && (
+              <div className="space-y-1">
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  Units
+                </span>
+                <p className="text-lg font-semibold text-foreground">
+                  {props.overview.propertyDetails.units}
+                </p>
+              </div>
             )}
 
+            {props.overview.propertyDetails.floors && (
+              <div className="space-y-1">
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  Floors
+                </span>
+                <p className="text-lg font-semibold text-foreground">
+                  {props.overview.propertyDetails.floors}
+                </p>
+              </div>
+            )}
 
-            <Card>
-                <CardHeader>
-                    <h2 className="text-lg font-bold">About This Property</h2>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-slate-500">{props.overview.about}</p>
-                </CardContent>
-            </Card>
+            {props.overview.propertyDetails.parkingSpace && (
+              <div className="space-y-1">
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  Parking Spaces
+                </span>
+                <p className="text-lg font-semibold text-foreground">
+                  {props.overview.propertyDetails.parkingSpace}
+                </p>
+              </div>
+            )}
 
-            <Card>
-                <CardHeader>
-                    <h2>Amenities</h2>
-                </CardHeader>
-                <CardContent className="flex flex-row gap-4 flex-wrap lg:justify-around">
-                    {amenitiesUI}
-                </CardContent>
-            </Card>
-        </section>
-    );
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Year Built
+              </span>
+              <p className="text-lg font-semibold text-foreground">
+                {props.overview.propertyDetails.createdAt.getFullYear()}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {props.overview.occupancy && (
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-foreground">
+              Occupancy & Revenue
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <span className="text-muted-foreground font-medium">
+                  Occupied Units
+                </span>
+                <span className="text-xl font-bold text-foreground">
+                  {props.overview.occupancy.occupied}/
+                  {props.overview.occupancy.totalUnits}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <span className="text-muted-foreground font-medium">
+                  Occupancy Rate
+                </span>
+                <span className="text-xl font-bold text-success">
+                  {props.overview.occupancy.rate}%
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between py-3">
+                <span className="text-muted-foreground font-medium">
+                  Monthly Revenue
+                </span>
+                <span className="text-xl font-bold text-primary">
+                  Ksh {props.overview.occupancy.monthlyRevenue.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="border-border">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-foreground">
+            About This Property
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground leading-relaxed text-lg">
+            {props.overview.about}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-foreground">
+            Amenities
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {amenitiesUI}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 function getUIForAmenity(amenity: AMENITIES) {
-    switch (amenity) {
-        case (AMENITIES.FITNESS):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Dumbbell className="w-4 h-4" />
-                    <p>Fitness Center</p>
-                </div>
-            );
-        case (AMENITIES.PARKING):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Car className="w-4 h-4" />
-                    <p>Parking</p>
-                </div>
-            );
-        case (AMENITIES.SWIMMING):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Waves className="w-4 h-4" />
-                    <p>Swimming Pool</p>
-                </div>
-            );
-        case (AMENITIES.AIR_CONDITIONING):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Snowflake className="w-4 h-4" />
-                    <p>Air Conditioning</p>
-                </div>
-            );
-        case (AMENITIES.HEATING):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Heater className="w-4 h-4" />
-                    <p>Heating</p>
-                </div>
-            );
-        case (AMENITIES.LAUNDRY):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Shirt className="w-4 h-4" />
-                    <p>Laundry In Unit</p>
-                </div>
-            );
-        case (AMENITIES.DISHWASHER):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <SoapDispenserDroplet className="w-4 h-4" />
-                    <p>Dish washer</p>
-                </div>
-            );
-        case (AMENITIES.FIREPLACE):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <FireExtinguisher className="w-4 h-4" />
-                    <p>Fireplace</p>
-                </div>
-            );
-        case (AMENITIES.STORAGE):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Box className="w-4 h-4" />
-                    <p>Storage</p>
-                </div>
-            );
-        case (AMENITIES.PET_FRIENDLY):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Dog className="w-4 h-4" />
-                    <p>Pet Friendly</p>
-                </div>
-            );
-        case (AMENITIES.SECURITY):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Camera className="w-4 h-4" />
-                    <p>Security Sytem</p>
-                </div>
-            );
-        case (AMENITIES.ELEVATOR):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <ChevronUp className="w-4 h-4" />
-                    <p>Elevator</p>
-                </div>
-            );
-        case (AMENITIES.GARDEN):
-            return (
-                <div className="flex flex-row gap-2 items-center text-primary">
-                    <Flower className="w-4 h-4" />
-                    <p>Garden Yard</p>
-                </div>
-            );
-        default:
-            return (<div></div>);
-    }
+  const baseClasses =
+    "flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow-md";
+  const iconClasses = "w-5 h-5 text-slate-600 flex-shrink-0";
+  const textClasses = "font-medium text-slate-800 text-sm";
+
+  switch (amenity) {
+    case AMENITIES.FITNESS:
+      return (
+        <div className={baseClasses}>
+          <Dumbbell className={iconClasses} />
+          <p className={textClasses}>Fitness Center</p>
+        </div>
+      );
+    case AMENITIES.PARKING:
+      return (
+        <div className={baseClasses}>
+          <Car className={iconClasses} />
+          <p className={textClasses}>Parking</p>
+        </div>
+      );
+    case AMENITIES.SWIMMING:
+      return (
+        <div className={baseClasses}>
+          <Waves className={iconClasses} />
+          <p className={textClasses}>Swimming Pool</p>
+        </div>
+      );
+    case AMENITIES.AIR_CONDITIONING:
+      return (
+        <div className={baseClasses}>
+          <Snowflake className={iconClasses} />
+          <p className={textClasses}>Air Conditioning</p>
+        </div>
+      );
+    case AMENITIES.HEATING:
+      return (
+        <div className={baseClasses}>
+          <Heater className={iconClasses} />
+          <p className={textClasses}>Heating</p>
+        </div>
+      );
+    case AMENITIES.LAUNDRY:
+      return (
+        <div className={baseClasses}>
+          <Shirt className={iconClasses} />
+          <p className={textClasses}>Laundry In Unit</p>
+        </div>
+      );
+    case AMENITIES.DISHWASHER:
+      return (
+        <div className={baseClasses}>
+          <SoapDispenserDroplet className={iconClasses} />
+          <p className={textClasses}>Dishwasher</p>
+        </div>
+      );
+    case AMENITIES.FIREPLACE:
+      return (
+        <div className={baseClasses}>
+          <FireExtinguisher className={iconClasses} />
+          <p className={textClasses}>Fireplace</p>
+        </div>
+      );
+    case AMENITIES.STORAGE:
+      return (
+        <div className={baseClasses}>
+          <Box className={iconClasses} />
+          <p className={textClasses}>Storage</p>
+        </div>
+      );
+    case AMENITIES.PET_FRIENDLY:
+      return (
+        <div className={baseClasses}>
+          <Dog className={iconClasses} />
+          <p className={textClasses}>Pet Friendly</p>
+        </div>
+      );
+    case AMENITIES.SECURITY:
+      return (
+        <div className={baseClasses}>
+          <Camera className={iconClasses} />
+          <p className={textClasses}>Security System</p>
+        </div>
+      );
+    case AMENITIES.ELEVATOR:
+      return (
+        <div className={baseClasses}>
+          <ChevronUp className={iconClasses} />
+          <p className={textClasses}>Elevator</p>
+        </div>
+      );
+    case AMENITIES.GARDEN:
+      return (
+        <div className={baseClasses}>
+          <Flower className={iconClasses} />
+          <p className={textClasses}>Garden Yard</p>
+        </div>
+      );
+    default:
+      return <div></div>;
+  }
 }
