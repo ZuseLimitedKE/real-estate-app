@@ -25,6 +25,14 @@ const badgeVariants = cva(
   }
 )
 
+/**
+ * Renders a styled badge element with selectable visual variants and optional host substitution.
+ *
+ * @param className - Additional class names appended to the badge's generated classes.
+ * @param variant - Visual style variant for the badge; one of the keys defined in `badgeVariants`.
+ * @param asChild - If true, renders a Radix `Slot` so the badge styles are applied to a child element instead of a `span`.
+ * @returns A React element representing the badge with the chosen variant, classes, and forwarded props.
+ */
 function Badge({
   className,
   variant,

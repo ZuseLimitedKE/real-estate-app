@@ -1,3 +1,8 @@
+/**
+ * Renders a centered confirmation page indicating routing is working and providing links to Login and Dashboard.
+ *
+ * @returns The page's JSX element containing a heading "✅ Routing Works!", descriptive text, and navigation links to `/login` and `/admin/dashboard`.
+ */
 export default function TestPage() {
   return (
     <div className="min-h-screen flex items-center justify-center">

@@ -11,6 +11,16 @@ interface PropertiesFiltersProps {
   searchQuery: string;
 }
 
+/**
+ * Render the search input, status dropdown, and reset control for filtering properties on the admin properties page.
+ *
+ * The component keeps the input in sync with `searchQuery`, updates the URL query parameters when the user submits a search
+ * or changes the status (resetting the page query to `1`), and clears all filters when the reset control is used.
+ *
+ * @param currentStatus - The currently selected status filter value shown in the dropdown
+ * @param searchQuery - The initial search string to populate the search input
+ * @returns The properties filters React element
+ */
 export default function PropertiesFilters({ currentStatus, searchQuery }: PropertiesFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();

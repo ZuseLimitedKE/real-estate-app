@@ -17,6 +17,18 @@ interface ApprovalModalProps {
   onSuccess: () => void;
 }
 
+/**
+ * Modal dialog for approving or rejecting an agency application.
+ *
+ * Renders a form that shows contextual title, description, and a message textarea; on submit it calls the appropriate approve or reject API, shows errors, and invokes callbacks on close or success.
+ *
+ * @param agency - Agency details used to render contextual text and for API calls
+ * @param action - Either `'approve'` or `'reject'`, controls copy, validation, and button styling
+ * @param open - Whether the modal is visible
+ * @param onClose - Callback invoked when the modal is closed or cancelled
+ * @param onSuccess - Callback invoked after a successful approve or reject action
+ * @returns The approval/rejection modal JSX element
+ */
 export default function ApprovalModal({
   agency,
   action,

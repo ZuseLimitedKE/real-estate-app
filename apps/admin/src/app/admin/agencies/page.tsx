@@ -13,6 +13,12 @@ interface AgenciesPageProps {
   }>;
 }
 
+/**
+ * Render the Agencies management page with filtered and paginated agency data.
+ *
+ * @param searchParams - A promise that resolves to query parameters: optional `status`, `search`, and `page` strings used to filter and page the results.
+ * @returns A JSX element containing the agencies management UI (header, filters, and a table) populated with the requested page of agencies.
+ */
 export default async function AgenciesPage({ searchParams }: AgenciesPageProps) {
   const params = await searchParams;  // Await here to resolve the Promise
   const status = params.status || 'pending';

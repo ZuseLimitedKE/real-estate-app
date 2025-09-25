@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   },
 }
 
+/**
+ * Root layout component that provides the top-level HTML structure and applies global styles and fonts.
+ *
+ * @param children - The page or application content to render inside the document body
+ * @returns The HTML element tree (html > body) that wraps the provided `children`
+ */
 export default function RootLayout({
   children,
 }: {

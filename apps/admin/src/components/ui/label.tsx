@@ -5,6 +5,12 @@ import * as LabelPrimitive from "@radix-ui/react-label"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Renders a styled label element for form controls.
+ *
+ * @param className - Additional CSS classes appended to the component's default classes.
+ * @returns The rendered label element; forwards all other supported props to the underlying label root.
+ */
 function Label({
   className,
   ...props

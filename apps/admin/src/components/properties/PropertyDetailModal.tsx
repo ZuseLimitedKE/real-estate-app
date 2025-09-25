@@ -27,6 +27,18 @@ interface PropertyDetailModalProps {
   onReject: (property: Property) => void;
 }
 
+/**
+ * Renders a modal dialog that displays comprehensive details for a given property and exposes approve/reject actions when the property is pending.
+ *
+ * Shows images (with placeholder fallback), basic information (name, description, value, rent, size, service fee, location), filtered amenities, legal documents with external view links, and property owners. When `property.property_status` is "pending", renders Close, Reject, and Approve action buttons that invoke the provided handlers.
+ *
+ * @param property - The Property object to display in the modal.
+ * @param open - Whether the modal is currently open.
+ * @param onClose - Callback invoked to close the modal.
+ * @param onApprove - Callback invoked with the `property` when the Approve action is taken.
+ * @param onReject - Callback invoked with the `property` when the Reject action is taken.
+ * @returns The modal's JSX element containing the property details and actions.
+ */
 export default function PropertyDetailModal({
   property,
   open,

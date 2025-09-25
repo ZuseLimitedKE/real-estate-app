@@ -6,6 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils';
 import { Users, UserCheck, UserX, Mail, Phone } from 'lucide-react';
 
+/**
+ * Renders the Users Management admin page with summary statistics and a table of all users.
+ *
+ * Fetches INVESTOR, AGENCY, and ADMIN users, aggregates the results, and displays total counts, active/approved counts, role badges, status icons, contact details, registration and last-login dates, and contextual actions (always "View", and "Review" for agencies with pending status).
+ *
+ * @returns The Users Management page as a JSX element.
+ */
 export default async function UsersPage() {
   // Get all users by querying each role separately
   const [investors, agencies, admins] = await Promise.all([

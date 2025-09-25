@@ -3,6 +3,11 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+/**
+ * Client component that immediately navigates to the admin dashboard and displays a centered loading UI while redirecting.
+ *
+ * @returns A JSX element containing a full-screen, centered spinner and the text "Redirecting to dashboard..." shown during navigation.
+ */
 export default function HomePage() {
   const router = useRouter();
 

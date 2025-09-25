@@ -8,6 +8,14 @@ interface RecentActivitiesProps {
   properties: Property[];
 }
 
+/**
+ * Render a "Recent Properties" card showing a compact list of properties with their key details and a link to view all.
+ *
+ * Displays each property's name, address, formatted value, a status badge (shows "Pending", "Approved", or "Rejected" and defaults to "Pending" for unrecognized statuses), and the formatted creation date. If `properties` is empty, shows a centered "No recent properties found" message.
+ *
+ * @param properties - Array of Property objects to display in the list.
+ * @returns A Card element containing the recent properties summary list.
+ */
 export default function RecentActivities({ properties }: RecentActivitiesProps) {
   const getStatusBadge = (status: string) => {
     const variants = {

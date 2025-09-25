@@ -15,6 +15,13 @@ interface DashboardStatsProps {
   propertyStats: any[];
 }
 
+/**
+ * Renders a responsive grid of statistic cards summarizing agency and property metrics.
+ *
+ * @param agencyStats - Array of agency statistic objects (each with `_id` status and `count`) used to derive pending, approved, and rejected agency counts.
+ * @param propertyStats - Array of property statistic objects (each with `_id`, `count`, and optional `totalValue`) used to derive property counts and the aggregated property value.
+ * @returns A React element containing the dashboard stats grid.
+ */
 export default function DashboardStats({ agencyStats, propertyStats }: DashboardStatsProps) {
   const pendingAgencies = agencyStats.find(stat => stat._id === 'PENDING')?.count || 0;
   const approvedAgencies = agencyStats.find(stat => stat._id === 'APPROVED')?.count || 0;

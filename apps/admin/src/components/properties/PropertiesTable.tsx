@@ -27,6 +27,19 @@ interface PropertiesTableProps {
   searchQuery: string;
 }
 
+/**
+ * Render a paginated admin table of property listings with controls to view details and approve or reject pending items.
+ *
+ * Renders rows for each property including thumbnail, location, value, agency, status badge, listing date, and action buttons.
+ * Also shows an empty state when no properties are available and a pagination bar when multiple pages exist.
+ *
+ * @param properties - The list of properties to display
+ * @param currentPage - The currently active page (1-based)
+ * @param totalPages - Total number of available pages
+ * @param currentStatus - Current status filter value (`'all'` means no status filter)
+ * @param searchQuery - Current search query string (empty if none)
+ * @returns A React element containing the properties table, pagination controls, and related modals
+ */
 export default function PropertiesTable({ 
   properties, 
   currentPage, 

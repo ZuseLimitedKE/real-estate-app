@@ -25,6 +25,16 @@ interface AgencyDetailModalProps {
   onReject: (agency: AgencyUser) => void;
 }
 
+/**
+ * Renders a modal dialog showing detailed information for an agency and actions for pending approvals.
+ *
+ * @param agency - The agency data to display (company info, contact person, address, registration, documents, and status)
+ * @param open - Whether the modal is visible
+ * @param onClose - Handler invoked when the modal is closed
+ * @param onApprove - Handler invoked with the `agency` when the approve action is triggered
+ * @param onReject - Handler invoked with the `agency` when the reject action is triggered
+ * @returns A React element containing the agency detail modal with status badge, information sections, document links, and action buttons (when applicable)
+ */
 export default function AgencyDetailModal({
   agency,
   open,

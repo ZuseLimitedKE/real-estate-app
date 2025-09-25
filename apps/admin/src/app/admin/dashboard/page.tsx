@@ -6,6 +6,15 @@ import DashboardStats from '@/components/dashboard/DashboardStats';
 import RecentActivities from '@/components/dashboard/RecentActivities';
 import QuickActions from '@/components/dashboard/QuickActions';
 
+/**
+ * Renders the admin dashboard page and redirects unauthenticated users to /login.
+ *
+ * Fetches agency statistics, property statistics, and the five most recent properties,
+ * then renders DashboardStats (with agencyStats and propertyStats), QuickActions,
+ * and RecentActivities (with the fetched recent properties).
+ *
+ * @returns The JSX element for the dashboard page.
+ */
 export default async function DashboardPage() {
   const session = await auth();
 

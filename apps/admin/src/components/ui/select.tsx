@@ -6,24 +6,50 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Render a Radix Select root element with a semantic data-slot for styling.
+ *
+ * @returns A React element representing the select root with `data-slot="select"` and all provided props forwarded.
+ */
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />
 }
 
+/**
+ * Renders a grouped container for select options.
+ *
+ * Forwards all props to the underlying Radix Select Group and adds a `data-slot="select-group"` attribute for styling hooks.
+ *
+ * @returns A JSX element representing a grouped set of select options.
+ */
 function SelectGroup({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Group>) {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />
 }
 
+/**
+ * Renders the selected value within the select control.
+ *
+ * @returns The rendered `SelectPrimitive.Value` element with a `data-slot="select-value"` attribute.
+ */
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
+/**
+ * Render the selectable trigger control that opens the dropdown and displays the current value.
+ *
+ * Accepts standard Trigger props and applies themed styling, sizing, and a trailing chevron icon.
+ *
+ * @param className - Additional class names to merge with the component's default styling
+ * @param size - Visual size variant; `"default"` yields a taller trigger, `"sm"` yields a slightly shorter one
+ * @returns The rendered Select trigger element configured with styling, size metadata, and a chevron icon
+ */
 function SelectTrigger({
   className,
   size = "default",
@@ -50,6 +76,12 @@ function SelectTrigger({
   )
 }
 
+/**
+ * Renders the dropdown panel for the Select inside a Portal, providing animated open/close states, scroll controls, and side-aware positioning.
+ *
+ * @param position - Controls content positioning behavior; when `"popper"`, applies side-specific offsets and constrains the viewport to the trigger's size.
+ * @returns The rendered Select content element.
+ */
 function SelectContent({
   className,
   children,
@@ -85,6 +117,12 @@ function SelectContent({
   )
 }
 
+/**
+ * Renders the Select label element with default muted, compact styling and a data-slot for styling hooks.
+ *
+ * @param className - Optional additional class names appended to the default label styles
+ * @returns The rendered Select label element
+ */
 function SelectLabel({
   className,
   ...props
@@ -98,6 +136,13 @@ function SelectLabel({
   )
 }
 
+/**
+ * Renders a selectable option for the themed Select component, including a right-aligned check indicator and the item text.
+ *
+ * @param className - Optional additional CSS classes applied to the item container
+ * @param children - Visible label/content for the option
+ * @returns A React element representing a styled select item that forwards remaining props to the underlying Radix Select.Item
+ */
 function SelectItem({
   className,
   children,
@@ -122,6 +167,11 @@ function SelectItem({
   )
 }
 
+/**
+ * Renders a themed separator used to visually separate groups of options in the select dropdown.
+ *
+ * @returns A React element rendering a thin, styled separator line inside the select menu.
+ */
 function SelectSeparator({
   className,
   ...props
@@ -135,6 +185,14 @@ function SelectSeparator({
   )
 }
 
+/**
+ * Renders a styled "scroll up" control used inside the Select dropdown.
+ *
+ * Includes an up chevron icon, sets a data-slot attribute for styling hooks,
+ * and forwards all props to the underlying ScrollUpButton element.
+ *
+ * @returns The select scroll-up button element.
+ */
 function SelectScrollUpButton({
   className,
   ...props
@@ -153,6 +211,11 @@ function SelectScrollUpButton({
   )
 }
 
+/**
+ * Renders the select dropdown's scroll-down control with a centered chevron icon.
+ *
+ * @returns The rendered scroll-down button element.
+ */
 function SelectScrollDownButton({
   className,
   ...props

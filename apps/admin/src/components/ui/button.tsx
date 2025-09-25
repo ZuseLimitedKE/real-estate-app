@@ -35,6 +35,15 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * Reusable Button component with configurable visual variants, sizes, and optional polymorphic rendering.
+ *
+ * @param className - Additional CSS class names to apply to the component
+ * @param variant - Visual style variant; determines the button's appearance (e.g., "default", "destructive", "outline", "secondary", "ghost", "link")
+ * @param size - Size variant that adjusts spacing and dimensions (e.g., "default", "sm", "lg", "icon")
+ * @param asChild - When `true`, renders the provided child element instead of a native `button`, preserving props and styling
+ * @returns A React element representing the styled button or the provided child element with applied variants and classes
+ */
 function Button({
   className,
   variant,

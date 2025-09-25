@@ -10,6 +10,15 @@ interface AdminShellProps {
   children: React.ReactNode;
 }
 
+/**
+ * Layout wrapper for admin pages that provides a sidebar, header, and main content area.
+ *
+ * Persists the sidebar open/closed state in localStorage under the key `admin.sidebar.open` and allows the Header to toggle the sidebar.
+ *
+ * @param session - Authentication session passed to the Header component
+ * @param children - Page content rendered inside the layout's main area
+ * @returns The admin layout element containing a sidebar, header, and main content region
+ */
 export default function AdminShell({ session, children }: AdminShellProps) {
   const [open, setOpen] = useState<boolean>(true);
 

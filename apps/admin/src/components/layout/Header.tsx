@@ -11,6 +11,13 @@ interface HeaderProps {
   onMenu?: () => void; // called when mobile menu button is clicked
 }
 
+/**
+ * Renders the admin header bar with a mobile menu toggle, notifications, user info, and logout action.
+ *
+ * @param session - The current NextAuth session used to display user-related information.
+ * @param onMenu - Optional callback invoked when the mobile menu button is clicked.
+ * @returns The header element for the admin layout containing controls for menu, notifications, user, and logout.
+ */
 export default function Header({ session, onMenu }: HeaderProps) {
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
