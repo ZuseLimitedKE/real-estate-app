@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Atria Africa - Admin Dashboard',
-  description: 'Administrative dashboard for Atria Africa real estate tokenization platform',
+  description: 'Administrator Interface for Atria Africa real estate tokenization platform',
   icons: {
     icon: '/favicon.ico',
   },
