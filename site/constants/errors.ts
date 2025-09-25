@@ -16,5 +16,5 @@ export enum Errors {
   NOT_DELETE_PROPERTY = "Could not delete the listed property",
   NOT_GET_PROPERTY = "Could not get property",
   NOT_GET_AGENT_DASHBOARD_STATISTICS = "Could not get dashboard statistics for agency dashboard",
-  NOT_AUTHORIZED = "You are not authorized to perform this action"
+  NOT_AUTHORIZED = "You are not authorized to perform this action",
 }
