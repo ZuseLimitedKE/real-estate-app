@@ -1,95 +1,84 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Filter, Plus } from "lucide-react";
-import property1 from "@/assets/property-1.jpg";
-import property2 from "@/assets/property-2.jpg";
-import property3 from "@/assets/property-3.jpg";
+import { GetProperties } from "@/server-actions/property/get-property";
 
 const PropertyListingPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [sortBy, setSortBy] = useState("default");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [properties, setProperties] = useState<any[]>([]);
 
-  const properties = [
-    {
-      id: "1",
-      image: property1,
-      title: "Kilimani Heights",
-      location: "Kilimani, Nairobi",
-      value: "KSh 35M",
-      yield: "7.8%",
-      investors: 142,
-      availableShares: 45,
-      minInvestment: "KSh 15,000",
-      verified: true,
-    },
-    {
-      id: "2",
-      image: property2,
-      title: "Parklands Plaza",
-      location: "Parklands, Nairobi", 
-      value: "KSh 52M",
-      yield: "8.9%",
-      investors: 218,
-      availableShares: 32,
-      minInvestment: "KSh 20,000",
-      verified: true,
-    },
-    {
-      id: "3",
-      image: property3,
-      title: "Lavington Gardens",
-      location: "Lavington, Nairobi",
-      value: "KSh 41M", 
-      yield: "8.1%",
-      investors: 189,
-      availableShares: 58,
-      minInvestment: "KSh 12,000",
-      verified: true,
-    },
-    {
-      id: "4",
-      image: property1,
-      title: "Westlands Towers",
-      location: "Westlands, Nairobi",
-      value: "KSh 67M",
-      yield: "9.2%", 
-      investors: 301,
-      availableShares: 28,
-      minInvestment: "KSh 25,000",
-      verified: true,
-    },
-    {
-      id: "5",
-      image: property2,
-      title: "Upper Hill Residence",
-      location: "Upper Hill, Nairobi",
-      value: "KSh 38M",
-      yield: "7.5%",
-      investors: 156,
-      availableShares: 72,
-      minInvestment: "KSh 18,000",
-      verified: false,
-    },
-    {
-      id: "6",
-      image: property3,
-      title: "Karen Estate",
-      location: "Karen, Nairobi",
-      value: "KSh 89M",
-      yield: "8.7%",
-      investors: 89,
-      availableShares: 15,
-      minInvestment: "KSh 50,000",
-      verified: true,
-    },
-  ];
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await GetProperties();
+        const mapped = (res || []).map((p: any) => {
+          const totalFractions = p.totalFractions || 0;
+          const owned = Array.isArray(p.property_owners)
+            ? p.property_owners.reduce(
+                (a: number, o: any) => a + (o.amount_owned || 0),
+                0
+              )
+            : 0;
+          const availablePct =
+            totalFractions > 0
+              ? Math.max(0, Math.round(100 - (owned / totalFractions) * 100))
+              : 0;
+          return {
+            id: p._id?.toString?.() ?? "",
+            image: (p.images && p.images[0]) || "/logo.png",
+            title: p.name ?? "Property",
+            location: p.location?.address ?? "—",
+            value: p.property_value
+              ? `KSh ${new Intl.NumberFormat().format(p.property_value)}`
+              : "—",
+            yield:
+              p.proposedRentPerMonth && p.property_value
+                ? `${(
+                    ((p.proposedRentPerMonth * 12) / p.property_value) *
+                    100
+                  ).toFixed(1)}%`
+                : "—",
+            investors: Array.isArray(p.property_owners)
+              ? p.property_owners.length
+              : 0,
+            availableShares: availablePct,
+            minInvestment: p.serviceFeePercent
+              ? `${p.serviceFeePercent}% fee`
+              : "—",
+            verified: p.property_status === "approved",
+          };
+        });
+        if (isMounted) setProperties(mapped);
+      } catch (e) {
+        console.error(e);
+        if (isMounted) setError("Failed to load properties");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (showForm) {
     return (
@@ -97,8 +86,8 @@ const PropertyListingPage = () => {
         <main className="py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowForm(false)}
                 className="mb-4"
               >
@@ -114,7 +103,6 @@ const PropertyListingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      
       <main className="py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -141,7 +129,7 @@ const PropertyListingPage = () => {
                   className="pl-10"
                 />
               </div>
-              
+
               <Select value={locationFilter} onValueChange={setLocationFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Locations" />
@@ -179,11 +167,23 @@ const PropertyListingPage = () => {
           </div>
 
           {/* Properties Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {properties.map((property, index) => (
-              <PropertyCard key={index} {...property} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center text-muted-foreground py-12">
+              Loading properties…
+            </div>
+          ) : error ? (
+            <div className="text-center text-destructive py-12">{error}</div>
+          ) : properties.length === 0 ? (
+            <div className="text-center text-muted-foreground py-12">
+              No properties found.
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {properties.map((property, index) => (
+                <PropertyCard key={property.id || index} {...property} />
+              ))}
+            </div>
+          )}
 
           {/* Load More */}
           <div className="text-center">
