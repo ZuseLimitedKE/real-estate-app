@@ -12,7 +12,7 @@ import Image, { StaticImageData } from "next/image";
 
 interface PropertyCardProps {
   id: string;
-  image: StaticImageData;
+  image: string | StaticImageData;
   title: string;
   location: string;
   value: string;
@@ -43,6 +43,8 @@ const PropertyCard = ({
             <Image
               src={image}
               alt={title}
+              width={400}
+              height={200}
               className="w-full h-48 object-cover"
             />
             <div className="absolute top-4 left-4 flex gap-2">
@@ -106,7 +108,7 @@ const PropertyCard = ({
         </CardContent>
 
         <CardFooter className="p-6 pt-0">
-          <Button variant="default" className="w-full">
+          <Button variant="default" className="w-full cursor-pointer">
             Invest Now
           </Button>
         </CardFooter>

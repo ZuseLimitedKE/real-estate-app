@@ -1,5 +1,5 @@
 "use client";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { investorRegistrationSchema } from "@/types/auth";
@@ -34,9 +34,14 @@ const InvestorSignup = () => {
       password: "",
       confirmPassword: "",
       acceptTerms: false,
+      publicKey: "",
     },
   });
-
+  useEffect(() => {
+    if (address) {
+      form.setValue("publicKey", address);
+    }
+  }, [form, address]);
   const onSubmit = (values: z.infer<typeof investorRegistrationSchema>) => {
     if (!address) {
       toast.error("kindly connect your wallet before proceeding");

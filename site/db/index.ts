@@ -17,7 +17,6 @@ class MongoDatabase {
   //Gets approved properties for public listings
   async GetProperties(): Promise<Properties[]> {
     try {
-      //TODO: Pagination
       const properties = await PROPERTIES_COLLECTION.find({
         property_status: "approved",
       })
@@ -27,6 +26,17 @@ class MongoDatabase {
     } catch (err) {
       console.error("Error fetching properties", { cause: err });
       throw new MyError(Errors.NOT_GET_PROPERTIES);
+    }
+  }
+  async GetProperty(_id: ObjectId) {
+    try {
+      const propertyDetails = await PROPERTIES_COLLECTION.findOne({
+        _id: _id,
+      });
+      return propertyDetails;
+    } catch (err) {
+      console.error("Error getting property", { cause: err });
+      throw new MyError(Errors.NOT_GET_PROPERTY);
     }
   }
   async DeleteProperty(_id: ObjectId): Promise<boolean> {
