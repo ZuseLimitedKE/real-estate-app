@@ -272,7 +272,7 @@ export const investorRegistrationSchema = z
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string(),
-    publicKey: z.string().min(1, "Connect your wallet"),
+    publicKey: z.string(),
     phoneNumber: phoneSchema.optional(),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: "You must accept the terms and conditions",
