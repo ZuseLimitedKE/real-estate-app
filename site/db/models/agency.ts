@@ -237,7 +237,9 @@ export class AgencyModel {
       throw new MyError(Errors.NOT_GET_PROPERTY);
     }
   }
-
+  static async updateTenantProperties() {
+    throw new Error("updateTenantProperties is not implemented yet");
+  }
   static async getTenantsProperties(
     agencyID: string,
     page: number,

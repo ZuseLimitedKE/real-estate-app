@@ -10,7 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, createContext, useContext } from "react";
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -24,12 +24,15 @@ interface NavBodyProps {
 }
 
 interface NavItemsProps {
-  items: {
-    name: string;
-    link: string;
-  }[];
+  children: React.ReactNode;
   className?: string;
-  onItemClick?: () => void;
+}
+
+interface NavItemProps {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
 }
 
 interface MobileNavProps {
@@ -49,6 +52,15 @@ interface MobileNavMenuProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// Context for tracking hovered state across NavItems
+const NavItemsContext = createContext<{
+  hoveredIndex: number | null;
+  setHoveredIndex: (index: number | null) => void;
+}>({
+  hoveredIndex: null,
+  setHoveredIndex: () => { },
+});
 
 export const Navbar = ({ children, className }: NavbarProps) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -114,41 +126,70 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
   );
 };
 
-export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
-  const [hovered, setHovered] = useState<number | null>(null);
-  const pathname = usePathname();
+export const NavItems = ({ children, className }: NavItemsProps) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   return (
-    <motion.div
-      onMouseLeave={() => setHovered(null)}
+    <NavItemsContext.Provider value={{ hoveredIndex, setHoveredIndex }}>
+      <motion.div
+        onMouseLeave={() => setHoveredIndex(null)}
+        className={cn(
+          "absolute inset-0 hidden flex-1 flex-row items-center justify-center space-x-2 text-sm font-medium text-zinc-600 transition duration-200 hover:text-zinc-800 lg:flex lg:space-x-2",
+          className,
+        )}
+      >
+        {React.Children.toArray(children).map((child, index) =>
+          React.isValidElement(child)
+            ? React.cloneElement(
+              child as React.ReactElement<{ index?: number }>,
+              { index },
+            )
+            : child,
+        )}
+      </motion.div>
+    </NavItemsContext.Provider>
+  );
+};
+
+export const NavItem = ({
+  href,
+  children,
+  className,
+  onClick,
+  index,
+}: NavItemProps & { index?: number }) => {
+  const { hoveredIndex, setHoveredIndex } = useContext(NavItemsContext);
+  const pathname = usePathname();
+  const isActive = pathname === href;
+  const isHovered = hoveredIndex === index;
+
+  return (
+    <Link
+      onMouseEnter={() => setHoveredIndex(index ?? null)}
+      onClick={onClick}
       className={cn(
-        "absolute inset-0 hidden flex-1 flex-row items-center justify-center space-x-2 text-sm font-medium text-zinc-600 transition duration-200 hover:text-zinc-800 lg:flex lg:space-x-2",
+        "relative px-4 py-2 text-neutral-600 dark:text-neutral-300",
         className,
       )}
+      href={href}
+      aria-current={isActive ? "page" : undefined}
     >
-      {items.map((item, idx) => (
-        <Link
-          onMouseEnter={() => setHovered(idx)}
-          onClick={onItemClick}
-          className="relative px-4 py-2 text-neutral-600 dark:text-neutral-300"
-          key={`link-${idx}`}
-          href={item.link}
-          aria-current={pathname === item.link ? "page" : undefined}
-        >
-          {hovered === idx && (
-            <motion.div
-              layoutId="hovered"
-              className="absolute inset-0 h-full w-full rounded-full bg-gray-100 dark:bg-neutral-800"
-            />
-          )}
+      {isHovered && (
+        <motion.div
+          layoutId="hovered"
+          className="absolute inset-0 h-full w-full rounded-full bg-gray-100 dark:bg-neutral-800"
+        />
+      )}
 
-          <span
-            className={`relative z-20 font-semibold  ${pathname === item.link ? "text-primary" : "text-foreground"}`}
-          >
-            {item.name}
-          </span>
-        </Link>
-      ))}
-    </motion.div>
+      <span
+        className={cn(
+          "relative z-20 font-semibold",
+          isActive ? "text-primary" : "text-foreground",
+        )}
+      >
+        {children}
+      </span>
+    </Link>
   );
 };
 
@@ -224,6 +265,26 @@ export const MobileNavMenu = ({
         </motion.div>
       )}
     </AnimatePresence>
+  );
+};
+
+export const MobileNavItem = ({
+  href,
+  children,
+  className,
+  onClick,
+}: Omit<NavItemProps, "index">) => {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        "relative text-neutral-600 dark:text-neutral-300 w-full",
+        className,
+      )}
+    >
+      <span className="block">{children}</span>
+    </Link>
   );
 };
 
