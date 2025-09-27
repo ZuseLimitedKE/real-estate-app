@@ -237,7 +237,7 @@ export class AgencyModel {
       throw new MyError(Errors.NOT_GET_PROPERTY);
     }
   }
-
+  static async updateTenantProperties() { }
   static async getTenantsProperties(
     agencyID: string,
     page: number,
