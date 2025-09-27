@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import AdminShell from '@/components/layout/AdminShell';
+import AdminShell from '@/components/layout/admin-shell';
 
 export default async function AdminLayout({
   children,

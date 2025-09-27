@@ -1,0 +1,24 @@
+// admin/src/app/api/properties/approve/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { approveProperty } from '@/lib/actions/property-actions';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { propertyId, message } = await request.json();
+
+    if (!propertyId) {
+      return NextResponse.json({ error: 'Property ID is required' }, { status: 400 });
+    }
+
+    const result = await approveProperty(propertyId, message);
+
+    if (result.success) {
+      return NextResponse.json({ success: true, message: 'Property approved successfully' });
+    } else {
+      return NextResponse.json({ error: result.error || 'Failed to approve property' }, { status: 400 });
+    }
+  } catch (error) {
+    console.error('Error approving property:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

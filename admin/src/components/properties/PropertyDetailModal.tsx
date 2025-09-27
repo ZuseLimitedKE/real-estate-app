@@ -46,6 +46,7 @@ export default function PropertyDetailModal({
   };
 
   const amenitiesList = Object.entries(property.amenities)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .filter(([_, value]) => value !== null && value !== false && value !== 0)
     .map(([key, value]) => ({
       name: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
