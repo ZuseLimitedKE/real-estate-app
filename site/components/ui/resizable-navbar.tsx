@@ -141,12 +141,11 @@ export const NavItems = ({ children, className }: NavItemsProps) => {
         {React.Children.toArray(children).map((child, index) =>
           React.isValidElement(child)
             ? React.cloneElement(
-                child as React.ReactElement<{ index?: number }>,
-                { index },
-              )
+              child as React.ReactElement<{ index?: number }>,
+              { index },
+            )
             : child,
         )}
-      </motion.div>
       </motion.div>
     </NavItemsContext.Provider>
   );
