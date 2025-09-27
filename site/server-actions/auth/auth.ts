@@ -89,15 +89,13 @@ export async function authenticate(
 export async function logout() {
   try {
     await tokenMaker.clearTokens();
-    redirect("/");
   } catch (error) {
-    console.error("Logout error:", error);
-    // Still clear tokens and redirect even if revocation fails
-    await tokenMaker.clearTokens();
-    redirect("/");
+    console.error("Error clearing tokens:", error);
   }
-}
 
+  // Always redirect - this throws NEXT_REDIRECT internally (expected behavior)
+  redirect("/");
+}
 // Get current authenticated user
 export async function getCurrentUser() {
   return await tokenMaker.getCurrentUser();

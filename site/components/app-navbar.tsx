@@ -14,9 +14,8 @@ import {
 } from "@/components/ui/resizable-navbar";
 import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
-import { logout } from "@/server-actions/auth/auth";
 import { UserRole } from "@/auth/utils";
-
+import { LogoutButton } from "./logout-button";
 interface AppNavbarProps {
   role: UserRole;
 }
@@ -28,10 +27,6 @@ export function AppNavbar({ role }: AppNavbarProps) {
     setIsMobileMenuOpen(false);
   };
 
-  const handleLogout = async () => {
-    setIsMobileMenuOpen(false);
-    await logout();
-  };
   return (
     <Navbar>
       {/* Desktop Navigation */}
@@ -50,9 +45,7 @@ export function AppNavbar({ role }: AppNavbarProps) {
 
         <div className="flex items-center gap-4">
           <WalletConnect />
-          <NavbarButton variant="primary" as="button" onClick={logout}>
-            Logout
-          </NavbarButton>
+          <LogoutButton variant="primary" />
         </div>
       </NavBody>
 
@@ -93,14 +86,7 @@ export function AppNavbar({ role }: AppNavbarProps) {
 
           <div className="flex w-full flex-col gap-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
             <WalletConnect />
-            <NavbarButton
-              variant="primary"
-              className="w-full"
-              as="button"
-              onClick={handleLogout}
-            >
-              Logout
-            </NavbarButton>
+            <LogoutButton variant="primary" />
           </div>
         </MobileNavMenu>
       </MobileNav>
