@@ -49,9 +49,14 @@ export function AgentPropertiesDropdown({ id }: { id: string }) {
             View
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem className="flex items-center gap-2">
-          <Pencil className="h-4 w-4" />
-          Edit
+        <DropdownMenuItem className="flex items-center gap-2" asChild>
+          <Link
+            href={`/agencies/properties/${id}/edit`}
+            className="flex items-center gap-2"
+          >
+            <Pencil className="h-4 w-4" />
+            Edit
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem
           className="flex items-center gap-2 text-destructive/80 hover:text-destructive hover:bg-slate-50"

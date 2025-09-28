@@ -88,7 +88,22 @@ export class AgencyModel {
       });
     }
   }
-
+  static async getProperty(_id: ObjectId, agencyId: string) {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const property = await collection.findOne({
+        _id: _id,
+        agencyId: agencyId,
+      });
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+      return property;
+    } catch (err) {
+      console.error(err);
+      throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
+    }
+  }
   static async getPropertyFromID(
     agencyID: string,
     propertyID: string,
