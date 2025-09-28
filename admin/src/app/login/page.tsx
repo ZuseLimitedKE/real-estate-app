@@ -1,3 +1,4 @@
+// admin/src/app/login/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -17,10 +18,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const raw = searchParams.get('callbackUrl');
-  const callbackUrl =
-    raw && raw.startsWith('/') && !raw.startsWith('//')
-      ? raw
-      : '/admin/dashboard';
+  const callbackUrl = raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/admin/dashboard';
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -63,7 +61,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 animate-fade-in">
+      <div className="max-w-md w-full space-y-8">
         {/* Enhanced Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center space-x-3">
@@ -71,17 +69,16 @@ export default function LoginPage() {
               <Building2 className="h-6 w-6 text-primary-foreground" />
             </div>
             <div className="text-left">
-              <h1 className="text-3xl font-bold gradient-text">Atria Africa</h1>
+              <h1 className="text-3xl font-bold gradient-text">Atria</h1>
               <p className="text-muted-foreground text-sm">Real Estate Tokenization</p>
             </div>
           </div>
-          <p className="text-muted-foreground font-medium">Admin Dashboard</p>
         </div>
         
         {/* Enhanced Card */}
-        <Card className="w-full max-w-md shadow-elegant border-border/50">
+        <Card className="w-full max-w-md shadow-elevation border-border/50">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Secure Access</CardTitle>
+            <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
             <CardDescription>
               Enter your administrator credentials
             </CardDescription>
@@ -124,7 +121,7 @@ export default function LoginPage() {
 
               <Button 
                 type="submit" 
-                className="w-full h-11 text-base font-medium cursor-pointer bg-gray-800 hover:bg-gray-900" 
+                className="w-full h-11 text-base font-medium bg-gradient-primary text-primary-foreground shadow-glow hover:shadow-glow-lg transition-all" 
                 disabled={isLoading}
                 size="lg"
               >
