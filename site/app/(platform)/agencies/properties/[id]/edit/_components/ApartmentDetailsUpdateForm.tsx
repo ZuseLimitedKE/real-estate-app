@@ -27,13 +27,7 @@ import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 
 // Zod schema for apartment details validation
-const apartmentDetailsSchema = z.object({
-  floors: z
-    .number()
-    .min(1, "Must have at least 1 floor")
-    .max(100, "Maximum 100 floors"),
-  parkingSpace: z.number().min(0, "Parking spaces cannot be negative"),
-// Add immediately after your imports, before apartmentDetailsSchema:
+// Zod schema for apartment details validation
 const tenantSchema = z.preprocess(
   (value) => {
     if (!value || typeof value !== "object") return undefined;
