@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
@@ -56,33 +56,35 @@ export default function AgenciesPage() {
   const search = searchParams?.get('search') || "";
   const page = parseInt(searchParams?.get('page') || "1", 10);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (status !== 'all') params.set('status', status);
-        if (search) params.set('search', search);
-        params.set('page', page.toString());
-        
-        const response = await fetch(`/api/agencies?${params.toString()}`);
-        const data = await response.json();
-        
-        if (response.ok) {
-          setAgencies(data.agencies);
-          setStats(data.stats);
-        } else {
-          console.error('Error fetching agencies:', data.error);
-        }
-      } catch (error) {
-        console.error('Error fetching agencies:', error);
-      } finally {
-        setLoading(false);
+  const fetchData = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (status !== 'all') params.set('status', status);
+      if (search) params.set('search', search);
+      params.set('page', page.toString());
+      const response = await fetch(`/api/agencies?${params.toString()}`, { signal });
+      const data = await response.json();
+      if (response.ok) {
+        setAgencies(data.agencies);
+        setStats(data.stats);
+      } else {
+        console.error('Error fetching agencies:', data.error);
       }
-    };
-
-    fetchData();
+    } catch (error) {
+      if ((error as any)?.name !== 'AbortError') {
+        console.error('Error fetching agencies:', error);
+      }
+    } finally {
+      setLoading(false);
+    }
   }, [status, search, page]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
+  }, [fetchData]);
 
   const getStatusCount = (status: string) => {
     const match = stats.agencyStats?.find((s: any) => s._id === status);
@@ -154,9 +156,7 @@ export default function AgenciesPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Refresh the data
-        const params = new URLSearchParams(searchParams.toString());
-        router.push(`/admin/agencies?${params.toString()}`);
+        await fetchData();
         setApprovalModal({ open: false, agency: null, action: 'approve' });
       } else {
         throw new Error(data.error || 'Action failed');

@@ -154,9 +154,18 @@ export default function PropertiesPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Refresh the data
-        const params = new URLSearchParams(searchParams.toString());
-        router.push(`/admin/properties?${params.toString()}`);
+        const newStatus = approvalModal.action === 'approve' ? 'approved' : 'rejected';
+        setProperties(prev =>
+          prev.map(p => p._id === approvalModal.property!._id ? { ...p, property_status: newStatus } : p)
+        );
+        // adjust stats if present
+        setStats((prev: any) => {
+          if (!prev?.propertyStats) return prev;
+          const next = [...prev.propertyStats];
+          const dec = next.find((s: any) => s._id === 'pending'); if (dec) dec.count = Math.max(0, (dec.count || 0) - 1);
+          const inc = next.find((s: any) => s._id === newStatus); if (inc) inc.count = (inc.count || 0) + 1; else next.push({ _id: newStatus, count: 1 });
+          return { ...prev, propertyStats: next };
+        });
         setApprovalModal({ open: false, property: null, action: 'approve' });
       } else {
         throw new Error(data.error || 'Action failed');
