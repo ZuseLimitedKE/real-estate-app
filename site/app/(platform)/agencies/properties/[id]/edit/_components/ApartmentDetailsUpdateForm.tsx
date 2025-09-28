@@ -21,6 +21,11 @@ import {
 } from "@/components/ui/select";
 
 import { updateProperty } from "@/server-actions/agent/dashboard/updateProperty";
+
+import { Properties } from "@/db/collections";
+import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
+
 // Zod schema for apartment details validation
 const apartmentDetailsSchema = z.object({
   floors: z
@@ -59,11 +64,6 @@ interface ApartmentDetailsUpdateFormProps {
   propertyId: string;
   initialData: Properties["apartmentDetails"] | null;
 }
-
-import { Properties } from "@/db/collections";
-import { toast } from "sonner";
-import { Spinner } from "@/components/ui/spinner";
-
 export default function ApartmentDetailsUpdateForm({
   propertyId,
   initialData,
@@ -152,21 +152,6 @@ export default function ApartmentDetailsUpdateForm({
     );
     form.setValue(`units.${unitIndex}.tenant.paymentHistory`, updatedPayments);
   };
-
-  if (!initialData) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-gray-600">
-            No apartment details found for this property.
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            You can create new apartment details using this form.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">

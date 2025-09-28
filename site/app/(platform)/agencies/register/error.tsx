@@ -47,11 +47,11 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           <Alert variant="destructive">
             <AlertDescription>{getErrorMessage()}</AlertDescription>
           </Alert>
-
-          <div className="text-sm text-gray-600 text-center">
-            <p>Error ID: {error.digest}</p>
-          </div>
-
+          {error.digest ? (
+            <div className="text-sm text-gray-600 text-center">
+              <p>Error ID: {error.digest}</p>
+            </div>
+          ) : null}
           <div className="flex gap-3 justify-center pt-4">
             <Button
               onClick={() => router.back()}
