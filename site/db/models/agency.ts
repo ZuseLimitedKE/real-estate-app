@@ -249,11 +249,12 @@ export class AgencyModel {
   ): Promise<boolean> {
     try {
       const collection = await this.getPropertiesCollection();
-      const deletedResult = await collection.findOneAndDelete({
+      const deletedDocument = await collection.findOneAndDelete({
         _id: _id,
         agencyId: agencyId,
       });
-      return deletedResult.value !== null;
+      return !!deletedDocument;
+    } catch (err) {
       console.error(err);
       throw new MyError(Errors.NOT_DELETE_PROPERTY, { cause: err });
     }
