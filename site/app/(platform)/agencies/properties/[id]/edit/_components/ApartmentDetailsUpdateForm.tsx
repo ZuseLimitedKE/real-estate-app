@@ -33,76 +33,55 @@ const apartmentDetailsSchema = z.object({
     .min(1, "Must have at least 1 floor")
     .max(100, "Maximum 100 floors"),
   parkingSpace: z.number().min(0, "Parking spaces cannot be negative"),
+// Add immediately after your imports, before apartmentDetailsSchema:
+const tenantSchema = z.preprocess(
+  (value) => {
+    if (!value || typeof value !== "object") return undefined;
+    const tenant = value as Record<string, unknown>;
+    const hasContent = Object.entries(tenant).some(([key, val]) => {
+      if (key === "paymentHistory") {
+        return Array.isArray(val) && val.length > 0;
+      }
+      if (val instanceof Date) {
+        return !Number.isNaN(val.getTime());
+      }
+      return val !== "" && val !== null && val !== undefined;
+    });
+    return hasContent ? value : undefined;
+  },
+  z
+    .object({
+      name: z.string().min(1, "Tenant name is required"),
+      email: z.email("Valid email is required"),
+      number: z.string().min(1, "Phone number is required"),
+      rent: z.number().min(0, "Rent cannot be negative"),
+      joinDate: z.date(),
+      paymentHistory: z.array(
+        z.object({
+          date: z.date(),
+          amount: z.number().min(0),
+          status: z.enum(["paid", "pending", "overdue", "partial"]),
+        }),
+      ),
+    })
+    .optional(),
+);
+
+const apartmentDetailsSchema = z.object({
+  floors: z
+    .number()
+    .min(1, "Must have at least 1 floor")
+    .max(100, "Maximum 100 floors"),
+  parkingSpace: z.number().min(0, "Parking spaces cannot be negative"),
   units: z
     .array(
       z.object({
         name: z.string().min(1, "Unit name is required"),
-        tenant: z
-          .object({
-            name: z.string().min(1, "Tenant name is required"),
-            email: z.email("Valid email is required"),
-            number: z.string().min(1, "Phone number is required"),
-            rent: z.number().min(0, "Rent cannot be negative"),
-            joinDate: z.date(),
-            paymentHistory: z.array(
-              z.object({
-                date: z.date(),
-                amount: z.number().min(0),
-                status: z.enum(["paid", "pending", "overdue", "partial"]),
-              }),
-            ),
-          })
-          .optional(),
+        tenant: tenantSchema,
       }),
     )
     .min(1, "At least one unit is required"),
 });
-
-type ApartmentDetailsForm = z.infer<typeof apartmentDetailsSchema>;
-
-interface ApartmentDetailsUpdateFormProps {
-  propertyId: string;
-  initialData: Properties["apartmentDetails"] | null;
-}
-export default function ApartmentDetailsUpdateForm({
-  propertyId,
-  initialData,
-}: ApartmentDetailsUpdateFormProps) {
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const form = useForm<ApartmentDetailsForm>({
-    resolver: zodResolver(apartmentDetailsSchema),
-    defaultValues: initialData
-      ? {
-        floors: initialData.floors || 1,
-        parkingSpace: initialData.parkingSpace || 0,
-        units:
-          initialData.units?.length > 0
-            ? initialData.units.map((unit: any) => ({
-              name: unit.name || "",
-              tenant: unit.tenant
-                ? {
-                  name: unit.tenant.name || "",
-                  email: unit.tenant.email || "",
-                  number: unit.tenant.number || "",
-                  rent: unit.tenant.rent || 0,
-                  joinDate: new Date(unit.tenant.joinDate) || new Date(),
-                  paymentHistory:
-                    unit.tenant.paymentHistory?.map((payment: any) => ({
-                      date: new Date(payment.date),
-                      amount: payment.amount || 0,
-                      status: payment.status || "pending",
-                    })) || [],
-                }
-                : undefined,
-            }))
-            : [{ name: "", tenant: undefined }],
-      }
-      : {
-        floors: 1,
-        parkingSpace: 0,
-        units: [{ name: "", tenant: undefined }],
       },
   });
 
