@@ -6,7 +6,6 @@ import {
   NavItem,
   MobileNav,
   NavbarLogo,
-  NavbarButton,
   MobileNavHeader,
   MobileNavToggle,
   MobileNavMenu,
@@ -36,9 +35,7 @@ export function AppNavbar({ role }: AppNavbarProps) {
           <NavItem href="/investors">View Properties</NavItem>
 
           {role === "agency" && (
-            <>
-              <NavItem href="/agencies/dashboard">Dashboard</NavItem>
-            </>
+            <NavItem href="/agencies/dashboard">Dashboard</NavItem>
           )}
           <NavItem href="#settings">Settings</NavItem>
         </NavItems>
@@ -68,14 +65,12 @@ export function AppNavbar({ role }: AppNavbarProps) {
           </MobileNavItem>
 
           {role === "agency" && (
-            <>
-              <MobileNavItem
-                href="/agencies/dashboard"
-                onClick={handleMobileNavItemClick}
-              >
-                Dashboard
-              </MobileNavItem>
-            </>
+            <MobileNavItem
+              href="/agencies/dashboard"
+              onClick={handleMobileNavItemClick}
+            >
+              Dashboard
+            </MobileNavItem>
           )}
           <MobileNavItem href="#settings" onClick={handleMobileNavItemClick}>
             Settings

@@ -83,7 +83,9 @@ export class AgencyModel {
       };
     } catch (err) {
       console.error("Could not get statistics for agency", err);
-      throw new MyError(Errors.NOT_GET_AGENT_DASHBOARD_STATISTICS);
+      throw new MyError(Errors.NOT_GET_AGENT_DASHBOARD_STATISTICS, {
+        cause: err,
+      });
     }
   }
 
@@ -234,12 +236,30 @@ export class AgencyModel {
         `Could not get property ${propertyID} for agent ${agencyID}`,
         err,
       );
-      throw new MyError(Errors.NOT_GET_PROPERTY);
+      throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
     }
   }
-  static async updateTenantProperties() {
-    throw new Error("updateTenantProperties is not implemented yet");
+  static async updateProperty() {
+    throw new Error("updateProperty is not implemented yet");
   }
+  // Delete a property associated with an agency
+  static async deleteAgencyProperty(
+    _id: ObjectId,
+    agencyId: string,
+  ): Promise<boolean> {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const deletedDocument = await collection.findOneAndDelete({
+        _id: _id,
+        agencyId: agencyId,
+      });
+      return !!deletedDocument;
+    } catch (err) {
+      console.error(err);
+      throw new MyError(Errors.NOT_DELETE_PROPERTY, { cause: err });
+    }
+  }
+
   static async getTenantsProperties(
     agencyID: string,
     page: number,
@@ -296,7 +316,7 @@ export class AgencyModel {
       };
     } catch (err) {
       console.error(`Error getting tenants for agent ${agencyID} properties`);
-      throw new MyError(Errors.NOT_GET_AGENCY_TENANTS);
+      throw new MyError(Errors.NOT_GET_AGENCY_TENANTS, { cause: err });
     }
   }
 
@@ -353,7 +373,7 @@ export class AgencyModel {
       return { properties: dashboardProperties, totalPages };
     } catch (err) {
       console.error(`Error getting properties for agency ${agencyID} from db`);
-      throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES);
+      throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES, { cause: err });
     }
   }
 }
