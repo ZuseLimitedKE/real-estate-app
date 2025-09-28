@@ -18,7 +18,7 @@ export async function getPropertyApartmentDetails(_id: string) {
   } catch (err) {
     console.error(err);
     if (err instanceof AuthError) {
-      throw new MyError(err.message, { cause: err });
+      throw new MyError(Errors.UNAUTHORIZED, { cause: err });
     }
     throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
   }
