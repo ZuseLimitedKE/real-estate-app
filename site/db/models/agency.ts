@@ -239,8 +239,29 @@ export class AgencyModel {
       throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
     }
   }
-  static async updateProperty() {
-    throw new Error("updateProperty is not implemented yet");
+  static async updateProperty(_id: ObjectId, data: Partial<Properties>) {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const result = await collection.findOneAndUpdate(
+        {
+          _id: _id,
+        },
+        {
+          $set: {
+            ...data,
+            updatedAt: new Date(),
+          },
+        },
+        { returnDocument: "after" },
+      );
+      if (!result) {
+        throw new MyError("Property does not exist");
+      }
+      return result;
+    } catch (err) {
+      console.error(err);
+      throw new MyError(Errors.NOT_UPDATE_PROPERTY, { cause: err });
+    }
   }
   // Delete a property associated with an agency
   static async deleteAgencyProperty(
@@ -253,6 +274,7 @@ export class AgencyModel {
         _id: _id,
         agencyId: agencyId,
       });
+
       return !!deletedDocument;
     } catch (err) {
       console.error(err);
@@ -333,7 +355,10 @@ export class AgencyModel {
       const dashboardProperties: DashboardProperties[] = [];
 
       for await (const property of cursor) {
-        const details: { title: string; value: string }[] = [];
+        const details: {
+          title: string;
+          value: string;
+        }[] = [];
 
         if (property.amenities.bedrooms) {
           details.push({
