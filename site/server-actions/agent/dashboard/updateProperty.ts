@@ -9,11 +9,15 @@ import { revalidatePath } from "next/cache";
 
 export async function updateProperty(_id: string, data: Partial<Properties>) {
   try {
-    await requireRole("agency");
+    const payload = await requireRole("agency");
     if (!ObjectId.isValid(_id)) {
       throw new MyError("Invalid property id");
     }
-    const result = await AgencyModel.updateProperty(new ObjectId(_id), data);
+    const result = await AgencyModel.updateProperty(
+      new ObjectId(_id),
+      payload.userId,
+      data,
+    );
     revalidatePath("/agencies/dashboard");
     return result;
   } catch (err) {

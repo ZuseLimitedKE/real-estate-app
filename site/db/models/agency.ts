@@ -239,12 +239,17 @@ export class AgencyModel {
       throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
     }
   }
-  static async updateProperty(_id: ObjectId, data: Partial<Properties>) {
+  static async updateProperty(
+    _id: ObjectId,
+    agencyId: string,
+    data: Partial<Properties>,
+  ) {
     try {
       const collection = await this.getPropertiesCollection();
       const result = await collection.findOneAndUpdate(
         {
           _id: _id,
+          agencyId: agencyId,
         },
         {
           $set: {
