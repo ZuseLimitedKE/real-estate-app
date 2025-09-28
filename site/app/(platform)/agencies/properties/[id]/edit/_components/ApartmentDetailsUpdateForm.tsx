@@ -39,6 +39,9 @@ const tenantSchema = z.preprocess(
       if (val instanceof Date) {
         return !Number.isNaN(val.getTime());
       }
+      if (typeof val === "number") {
+        return !Number.isNaN(val);
+      }
       return val !== "" && val !== null && val !== undefined;
     });
     return hasContent ? value : undefined;
