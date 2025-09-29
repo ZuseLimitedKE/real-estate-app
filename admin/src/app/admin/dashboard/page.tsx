@@ -57,14 +57,14 @@ export default async function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <DashboardCard
           title="Total Agencies"
-          value={totalAgenciesCount}
+          value={approvedAgenciesCount}
           icon={<Building2 className="h-6 w-6 text-blue-400" />}
           iconBg="bg-blue-500/10"
           className="hover:shadow-hover transition-all duration-300"
         />
         <DashboardCard
           title="Active Properties"
-          value={totalPropertiesCount}
+          value={approvedAgenciesCount}
           icon={<Home className="h-6 w-6 text-green-400" />}
           iconBg="bg-green-500/10"
           className="hover:shadow-hover transition-all duration-300"

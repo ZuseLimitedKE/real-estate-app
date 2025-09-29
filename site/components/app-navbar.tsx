@@ -3,46 +3,59 @@ import {
   Navbar,
   NavBody,
   NavItems,
-  NavItem,
   MobileNav,
   NavbarLogo,
+  NavbarButton,
   MobileNavHeader,
   MobileNavToggle,
   MobileNavMenu,
-  MobileNavItem,
 } from "@/components/ui/resizable-navbar";
+import Link from "next/link";
 import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
-import { UserRole } from "@/auth/utils";
-import { LogoutButton } from "./logout-button";
-interface AppNavbarProps {
-  role: UserRole;
-}
+import { logout } from "@/server-actions/auth/auth";
+import { Heart, Briefcase, Home, Menu, X, Bell, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-export function AppNavbar({ role }: AppNavbarProps) {
+export function AppNavbar() {
+  const navItems = [
+    {
+      name: "View Properties",
+      link: "/investors",
+      icon: <Home className="w-4 h-4" />,
+    },
+    {
+      name: "Marketplace",
+      link: "/investors/marketplace",
+      icon: <Briefcase className="w-4 h-4" />,
+    },
+    {
+      name: "My Portfolio",
+      link: "/investors/portfolio",
+      icon: <User className="w-4 h-4" />,
+    },
+  ];
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleMobileNavItemClick = () => {
-    setIsMobileMenuOpen(false);
-  };
-
   return (
-    <Navbar>
+    <Navbar className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
       {/* Desktop Navigation */}
       <NavBody>
         <NavbarLogo />
-        <NavItems>
-          <NavItem href="/investors">View Properties</NavItem>
-
-          {role === "agency" && (
-            <NavItem href="/agencies/dashboard">Dashboard</NavItem>
-          )}
-          <NavItem href="#settings">Settings</NavItem>
-        </NavItems>
-
+        <NavItems items={navItems} />
         <div className="flex items-center gap-4">
+          
           <WalletConnect />
-          <LogoutButton variant="primary" />
+          <NavbarButton
+            variant="primary"
+            as="button"
+            onClick={async () => {
+              await logout();
+            }}
+          >
+            Logout
+          </NavbarButton>
         </div>
       </NavBody>
 
@@ -60,28 +73,29 @@ export function AppNavbar({ role }: AppNavbarProps) {
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
         >
-          <MobileNavItem href="/investors" onClick={handleMobileNavItemClick}>
-            View Properties
-          </MobileNavItem>
-
-          {role === "agency" && (
-            <MobileNavItem
-              href="/agencies/dashboard"
-              onClick={handleMobileNavItemClick}
+          {navItems.map((item, idx) => (
+            <Link
+              key={`mobile-link-${idx}`}
+              href={item.link}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="relative text-neutral-600 dark:text-neutral-300"
             >
-              Dashboard
-            </MobileNavItem>
-          )}
-          <MobileNavItem href="#settings" onClick={handleMobileNavItemClick}>
-            Settings
-          </MobileNavItem>
-          <MobileNavItem href="#contact" onClick={handleMobileNavItemClick}>
-            Contact
-          </MobileNavItem>
-
-          <div className="flex w-full flex-col gap-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+              <span className="block">{item.name}</span>
+            </Link>
+          ))}
+          <div className="flex w-full flex-col gap-4">
             <WalletConnect />
-            <LogoutButton variant="primary" />
+            <NavbarButton
+              variant="primary"
+              className="w-full"
+              as="button"
+              onClick={async () => {
+                setIsMobileMenuOpen(false);
+                await logout();
+              }}
+            >
+              Logout
+            </NavbarButton>
           </div>
         </MobileNavMenu>
       </MobileNav>
