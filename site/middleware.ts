@@ -4,6 +4,11 @@ import { tokenMaker } from "@/auth/token-maker";
 
 const protectedRoutes = ["/investors", "/agencies", "/admin"];
 
+const roleAccess = {
+  "/admin": ["admin"],
+  "/agencies": ["agency"],
+  "/investors": ["investor", "agency"],
+};
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -54,9 +59,9 @@ export async function middleware(request: NextRequest) {
     const role = userPayload.role.toLowerCase();
     const redirectPath =
       role === "admin"
-        ? "/admin"
+        ? "/admin/dashboard"
         : role === "agency"
-          ? "/agencies"
+          ? "/agencies/dashboard"
           : "/investors";
 
     return NextResponse.redirect(new URL(redirectPath, request.url));
@@ -69,35 +74,27 @@ export async function middleware(request: NextRequest) {
     res.cookies.delete("refreshToken");
     return res;
   }
-
-  // Role-based checks
+  // Role-based access control
   if (isAuthenticated && userPayload) {
     const role = userPayload.role.toLowerCase();
     const homeByRole: Record<string, string> = {
-      admin: "/admin",
-      agency: "/agencies",
+      admin: "/admin/dashboard",
+      agency: "/agencies/dashboard",
       investor: "/investors",
     };
 
-    if (pathname.startsWith("/admin") && role !== "admin") {
-      return NextResponse.redirect(
-        new URL(homeByRole[role] ?? "/", request.url),
-      );
-    }
-
-    if (pathname.startsWith("/agencies") && role !== "agency") {
-      return NextResponse.redirect(
-        new URL(homeByRole[role] ?? "/", request.url),
-      );
-    }
-
-    if (pathname.startsWith("/investors") && role !== "investor") {
-      return NextResponse.redirect(
-        new URL(homeByRole[role] ?? "/", request.url),
-      );
+    for (const [routePath, allowedRoles] of Object.entries(roleAccess)) {
+      if (pathname.startsWith(routePath)) {
+        //redirect if not allowed
+        if (!allowedRoles.includes(role)) {
+          return NextResponse.redirect(
+            new URL(homeByRole[role] ?? "/", request.url),
+          );
+        }
+        break;
+      }
     }
   }
-
   // Default: allow
   return response ?? NextResponse.next();
 }

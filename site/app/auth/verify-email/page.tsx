@@ -8,11 +8,10 @@ const Fallback = () => {
     </div>
   );
 };
-export default function VerifyEmailPage({
-  searchParams,
-}: {
+export default async function VerifyEmailPage(props: {
   searchParams: Promise<{ token?: string }>;
 }) {
+  const searchParams = props.searchParams;
   return (
     <Suspense fallback={<Fallback />}>
       <VerifyEmail searchParams={searchParams} />

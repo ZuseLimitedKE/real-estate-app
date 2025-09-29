@@ -3,55 +3,46 @@ import {
   Navbar,
   NavBody,
   NavItems,
+  NavItem,
   MobileNav,
   NavbarLogo,
-  NavbarButton,
   MobileNavHeader,
   MobileNavToggle,
   MobileNavMenu,
+  MobileNavItem,
 } from "@/components/ui/resizable-navbar";
-import Link from "next/link";
 import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
-import { logout } from "@/server-actions/auth/auth";
+import { UserRole } from "@/auth/utils";
+import { LogoutButton } from "./logout-button";
+interface AppNavbarProps {
+  role: UserRole;
+}
 
-export function AppNavbar() {
-  const navItems = [
-    {
-      name: "View Properties",
-      link: "/investors",
-    },
-    {
-      name: "Pricing",
-      link: "#pricing",
-    },
-    {
-      name: "Contact",
-      link: "#contact",
-    },
-  ];
-
+export function AppNavbar({ role }: AppNavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleMobileNavItemClick = () => {
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <Navbar>
       {/* Desktop Navigation */}
       <NavBody>
         <NavbarLogo />
-        <NavItems items={navItems} />
+        <NavItems>
+          <NavItem href="/investors">View Properties</NavItem>
+
+          {role === "agency" && (
+            <NavItem href="/agencies/dashboard">Dashboard</NavItem>
+          )}
+          <NavItem href="#settings">Settings</NavItem>
+        </NavItems>
+
         <div className="flex items-center gap-4">
-          <NavbarButton variant="secondary">
-            <WalletConnect />
-          </NavbarButton>
-          <NavbarButton
-            variant="primary"
-            as="button"
-            onClick={async () => {
-              await logout();
-            }}
-          >
-            Logout
-          </NavbarButton>
+          <WalletConnect />
+          <LogoutButton variant="primary" />
         </div>
       </NavBody>
 
@@ -69,29 +60,28 @@ export function AppNavbar() {
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
         >
-          {navItems.map((item, idx) => (
-            <Link
-              key={`mobile-link-${idx}`}
-              href={item.link}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="relative text-neutral-600 dark:text-neutral-300"
+          <MobileNavItem href="/investors" onClick={handleMobileNavItemClick}>
+            View Properties
+          </MobileNavItem>
+
+          {role === "agency" && (
+            <MobileNavItem
+              href="/agencies/dashboard"
+              onClick={handleMobileNavItemClick}
             >
-              <span className="block">{item.name}</span>
-            </Link>
-          ))}
-          <div className="flex w-full flex-col gap-4">
+              Dashboard
+            </MobileNavItem>
+          )}
+          <MobileNavItem href="#settings" onClick={handleMobileNavItemClick}>
+            Settings
+          </MobileNavItem>
+          <MobileNavItem href="#contact" onClick={handleMobileNavItemClick}>
+            Contact
+          </MobileNavItem>
+
+          <div className="flex w-full flex-col gap-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
             <WalletConnect />
-            <NavbarButton
-              variant="primary"
-              className="w-full"
-              as="button"
-              onClick={async () => {
-                setIsMobileMenuOpen(false);
-                await logout();
-              }}
-            >
-              Logout
-            </NavbarButton>
+            <LogoutButton variant="primary" />
           </div>
         </MobileNavMenu>
       </MobileNav>

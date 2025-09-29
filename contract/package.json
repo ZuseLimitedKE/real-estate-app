@@ -23,10 +23,13 @@
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
     "hardhat": "^3.0.4",
     "mocha": "^11.0.0",
+    "tsx": "^4.20.5",
     "typescript": "~5.8.0"
   },
   "type": "module",
   "dependencies": {
-    "@openzeppelin/contracts": "^5.4.0"
+    "@hashgraph/sdk": "^2.73.1",
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^17.2.2"
   }
 }

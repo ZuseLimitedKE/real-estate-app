@@ -1,21 +1,26 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { NavbarButton } from "./ui/resizable-navbar";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 export function WalletConnect() {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { address, isConnected } = useAccount();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Get the first available connector (WalletConnect)
-  const connector = connectors[0];
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const connector = useMemo(() => connectors?.[0], [connectors]);
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
+      if (!connector) throw new Error("No wallet connector available");
       connect({ connector });
     } catch (error) {
       console.error("Failed to connect wallet:", error);
@@ -25,26 +30,31 @@ export function WalletConnect() {
     }
   };
 
+  // Render stable button text until mounted to avoid hydration mismatches
+  if (!mounted) {
+    return (
+      <NavbarButton variant="primary" as="button" disabled>
+        Connect Wallet
+      </NavbarButton>
+    );
+  }
+
   if (isConnected && address) {
     return (
-      <Button
-        variant="outline"
-        onClick={() => disconnect()}
-        className="cursor-pointer font-semibold hover:bg-accent hover:text-accent-foreground transition-colors"
-      >
-        Disconnect: {`${address.slice(0, 6)}...${address.slice(-4)}`}
-      </Button>
+      <NavbarButton variant="primary" as="button" onClick={() => disconnect()}>
+        Disconnect
+      </NavbarButton>
     );
   }
 
   return (
-    <Button
-      variant="default"
+    <NavbarButton
+      variant="primary"
+      as="button"
       onClick={handleConnect}
-      className="cursor-pointer font-semibold hover:bg-primary/90 transition-colors"
-      disabled={isConnecting}
+      disabled={isConnecting || !connector}
     >
       {isConnecting ? "Connecting..." : "Connect Wallet"}
-    </Button>
+    </NavbarButton>
   );
 }

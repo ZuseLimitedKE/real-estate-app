@@ -1,123 +1,58 @@
-"use client";
-import { useState } from "react";
-import Footer from "@/components/Footer";
-import PropertyCard from "@/components/PropertyCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Plus } from "lucide-react";
-import property1 from "@/assets/property-1.jpg";
-import property2 from "@/assets/property-2.jpg";
-import property3 from "@/assets/property-3.jpg";
+import { Suspense } from "react";
+import { PropertyListings } from "./_components/property-listings";
+import { GetProperties } from "@/server-actions/property/get-property";
 
-const PropertyListingPage = () => {
-  const [showForm, setShowForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [locationFilter, setLocationFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("default");
+function transformProperty(p: any) {
+  const totalFractions = p.totalFractions || 0;
+  const owned = Array.isArray(p.property_owners)
+    ? p.property_owners.reduce(
+      (a: number, o: any) => a + (o.amount_owned || 0),
+      0,
+    )
+    : 0;
+  const availablePct =
+    totalFractions > 0
+      ? Math.max(0, Math.round(100 - (owned / totalFractions) * 100))
+      : 0;
 
-  const properties = [
-    {
-      id: "1",
-      image: property1,
-      title: "Kilimani Heights",
-      location: "Kilimani, Nairobi",
-      value: "KSh 35M",
-      yield: "7.8%",
-      investors: 142,
-      availableShares: 45,
-      minInvestment: "KSh 15,000",
-      verified: true,
-    },
-    {
-      id: "2",
-      image: property2,
-      title: "Parklands Plaza",
-      location: "Parklands, Nairobi", 
-      value: "KSh 52M",
-      yield: "8.9%",
-      investors: 218,
-      availableShares: 32,
-      minInvestment: "KSh 20,000",
-      verified: true,
-    },
-    {
-      id: "3",
-      image: property3,
-      title: "Lavington Gardens",
-      location: "Lavington, Nairobi",
-      value: "KSh 41M", 
-      yield: "8.1%",
-      investors: 189,
-      availableShares: 58,
-      minInvestment: "KSh 12,000",
-      verified: true,
-    },
-    {
-      id: "4",
-      image: property1,
-      title: "Westlands Towers",
-      location: "Westlands, Nairobi",
-      value: "KSh 67M",
-      yield: "9.2%", 
-      investors: 301,
-      availableShares: 28,
-      minInvestment: "KSh 25,000",
-      verified: true,
-    },
-    {
-      id: "5",
-      image: property2,
-      title: "Upper Hill Residence",
-      location: "Upper Hill, Nairobi",
-      value: "KSh 38M",
-      yield: "7.5%",
-      investors: 156,
-      availableShares: 72,
-      minInvestment: "KSh 18,000",
-      verified: false,
-    },
-    {
-      id: "6",
-      image: property3,
-      title: "Karen Estate",
-      location: "Karen, Nairobi",
-      value: "KSh 89M",
-      yield: "8.7%",
-      investors: 89,
-      availableShares: 15,
-      minInvestment: "KSh 50,000",
-      verified: true,
-    },
-  ];
+  return {
+    id: p._id?.toString?.() ?? "",
+    image: (p.images && p.images[0]) || "/logo.png",
+    title: p.name ?? "Property",
+    location: p.location?.address ?? "—",
+    value: p.property_value
+      ? `KSh ${new Intl.NumberFormat().format(p.property_value)}`
+      : "—",
+    yield:
+      p.proposedRentPerMonth && p.property_value
+        ? `${(((p.proposedRentPerMonth * 12) / p.property_value) * 100).toFixed(
+          1,
+        )}%`
+        : "—",
+    investors: Array.isArray(p.property_owners) ? p.property_owners.length : 0,
+    availableShares: availablePct,
+    minInvestment: p.serviceFeePercent ? `${p.serviceFeePercent}% fee` : "—",
+    verified: p.property_status === "approved",
+  };
+}
 
-  if (showForm) {
-    return (
-      <div className="min-h-screen bg-background">
-        <main className="py-12">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowForm(false)}
-                className="mb-4"
-              >
-                ← Back to Properties
-              </Button>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
+async function getTransformedProperties() {
+  try {
+    const res = await GetProperties();
+    return (res || []).map(transformProperty);
+  } catch (error) {
+    console.error("Failed to fetch properties:", error);
+    throw new Error("Failed to load properties");
   }
+}
+
+export default async function PropertyListingPage() {
+  const properties = await getTransformedProperties();
 
   return (
     <div className="min-h-screen bg-background">
-      
       <main className="py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
@@ -129,74 +64,82 @@ const PropertyListingPage = () => {
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="bg-card border border-border rounded-lg p-6 mb-8">
-            <div className="grid md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Search properties..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  <SelectItem value="westlands">Westlands</SelectItem>
-                  <SelectItem value="kilimani">Kilimani</SelectItem>
-                  <SelectItem value="parklands">Parklands</SelectItem>
-                  <SelectItem value="lavington">Lavington</SelectItem>
-                  <SelectItem value="upper-hill">Upper Hill</SelectItem>
-                  <SelectItem value="karen">Karen</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort By" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="yield-high">Highest Yield</SelectItem>
-                  <SelectItem value="yield-low">Lowest Yield</SelectItem>
-                  <SelectItem value="value-high">Highest Value</SelectItem>
-                  <SelectItem value="value-low">Lowest Value</SelectItem>
-                  <SelectItem value="availability">Most Available</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" className="flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                More Filters
-              </Button>
-            </div>
-          </div>
-
-          {/* Properties Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {properties.map((property, index) => (
-              <PropertyCard key={index} {...property} />
-            ))}
-          </div>
-
-          {/* Load More */}
-          <div className="text-center">
-            <Button variant="outline" size="lg">
-              Load More Properties
-            </Button>
-          </div>
+          <Suspense fallback={<PropertyListingSkeleton />}>
+            <PropertyListings initialProperties={properties} />
+          </Suspense>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
-};
+}
 
-export default PropertyListingPage;
+function PropertyCardSkeleton() {
+  return (
+    <div className="bg-card border border-border rounded-lg overflow-hidden animate-pulse">
+      {/* Image skeleton */}
+      <div className="w-full h-48 bg-muted"></div>
+
+      {/* Content skeleton */}
+      <div className="p-6 space-y-4">
+        {/* Title and location */}
+        <div className="space-y-2">
+          <div className="h-6 bg-muted rounded w-3/4"></div>
+          <div className="h-4 bg-muted rounded w-1/2"></div>
+        </div>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-4 pt-4">
+          <div className="space-y-2">
+            <div className="h-3 bg-muted rounded w-16"></div>
+            <div className="h-5 bg-muted rounded w-20"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 bg-muted rounded w-12"></div>
+            <div className="h-5 bg-muted rounded w-16"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 bg-muted rounded w-20"></div>
+            <div className="h-5 bg-muted rounded w-14"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 bg-muted rounded w-18"></div>
+            <div className="h-5 bg-muted rounded w-12"></div>
+          </div>
+        </div>
+
+        {/* Button skeleton */}
+        <div className="pt-4">
+          <div className="h-10 bg-muted rounded w-full"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PropertyListingSkeleton() {
+  return (
+    <>
+      {/* Filters skeleton */}
+      <div className="bg-card border border-border rounded-lg p-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-4">
+          <div className="h-10 bg-muted rounded animate-pulse"></div>
+          <div className="h-10 bg-muted rounded animate-pulse"></div>
+          <div className="h-10 bg-muted rounded animate-pulse"></div>
+          <div className="h-10 bg-muted rounded animate-pulse"></div>
+        </div>
+      </div>
+
+      {/* Properties grid skeleton */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <PropertyCardSkeleton key={index} />
+        ))}
+      </div>
+
+      {/* Load more button skeleton */}
+      <div className="text-center">
+        <div className="h-11 bg-muted rounded w-48 mx-auto animate-pulse"></div>
+      </div>
+    </>
+  );
+}

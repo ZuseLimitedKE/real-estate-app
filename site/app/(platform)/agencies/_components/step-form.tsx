@@ -1,10 +1,6 @@
 import { addPropertySchema, AddPropertyFormData } from "@/types/property";
-import { createContext, useState, useEffect } from "react";
-import type {
-  FormStep,
-  MultiStepFormContextProps,
-  SavedFormState,
-} from "@/types/form";
+import { createContext, useState, useEffect, useMemo } from "react";
+import type { MultiStepFormContextProps, SavedFormState } from "@/types/form";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AddProperty } from "@/server-actions/property/add-property";
@@ -16,21 +12,32 @@ import { useLocalStorage } from "@mantine/hooks";
 import type { DefaultValues, Path } from "react-hook-form";
 import { NextButton } from "./next-button";
 import { MyError } from "@/constants/errors";
+import { PropertyType } from "@/constants/properties";
+import {
+  apartmentDetailsStep,
+  baseSteps,
+  remainingSteps,
+} from "./property-form";
 export const MultiStepFormContext =
   createContext<MultiStepFormContextProps | null>(null);
 interface MultiStepFormProps {
   userId: string;
-  steps: FormStep[];
 }
 
-export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
+export const MultiStepForm = ({ userId }: MultiStepFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const currentStep = steps[currentStepIndex];
   const localStorageKey = "add-property-form";
   const defaultValues = {
     name: "",
+    type: PropertyType.SINGLE,
     description: "",
+    apartmentDetails: {
+      numUnits: 0,
+      units: [],
+      floors: 0,
+      parkingSpace: 0,
+    },
     amenities: {
       bedrooms: null,
       bathrooms: null,
@@ -82,6 +89,27 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
     defaultValues: defaultValues,
   });
 
+  // Handling dynamic form steps
+  const propertyType = form.watch("type");
+
+  const steps = useMemo(() => {
+    const allSteps = [...baseSteps];
+
+    if (propertyType === PropertyType.APARTMENT) {
+      allSteps.splice(1, 0, apartmentDetailsStep);
+    }
+
+    const finalSteps = allSteps.concat(
+      remainingSteps.map((step, index) => ({
+        ...step,
+        position: allSteps.length + index + 1,
+        title: `Step ${allSteps.length + index + 1}: ${step.title}`,
+      })),
+    );
+    return finalSteps;
+  }, [propertyType]);
+  const currentStep = steps[currentStepIndex];
+
   const convertDataFromStorage = (
     raw: unknown,
   ): DefaultValues<AddPropertyFormData> => {
@@ -103,6 +131,7 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
       images: data.images ?? [],
       documents: data.documents ?? [],
       secondary_market_listings: data.secondary_market_listings ?? [],
+      apartmentDetails: data.apartmentDetails ?? undefined,
     };
   };
   // Restore form state from Local Storage
@@ -117,6 +146,7 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
 
   const saveFormState = (stepIndex: number) => {
     const formValues = form.getValues();
+    console.log("Saved form state", formValues);
     setSavedFormState({
       currentStepIndex: stepIndex ?? currentStepIndex,
       formValues: formValues,
@@ -138,6 +168,7 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
       );
     }, 400);
   };
+
   //Navigation controls
   const nextStep = async () => {
     const isValid = await form.trigger(currentStep.fields);
@@ -145,6 +176,19 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
     if (!isValid) {
       console.log(form.formState.errors);
       return;
+    }
+
+    if (currentStepIndex === 0) {
+      const newPropertyType = form.getValues("type");
+      const wasApartment = steps.some((step) =>
+        step.fields.includes("apartmentDetails"),
+      );
+      const isNowApartment = newPropertyType === PropertyType.APARTMENT;
+
+      if (wasApartment && !isNowApartment) {
+        // Clear apartment details if switching away from apartment
+        form.setValue("apartmentDetails", undefined);
+      }
     }
 
     // Grab values and validate current step
@@ -155,11 +199,15 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
         currentStepValues[index] || "",
       ]),
     );
+    console.log("Next button field", formValues);
 
     if (currentStep.validationSchema) {
+      console.log("Validation schema there");
       const validationResult =
         currentStep.validationSchema.safeParse(formValues);
+      console.log("Validation result", validationResult);
       if (!validationResult.success) {
+        console.log("Not valid");
         validationResult.error.issues.forEach((err) => {
           form.setError(err.path.join(".") as Path<AddPropertyFormData>, {
             type: "manual",
@@ -179,6 +227,7 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
     }
 
     // Otherwise, navigate to next step
+    console.log("Current step", currentStepIndex, "Total steps", steps.length);
     if (currentStepIndex < steps.length - 1) {
       console.log("ran");
       saveFormState(currentStepIndex + 1);
@@ -209,6 +258,7 @@ export const MultiStepForm = ({ steps, userId }: MultiStepFormProps) => {
       const totalFractions = Math.floor(
         data.property_value / initialPricePerToken,
       );
+
       await AddProperty({ ...data, totalFractions });
       toast.success(
         "The property is under review ,we will get back to you shortly",
