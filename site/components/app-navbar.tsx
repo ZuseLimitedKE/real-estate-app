@@ -14,32 +14,38 @@ import Link from "next/link";
 import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
 import { logout } from "@/server-actions/auth/auth";
+import { Heart, Briefcase, Home, Menu, X, Bell, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export function AppNavbar() {
   const navItems = [
     {
       name: "View Properties",
       link: "/investors",
+      icon: <Home className="w-4 h-4" />,
     },
     {
-      name: "Pricing",
-      link: "#pricing",
+      name: "Marketplace",
+      link: "/investors/marketplace",
+      icon: <Briefcase className="w-4 h-4" />,
     },
     {
-      name: "Contact",
-      link: "#contact",
+      name: "My Portfolio",
+      link: "/investors/portfolio",
+      icon: <User className="w-4 h-4" />,
     },
   ];
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <Navbar>
+    <Navbar className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
       {/* Desktop Navigation */}
       <NavBody>
         <NavbarLogo />
         <NavItems items={navItems} />
         <div className="flex items-center gap-4">
+          
           <WalletConnect />
           <NavbarButton
             variant="primary"

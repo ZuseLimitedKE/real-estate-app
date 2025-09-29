@@ -15,6 +15,14 @@ function transformProperty(p: any) {
       ? Math.max(0, Math.round(100 - (owned / totalFractions) * 100))
       : 0;
 
+  // Calculate price per token (assuming property value divided by total fractions)
+  const pricePerToken = p.property_value && p.totalFractions 
+    ? p.property_value / p.totalFractions 
+    : 0;
+
+  // Mock projected return (in a real app, this would come from property data)
+  const projectedReturn = "8.5-12%";
+
   return {
     id: p._id?.toString?.() ?? "",
     image: (p.images && p.images[0]) || "/logo.png",
@@ -31,8 +39,11 @@ function transformProperty(p: any) {
         : "—",
     investors: Array.isArray(p.property_owners) ? p.property_owners.length : 0,
     availableShares: availablePct,
-    minInvestment: p.serviceFeePercent ? `${p.serviceFeePercent}% fee` : "—",
+    minInvestment: p.serviceFeePercent ? `${p.serviceFeePercent}` : "$10",
     verified: p.property_status === "approved",
+    listingDate: p.createdAt || new Date().toISOString(),
+    pricePerToken: pricePerToken ? `$${pricePerToken.toFixed(2)}` : "$10.00",
+    projectedReturn: projectedReturn,
   };
 }
 
@@ -51,15 +62,12 @@ export default async function PropertyListingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="py-12">
+      <main className="py-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-                Investment Properties
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                Discover verified properties ready for fractional investment
+              <p className="text-[16px] text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+                Own a share of premium real estate with as little as Ksh 100.
               </p>
             </div>
           </div>
