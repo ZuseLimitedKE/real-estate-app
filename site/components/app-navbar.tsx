@@ -15,7 +15,6 @@ import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
 import { logout } from "@/server-actions/auth/auth";
 import { Heart, Briefcase, Home, Menu, X, Bell, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export function AppNavbar() {
   const navItems = [
@@ -43,7 +42,18 @@ export function AppNavbar() {
       {/* Desktop Navigation */}
       <NavBody>
         <NavbarLogo />
-        <NavItems items={navItems} />
+        <NavItems>
+          {navItems.map((item, idx) => (
+            <Link
+              key={`nav-link-${idx}`}
+              href={item.link}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              {item.icon}
+              {item.name}
+            </Link>
+          ))}
+        </NavItems>
         <div className="flex items-center gap-4">
           
           <WalletConnect />
