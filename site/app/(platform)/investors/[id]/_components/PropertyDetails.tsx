@@ -438,10 +438,9 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {property.original.documents &&
-                property.original.documents.length > 0 ? (
+              {property?.original?.documents?.length > 0 ? (
                 <div className="space-y-3">
-                  {property.original.documents.map((doc, index) => (
+                  {property.original.documents?.map((doc, index) => (
                     <Button
                       key={index}
                       variant="outline"
