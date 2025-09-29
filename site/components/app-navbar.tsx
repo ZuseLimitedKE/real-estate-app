@@ -3,69 +3,62 @@ import {
   Navbar,
   NavBody,
   NavItems,
+  NavItem,
   MobileNav,
   NavbarLogo,
-  NavbarButton,
   MobileNavHeader,
   MobileNavToggle,
   MobileNavMenu,
+  MobileNavItem,
 } from "@/components/ui/resizable-navbar";
-import Link from "next/link";
 import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
-import { logout } from "@/server-actions/auth/auth";
-import { Heart, Briefcase, Home, Menu, X, Bell, User } from "lucide-react";
+import { UserRole } from "@/auth/utils";
+import { LogoutButton } from "./logout-button";
+import { Briefcase, Home, User, Activity, Settings } from "lucide-react";
+interface AppNavbarProps {
+  role: UserRole;
+}
 
-export function AppNavbar() {
-  const navItems = [
-    {
-      name: "View Properties",
-      link: "/investors",
-      icon: <Home className="w-4 h-4" />,
-    },
-    {
-      name: "Marketplace",
-      link: "/investors/marketplace",
-      icon: <Briefcase className="w-4 h-4" />,
-    },
-    {
-      name: "My Portfolio",
-      link: "/investors/portfolio",
-      icon: <User className="w-4 h-4" />,
-    },
-  ];
-
+export function AppNavbar({ role }: AppNavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const handleMobileNavItemClick = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <Navbar className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+    <Navbar>
       {/* Desktop Navigation */}
       <NavBody>
         <NavbarLogo />
         <NavItems>
-          {navItems.map((item, idx) => (
-            <Link
-              key={`nav-link-${idx}`}
-              href={item.link}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          ))}
+          <NavItem href="/investors" icon={Home}>
+            View Properties
+          </NavItem>
+          {role === "investor" && (
+            <>
+              <NavItem href="/investors/marketplace" icon={Briefcase}>
+                Marketplace
+              </NavItem>
+              <NavItem href="/investors/portfolio" icon={User}>
+                Portfolio
+              </NavItem>
+            </>
+          )}
+          {role === "agency" && (
+            <NavItem href="/agencies/dashboard" icon={Activity}>
+              Dashboard
+            </NavItem>
+          )}
+          <NavItem href="#settings" icon={Settings}>
+            Settings
+          </NavItem>
         </NavItems>
+
         <div className="flex items-center gap-4">
-          
           <WalletConnect />
-          <NavbarButton
-            variant="primary"
-            as="button"
-            onClick={async () => {
-              await logout();
-            }}
-          >
-            Logout
-          </NavbarButton>
+          <LogoutButton variant="primary" />
         </div>
       </NavBody>
 
@@ -83,29 +76,52 @@ export function AppNavbar() {
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
         >
-          {navItems.map((item, idx) => (
-            <Link
-              key={`mobile-link-${idx}`}
-              href={item.link}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="relative text-neutral-600 dark:text-neutral-300"
+          <MobileNavItem
+            href="/investors"
+            onClick={handleMobileNavItemClick}
+            icon={Home}
+          >
+            View Properties
+          </MobileNavItem>
+
+          {role === "agency" && (
+            <MobileNavItem
+              href="/agencies/dashboard"
+              onClick={handleMobileNavItemClick}
+              icon={Activity}
             >
-              <span className="block">{item.name}</span>
-            </Link>
-          ))}
-          <div className="flex w-full flex-col gap-4">
+              Dashboard
+            </MobileNavItem>
+          )}
+          {role === "investor" && (
+            <>
+              <MobileNavItem
+                href="/investors/marketplace"
+                icon={Briefcase}
+                onClick={handleMobileNavItemClick}
+              >
+                Marketplace
+              </MobileNavItem>
+              <NavItem
+                href="/investors/portfolio"
+                icon={User}
+                onClick={handleMobileNavItemClick}
+              >
+                Portfolio
+              </NavItem>
+            </>
+          )}
+          <MobileNavItem
+            href="#settings"
+            onClick={handleMobileNavItemClick}
+            icon={Settings}
+          >
+            Settings
+          </MobileNavItem>
+
+          <div className="flex w-full flex-col gap-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
             <WalletConnect />
-            <NavbarButton
-              variant="primary"
-              className="w-full"
-              as="button"
-              onClick={async () => {
-                setIsMobileMenuOpen(false);
-                await logout();
-              }}
-            >
-              Logout
-            </NavbarButton>
+            <LogoutButton variant="primary" />
           </div>
         </MobileNavMenu>
       </MobileNav>
