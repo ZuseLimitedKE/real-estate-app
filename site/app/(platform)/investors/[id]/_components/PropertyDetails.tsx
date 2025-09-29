@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,10 +28,9 @@ import {
 interface PropertyDetailsClientProps {
   property: PropertyDetailView;
 }
-
+const PropertyMap = dynamic(() => import("./PropertyMap"), { ssr: false });
 export function PropertyDetails({ property }: PropertyDetailsClientProps) {
   const [isBuyTokensOpen, setIsBuyTokensOpen] = useState(false);
-
   return (
     <>
       <Link href="/investors">
@@ -376,12 +376,23 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="aspect-video bg-muted rounded-lg mb-6 flex items-center justify-center">
-                <p className="text-muted-foreground">
-                  Interactive Map Placeholder
-                </p>
-              </div>
-
+              {property?.original?.location?.coordinates ? (
+                <PropertyMap
+                  lat={property.original.location.coordinates.lat}
+                  lng={property.original.location.coordinates.lng}
+                  title={property.title}
+                  location={property.location}
+                />
+              ) : (
+                <div className="h-96 bg-muted rounded-lg mb-6 flex items-center justify-center border border-border">
+                  <div className="text-center">
+                    <MapPin className="w-12 h-12 mx-auto mb-2 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">
+                      No map coordinates provided
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
                   <h4 className="font-semibold mb-3 text-foreground">
@@ -427,23 +438,45 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  📄 Property Title Deed
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  📊 Financial Prospectus
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  🏗️ Building Plans & Approvals
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  📋 Property Valuation Report
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  ⚖️ Legal Due Diligence Report
-                </Button>
-              </div>
+              {property.original.documents &&
+                property.original.documents.length > 0 ? (
+                <div className="space-y-3">
+                  {property.original.documents.map((doc, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="w-full justify-between"
+                      asChild
+                    >
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>📄</span>
+                          <span className="text-left">
+                            <div className="font-medium">{doc.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {doc.type} • {doc.size}
+                            </div>
+                          </span>
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Download
+                        </span>
+                      </a>
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Building className="w-12 h-12 mx-auto mb-2 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">
+                    No documents available
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
