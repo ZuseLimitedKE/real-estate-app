@@ -42,7 +42,13 @@ function transformProperty(p: any) {
     minInvestment: p.serviceFeePercent ? `${p.serviceFeePercent}` : "$10",
     verified: p.property_status === "approved",
     listingDate: p.createdAt || new Date().toISOString(),
-    pricePerToken: pricePerToken ? `$${pricePerToken.toFixed(2)}` : "$10.00",
+    pricePerToken:
+      pricePerToken > 0
+        ? `KSh ${new Intl.NumberFormat("en-KE", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(pricePerToken)}`
+        : "KSh 0.00",
     projectedReturn: projectedReturn,
   };
 }
