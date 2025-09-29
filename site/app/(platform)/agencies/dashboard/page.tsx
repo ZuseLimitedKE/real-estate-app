@@ -27,51 +27,48 @@ export default async function AgentDashboard({ searchParams }: PageProps) {
   const tenantsPageNum = parsePage(tenantsPage);
 
   return (
-    <main className="md:p-12 p-2">
-      <header className="flex lg:flex-row flex-col lg:justify-between gap-4 my-4">
-        <div>
-          <h1 className="text-2xl font-bold">Agent Dashboard</h1>
-          <p className=" text-sm mt-1  text-muted-foreground">
+    <main className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+      <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+        <div className="space-y-1">
+          <h1 className="text-2xl lg:text-3xl font-bold">Agent Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
             Manage your properties and track tenants
           </p>
         </div>
 
-        <Button className="font-semibold" asChild>
+        <Button className="font-semibold w-fit" asChild>
           <Link href={"/agencies/register"}>
-            <Plus />
-            <p>Add New Property</p>
+            <Plus className="w-4 h-4" />
+            Add New Property
           </Link>
         </Button>
       </header>
 
-      <Suspense fallback={<LoadingAgentDashboardStatistics />}>
-        <AgentDashboardStatistics />
-      </Suspense>
+      <div className="space-y-8">
+        <Suspense fallback={<LoadingAgentDashboardStatistics />}>
+          <AgentDashboardStatistics />
+        </Suspense>
 
-      <article>
-        <div>
-          <Tabs defaultValue="properties" className="w-full">
-            <TabsList className="w-full flex-row justify-between">
-              <TabsTrigger value="properties" className="flex-1">
-                Properties
-              </TabsTrigger>
-              <TabsTrigger value="tenants" className="flex-1">
-                Tenants
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="properties">
+        <Tabs defaultValue="properties" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="properties">Properties</TabsTrigger>
+            <TabsTrigger value="tenants">Tenants</TabsTrigger>
+          </TabsList>
+
+          <div className="mt-6">
+            <TabsContent value="properties" className="mt-0">
               <Suspense fallback={<LoadingAgentDashboardProperties />}>
                 <AgentDashboardProperties page={propertiesPageNum} />
               </Suspense>
             </TabsContent>
-            <TabsContent value="tenants">
+            <TabsContent value="tenants" className="mt-0">
               <Suspense fallback={<LoadingAgentDashboardTenants />}>
                 <AgentDashboardTenants page={tenantsPageNum} />
               </Suspense>
             </TabsContent>
-          </Tabs>
-        </div>
-      </article>
+          </div>
+        </Tabs>
+      </div>
     </main>
   );
 }

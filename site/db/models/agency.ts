@@ -83,10 +83,27 @@ export class AgencyModel {
       };
     } catch (err) {
       console.error("Could not get statistics for agency", err);
-      throw new MyError(Errors.NOT_GET_AGENT_DASHBOARD_STATISTICS);
+      throw new MyError(Errors.NOT_GET_AGENT_DASHBOARD_STATISTICS, {
+        cause: err,
+      });
     }
   }
-
+  static async getProperty(_id: ObjectId, agencyId: string) {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const property = await collection.findOne({
+        _id: _id,
+        agencyId: agencyId,
+      });
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+      return property;
+    } catch (err) {
+      console.error(err);
+      throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
+    }
+  }
   static async getPropertyFromID(
     agencyID: string,
     propertyID: string,
@@ -234,7 +251,54 @@ export class AgencyModel {
         `Could not get property ${propertyID} for agent ${agencyID}`,
         err,
       );
-      throw new MyError(Errors.NOT_GET_PROPERTY);
+      throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
+    }
+  }
+  static async updateProperty(
+    _id: ObjectId,
+    agencyId: string,
+    data: Partial<Properties>,
+  ) {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const result = await collection.findOneAndUpdate(
+        {
+          _id: _id,
+          agencyId: agencyId,
+        },
+        {
+          $set: {
+            ...data,
+            updatedAt: new Date(),
+          },
+        },
+        { returnDocument: "after" },
+      );
+      if (!result) {
+        throw new MyError("Property does not exist");
+      }
+      return result;
+    } catch (err) {
+      console.error(err);
+      throw new MyError(Errors.NOT_UPDATE_PROPERTY, { cause: err });
+    }
+  }
+  // Delete a property associated with an agency
+  static async deleteAgencyProperty(
+    _id: ObjectId,
+    agencyId: string,
+  ): Promise<boolean> {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const deletedDocument = await collection.findOneAndDelete({
+        _id: _id,
+        agencyId: agencyId,
+      });
+
+      return !!deletedDocument;
+    } catch (err) {
+      console.error(err);
+      throw new MyError(Errors.NOT_DELETE_PROPERTY, { cause: err });
     }
   }
 
@@ -294,7 +358,7 @@ export class AgencyModel {
       };
     } catch (err) {
       console.error(`Error getting tenants for agent ${agencyID} properties`);
-      throw new MyError(Errors.NOT_GET_AGENCY_TENANTS);
+      throw new MyError(Errors.NOT_GET_AGENCY_TENANTS, { cause: err });
     }
   }
 
@@ -311,7 +375,10 @@ export class AgencyModel {
       const dashboardProperties: DashboardProperties[] = [];
 
       for await (const property of cursor) {
-        const details: { title: string; value: string }[] = [];
+        const details: {
+          title: string;
+          value: string;
+        }[] = [];
 
         if (property.amenities.bedrooms) {
           details.push({
@@ -351,7 +418,7 @@ export class AgencyModel {
       return { properties: dashboardProperties, totalPages };
     } catch (err) {
       console.error(`Error getting properties for agency ${agencyID} from db`);
-      throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES);
+      throw new MyError(Errors.NOT_GET_AGENCY_PROPERTIES, { cause: err });
     }
   }
 }
