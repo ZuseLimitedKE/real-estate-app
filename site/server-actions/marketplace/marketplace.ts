@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { MongoClient, Collection } from 'mongodb';
+import { MongoClient, Collection, WithId } from 'mongodb';
 import client from '@/db/connection';
 import {
     SignedOrderSchema,
@@ -15,6 +15,8 @@ import {
     type EscrowBalance,
     type MarketData,
     type Order,
+     MatchingOrder 
+    
 } from '@/types/marketplace';
 import {
     generateOrderHash,
@@ -74,17 +76,24 @@ export async function initMarketplaceIndexes() {
         return { success: false, error: String(error) };
     }
 }
-
+/**
+ * Create a new order in the marketplace
+ * @param orderData Order data
+ * @param signature Order signature
+ * @param makerAddress Address of the order maker
+ * @returns Result of the order creation
+ */
 export async function createOrder(
     orderData: typeof CreateOrderRequestSchema['_input']['orderData'],
     signature: string,
     makerAddress: string
 ) {
     try {
-        const validatedRequest = CreateOrderRequestSchema.parse({
-            orderData,
-            signature,
-        });
+        const parsed = CreateOrderRequestSchema.safeParse({ orderData, signature });
+        if (!parsed.success) {
+            return { success: false, error: 'Invalid order data or signature' };
+        }
+        const validatedRequest = parsed.data;
 
         const completeOrder: Order = {
             ...validatedRequest.orderData,
@@ -267,8 +276,12 @@ export async function cancelOrder(orderHash: string, makerAddress: string) {
     }
 }
 
-// Find matching orders for a given order
-export async function findMatches(targetOrderHash: string) {
+/**
+ * Find matching orders for a given order
+ * @param targetOrderHash Hash of the order to find matches for
+ * @returns Orders that can potentially match
+ */
+export async function findMatches(targetOrderHash: string): Promise<{data: MatchingOrder[], success: boolean} | { error: string, success: false }> {
     try {
         const { orders } = getCollections();
 

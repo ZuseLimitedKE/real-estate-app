@@ -81,7 +81,27 @@ export const MarketDataSchema = z.object({
   totalSellVolume: z.string().regex(/^\d+$/).default('0'),
   updatedAt: z.date().default(() => new Date()),
 });
+export interface WithId<T> {
+  id: string;
+  data: T;
+}
 
+export interface MatchingOrder {
+  order: {
+    maker: string;
+    propertyToken: string;
+    remainingAmount: string;
+    pricePerShare: string;
+    expiry: number;
+    nonce: string;
+    orderType: "BUY" | "SELL";
+  };
+  signature: string;
+  orderHash: string;
+  status: "ACTIVE" | "FILLED" | "CANCELLED" | "EXPIRED";
+  createdAt: Date;
+  updatedAt: Date;
+}
 export type BuyOrder = z.infer<typeof BuyOrderSchema>;
 export type SellOrder = z.infer<typeof SellOrderSchema>;
 export type Order = z.infer<typeof OrderSchema>;
