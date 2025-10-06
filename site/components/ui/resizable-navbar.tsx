@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { IconMenu2, IconX } from "@tabler/icons-react";
+import { LucideIcon } from "lucide-react";
 import {
   motion,
   AnimatePresence,
@@ -31,8 +32,11 @@ interface NavItemsProps {
 interface NavItemProps {
   href: string;
   children: React.ReactNode;
+  icon?: LucideIcon;
   className?: string;
   onClick?: () => void;
+  showIconOnDesktop?: boolean;
+  showIconOnMobile?: boolean;
 }
 
 interface MobileNavProps {
@@ -104,7 +108,7 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         boxShadow: visible
           ? "0 0 24px rgba(34, 42, 53, 0.06), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.04), 0 0 4px rgba(34, 42, 53, 0.08), 0 16px 68px rgba(47, 48, 55, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
           : "none",
-        width: visible ? "40%" : "100%",
+        width: visible ? "65%" : "100%",
         y: visible ? 20 : 0,
       }}
       transition={{
@@ -154,9 +158,11 @@ export const NavItems = ({ children, className }: NavItemsProps) => {
 export const NavItem = ({
   href,
   children,
+  icon: Icon,
   className,
   onClick,
   index,
+  showIconOnDesktop = true,
 }: NavItemProps & { index?: number }) => {
   const { hoveredIndex, setHoveredIndex } = useContext(NavItemsContext);
   const pathname = usePathname();
@@ -183,10 +189,11 @@ export const NavItem = ({
 
       <span
         className={cn(
-          "relative z-20 font-semibold",
+          "relative z-20 font-semibold flex items-center gap-2",
           isActive ? "text-primary" : "text-foreground",
         )}
       >
+        {Icon && showIconOnDesktop && <Icon className="w-4 h-4" />}
         {children}
       </span>
     </Link>
@@ -271,9 +278,14 @@ export const MobileNavMenu = ({
 export const MobileNavItem = ({
   href,
   children,
+  icon: Icon,
   className,
   onClick,
-}: Omit<NavItemProps, "index">) => {
+  showIconOnMobile = true,
+}: Omit<NavItemProps, "index" | "showIconOnDesktop">) => {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+
   return (
     <Link
       href={href}
@@ -283,7 +295,15 @@ export const MobileNavItem = ({
         className,
       )}
     >
-      <span className="block">{children}</span>
+      <span
+        className={cn(
+          " flex items-center gap-3 font-medium",
+          isActive && "text-primary",
+        )}
+      >
+        {Icon && showIconOnMobile && <Icon className="w-5 h-5" />}
+        {children}
+      </span>
     </Link>
   );
 };

@@ -15,6 +15,7 @@ import { useState } from "react";
 import { WalletConnect } from "@/components/wallet-connect";
 import { UserRole } from "@/auth/utils";
 import { LogoutButton } from "./logout-button";
+import { Briefcase, Home, User, Activity, Settings } from "lucide-react";
 interface AppNavbarProps {
   role: UserRole;
 }
@@ -32,12 +33,27 @@ export function AppNavbar({ role }: AppNavbarProps) {
       <NavBody>
         <NavbarLogo />
         <NavItems>
-          <NavItem href="/investors">View Properties</NavItem>
-
-          {role === "agency" && (
-            <NavItem href="/agencies/dashboard">Dashboard</NavItem>
+          <NavItem href="/investors" icon={Home}>
+            View Properties
+          </NavItem>
+          {role === "investor" && (
+            <>
+              <NavItem href="/investors/marketplace" icon={Briefcase}>
+                Marketplace
+              </NavItem>
+              <NavItem href="/investors/portfolio" icon={User}>
+                Portfolio
+              </NavItem>
+            </>
           )}
-          <NavItem href="#settings">Settings</NavItem>
+          {role === "agency" && (
+            <NavItem href="/agencies/dashboard" icon={Activity}>
+              Dashboard
+            </NavItem>
+          )}
+          <NavItem href="#settings" icon={Settings}>
+            Settings
+          </NavItem>
         </NavItems>
 
         <div className="flex items-center gap-4">
@@ -60,7 +76,11 @@ export function AppNavbar({ role }: AppNavbarProps) {
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
         >
-          <MobileNavItem href="/investors" onClick={handleMobileNavItemClick}>
+          <MobileNavItem
+            href="/investors"
+            onClick={handleMobileNavItemClick}
+            icon={Home}
+          >
             View Properties
           </MobileNavItem>
 
@@ -68,15 +88,35 @@ export function AppNavbar({ role }: AppNavbarProps) {
             <MobileNavItem
               href="/agencies/dashboard"
               onClick={handleMobileNavItemClick}
+              icon={Activity}
             >
               Dashboard
             </MobileNavItem>
           )}
-          <MobileNavItem href="#settings" onClick={handleMobileNavItemClick}>
+          {role === "investor" && (
+            <>
+              <MobileNavItem
+                href="/investors/marketplace"
+                icon={Briefcase}
+                onClick={handleMobileNavItemClick}
+              >
+                Marketplace
+              </MobileNavItem>
+              <NavItem
+                href="/investors/portfolio"
+                icon={User}
+                onClick={handleMobileNavItemClick}
+              >
+                Portfolio
+              </NavItem>
+            </>
+          )}
+          <MobileNavItem
+            href="#settings"
+            onClick={handleMobileNavItemClick}
+            icon={Settings}
+          >
             Settings
-          </MobileNavItem>
-          <MobileNavItem href="#contact" onClick={handleMobileNavItemClick}>
-            Contact
           </MobileNavItem>
 
           <div className="flex w-full flex-col gap-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">

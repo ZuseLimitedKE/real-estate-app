@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'all';
     const search = searchParams.get('search') || '';
-    const page = parseInt(searchParams.get('page') || '1', 10);
+    const rawPage = Number(searchParams.get('page') || '1');
+    const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
     const limit = 10;
 
     let agencies = [];

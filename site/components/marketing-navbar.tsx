@@ -16,7 +16,7 @@ export default function MarketingNavbar() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border/20 shadow-sm "
     >
-      <div className=" mx-auto px-4 md:px-12 px-6">
+      <div className=" mx-auto px-4 md:px-12">
         <div className="flex items-center justify-between h-16">
           <motion.div
             className="flex items-end gap-2"
