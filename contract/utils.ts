@@ -10,13 +10,7 @@ export function getEnv() {
         throw new Error("NETWORK ENV VAR NOT SET")
     }
     const PRIVATE_KEY = process.env.PRIVATE_KEY
-
     const ACCOUNT_ID = process.env.ACCOUNT_ID
-    // const ADDRESS= process.env.ADDRESS
-
-    const TPRIVATE_KEY = process.env.TPRIVATE_KEY
-    const TACCOUNT_ID = process.env.TACCOUNT_ID
-    // const TADDRESS= process.env.TADDRESS
 
     if (network == 'localnet') {
         return {
@@ -28,8 +22,8 @@ export function getEnv() {
     }
     else {
         return {
-            PRIVATE_KEY: PrivateKey.fromStringECDSA(TPRIVATE_KEY!),
-            ACCOUNT_ID: AccountId.fromString(TACCOUNT_ID!),
+            PRIVATE_KEY: PrivateKey.fromStringECDSA(PRIVATE_KEY!),
+            ACCOUNT_ID: AccountId.fromString(ACCOUNT_ID!),
             // ADDRESS: EvmAddress.fromString(TADDRESS!),
             NETWORK: network
         }

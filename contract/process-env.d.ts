@@ -7,10 +7,7 @@ declare global{
             NETWORK: string;
             PRIVATE_KEY: string;
             ACCOUNT_ID: string;
-            // ADDRESS?: string;
-            TPRIVATE_KEY: string;
-            TACCOUNT_ID: string;
-            // TADDRESS?: string;
+
         }
     }
 }
