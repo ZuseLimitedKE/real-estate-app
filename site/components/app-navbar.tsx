@@ -12,7 +12,7 @@ import {
   MobileNavItem,
 } from "@/components/ui/resizable-navbar";
 import { useState } from "react";
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { UserRole } from "@/auth/utils";
 import { LogoutButton } from "./logout-button";
 import { Briefcase, Home, User, Activity, Settings } from "lucide-react";
@@ -57,7 +57,7 @@ export function AppNavbar({ role }: AppNavbarProps) {
         </NavItems>
 
         <div className="flex items-center gap-4">
-          <ConnectButton />
+          <ConnectButton accountStatus="avatar" />
           <LogoutButton variant="primary" />
         </div>
       </NavBody>
@@ -120,7 +120,7 @@ export function AppNavbar({ role }: AppNavbarProps) {
           </MobileNavItem>
 
           <div className="flex w-full flex-col gap-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-            <ConnectButton />
+            <ConnectButton accountStatus="avatar" />
             <LogoutButton variant="primary" />
           </div>
         </MobileNavMenu>

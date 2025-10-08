@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
@@ -172,7 +172,7 @@ export default function AuthNavbar() {
                   : "none",
               }}
             >
-              <ConnectButton />
+              <ConnectButton accountStatus="avatar" />
             </div>
           </nav>
         </div>
