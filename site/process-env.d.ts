@@ -55,6 +55,7 @@ declare global {
       INITIAL_OWNER: string;
       FEE_COLLECTOR: string;
       USDC_TOKEN: string;
+      ENVIRONMENT: string;
     }
   }
 }
