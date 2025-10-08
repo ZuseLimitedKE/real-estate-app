@@ -75,24 +75,64 @@ export interface Properties {
   createdAt: Date;
   updatedAt: Date;
   apartmentDetails?: {
-    units: {
+    unitTemplates: {
+      id: string;
+      amenities: {
+        bedrooms: number;
+        bathrooms: number;
+        balconies?: number;
+        gym?: boolean;
+        air_conditioning?: boolean;
+        heating?: boolean;
+        laundry_in_unit?: boolean;
+        dishwasher?: boolean;
+        storage_space?: boolean;
+        security_system?: boolean;
+        elevator?: boolean;
+        pet_friendly?: boolean;
+        furnished?: boolean;
+      },
+      gross_size: number;
+      unitValue: number;
+      images: string[];
       name: string;
+    }[];
+    parkingSpace: number;
+    floors: number;
+    units: {
+      templateId: string;
+      name: string;
+      floor: number;
+      token_details: {
+        address: string;
+        total_fractions: number;
+      };
+      owner?: {
+        investor_id: string;
+        investor_address: string;
+        fractions_owned: number;
+        purchase_time: Date;
+        purchase_transaction_hash: string;
+      };
       tenant?: {
         name: string;
         email: string;
         number: string;
-        rent: number;
+        rent_amount: number;
         paymentHistory: {
           date: Date;
           amount: number;
-          status: string;
+          status: 'paid' | 'pending' | 'late';
         }[];
+        rent_date: number; //1-31
         joinDate: Date;
       };
+      secondary_market_listings: {
+        lister_address: string;
+        amount_listed: number;
+      }[];
     }[];
-    floors: number;
-    parkingSpace: number;
-  };
+  }
 }
 export const PROPERTIES_COLLECTION =
   database.collection<Properties>(propertiesCollection);
