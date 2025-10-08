@@ -5,7 +5,7 @@ import {
 } from 'wagmi/chains';
 
 export const config = getDefaultConfig({
-  appName: 'RainbowKit demo',
+  appName: 'Atria',
   projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID!,
   chains: [
     hederaTestnet
