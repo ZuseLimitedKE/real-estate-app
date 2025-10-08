@@ -102,6 +102,24 @@ export interface MatchingOrder {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface ErrorResponse {
+  status: string;
+  message: string;
+  statusCode?: number;
+  success: false
+}
+export interface SuccessResponse {
+  status: string;
+  message: string;
+  statusCode?: number;
+  success: true,
+  data?: any;
+}
+export const SettleOrderSchema = z.object({
+  buyOrder: SignedOrderSchema,
+  sellOrder: SignedOrderSchema,
+})
+export type SettleOrder = z.infer<typeof SettleOrderSchema>;
 export type BuyOrder = z.infer<typeof BuyOrderSchema>;
 export type SellOrder = z.infer<typeof SellOrderSchema>;
 export type Order = z.infer<typeof OrderSchema>;
