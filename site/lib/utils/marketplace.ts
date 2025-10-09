@@ -2,7 +2,7 @@ import { keccak256, toBytes, encodePacked } from 'viem';
 import type { Order, SignedOrder, Trade } from "@/types/marketplace";
 import "dotenv/config";
 const ENVIRONMENT = process.env.ENVIRONMENT || 'TESTNET';
-const CONTRACT_ADDRESS = process.env.MARKETPLACE_CONTRACT;
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT;
 if (!CONTRACT_ADDRESS) {
     throw new Error('MARKETPLACE_CONTRACT environment variable is not set');
 }

@@ -37,7 +37,7 @@ export class MarketPlace {
             this.assertOrderType(buyOrder.order, "BUY");
             this.assertOrderType(sellOrder.order, "SELL");
             const web3 = await this.getWeb3();
-            const contractAddress = process.env.MARKETPLACE_CONTRACT;
+            const contractAddress = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT;
             if (!contractAddress) {
                 throw new Error('MARKETPLACE_CONTRACT env variable is not set');
             }

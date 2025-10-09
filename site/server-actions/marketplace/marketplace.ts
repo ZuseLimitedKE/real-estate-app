@@ -1,6 +1,4 @@
-'use server';
 
-import { revalidatePath } from 'next/cache';
 import { MongoClient, Collection, WithId } from 'mongodb';
 import client from '@/db/connection';
 import { SignedOrderSchema, TradeSchema, EscrowBalanceSchema, MarketDataSchema, CreateOrderRequestSchema, OrderQuerySchema, type SignedOrder, type Trade, type EscrowBalance, type MarketData, type Order, MatchingOrder  } from '@/types/marketplace';
@@ -93,6 +91,7 @@ export class MarketplaceService {
         makerAddress: string
     ) {
         try {
+            console.log('Creating order for maker:', makerAddress);
             const parsed = CreateOrderRequestSchema.safeParse({ orderData, signature });
             if (!parsed.success) {
                 return { success: false, error: 'Invalid order data or signature' };
@@ -133,8 +132,7 @@ export class MarketplaceService {
             // Update market data
             await this.updateMarketDataForToken(completeOrder.propertyToken);
 
-            revalidatePath('/marketplace');
-
+            console.log(`Order ${orderHash} created successfully`);
             return {
                 success: true,
                 orderHash,
@@ -279,7 +277,6 @@ export class MarketplaceService {
                 return { success: false, error: 'Order not found or not cancellable' };
             }
 
-            revalidatePath('/marketplace');
             return { success: true };
         } catch (error) {
             console.error('Error cancelling order:', error);
@@ -436,7 +433,6 @@ export class MarketplaceService {
             // Update market data
             await this.updateMarketDataForToken(buyOrder.order.propertyToken);
 
-            revalidatePath('/marketplace');
 
             return { success: true, tradeId: result.insertedId };
         } catch (error) {
@@ -773,20 +769,3 @@ export class MarketplaceService {
         }
     }
 }
-
-// Export individual functions for backward compatibility
-export const createOrder = MarketplaceService.createOrder.bind(MarketplaceService);
-export const getOrders = MarketplaceService.getOrders.bind(MarketplaceService);
-export const getOrderbook = MarketplaceService.getOrderbook.bind(MarketplaceService);
-export const cancelOrder = MarketplaceService.cancelOrder.bind(MarketplaceService);
-export const findMatches = MarketplaceService.findMatches.bind(MarketplaceService);
-export const createTrade = MarketplaceService.createTrade.bind(MarketplaceService);
-export const getTrades = MarketplaceService.getTrades.bind(MarketplaceService);
-export const updateEscrowBalance = MarketplaceService.updateEscrowBalance.bind(MarketplaceService);
-export const getEscrowBalances = MarketplaceService.getEscrowBalances.bind(MarketplaceService);
-export const updateMarketDataForToken = MarketplaceService.updateMarketDataForToken.bind(MarketplaceService);
-export const getMarketData = MarketplaceService.getMarketData.bind(MarketplaceService);
-export const getUserOrderHistory = MarketplaceService.getUserOrderHistory.bind(MarketplaceService);
-export const cleanupExpiredOrders = MarketplaceService.cleanupExpiredOrders.bind(MarketplaceService);
-export const getUserTradingStats = MarketplaceService.getUserTradingStats.bind(MarketplaceService);
-export const batchUpdateOrderStatuses = MarketplaceService.batchUpdateOrderStatuses.bind(MarketplaceService);
