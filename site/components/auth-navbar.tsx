@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { WalletConnect } from "./wallet-connect";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
@@ -111,7 +111,7 @@ export default function AuthNavbar() {
                   {link.label}
                 </NavLink>
               ))}
-              <WalletConnect />
+              <ConnectButton />
             </div>
 
             <HamburgerButton isOpen={isMobileMenuOpen} onToggle={toggle} />
@@ -172,7 +172,7 @@ export default function AuthNavbar() {
                   : "none",
               }}
             >
-              <WalletConnect />
+              <ConnectButton accountStatus="avatar" />
             </div>
           </nav>
         </div>
