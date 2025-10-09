@@ -1,5 +1,5 @@
 import { PropertyType } from "@/constants/properties";
-import z from "zod";
+import z, { size } from "zod";
 import type { Properties } from "@/db/collections";
 
 const step1Schema = z.object({
@@ -216,3 +216,85 @@ export interface PropertyDetailView {
   // Amenities presented as prettified list
   amenities: string[];
 }
+
+// APARTMENT PROPERTY TYPE
+export const apartmentStep1Schema = z.object({
+  name: z.string().trim().min(2, "Apartment estate name is too short"),
+  description: z.string()
+    .trim()
+    .min(10, "The description should be at least 10 characters"),
+  location: z.object({
+    address: z.string().trim().min(4, "The address is too short"),
+    coordinates: z.object({
+      lat: z.number().min(-90).max(90),
+      lng: z.number().min(-180).max(180),
+    }),
+  }),
+  parking_spaces: z.number().min(0).nullable().optional(),
+  serviceFeePercent: z.number().min(0).max(100),
+  floors: z.number().int().gt(0, "An apartment must have at least 1 floor"),
+});
+
+export const apartmentStep2Schema = z.object({
+  documents: z
+    .array(
+      z.object({
+        name: z.string(),
+        url: z.url({ protocol: /^https$/ }),
+        type: z.string("Set file type"),
+        size: z.string("Set file size"),
+      }),
+    )
+    .min(1, "Upload your legal documents"),
+})
+
+export const apartmentStep3Schema = z.object({
+  unit_templates: z.array(z.object({
+    name: z.string().trim().min(2, "Template name is too short"),
+    gross_unit_size: z
+      .number()
+      .positive("Property size must be greater than 0"),
+    unit_value: z.number().positive("Property value must be greater than 0"),
+    amenities: z.object({
+      bedrooms: z.number().min(0).nullable().optional(),
+      bathrooms: z.number().min(0).nullable().optional(),
+      balconies: z.number().min(0).nullable().optional(),
+      gym: z.boolean().optional(),
+      air_conditioning: z.boolean().optional(),
+      heating: z.boolean().optional(),
+      furnished: z.boolean().optional(),
+      laundry_in_unit: z.boolean().optional(),
+      dishwasher: z.boolean().optional(),
+      storage_space: z.boolean().optional(),
+      pet_friendly: z.boolean().optional(),
+      security_system: z.boolean().optional(),
+      elevator: z.boolean().optional(),
+      garden_yard: z.boolean().optional(),
+    }),
+    images: z
+      .array(z.url({ protocol: /^https$/ }))
+      .min(1, "At least one image of the property is required"),
+  }))
+});
+
+export const apartmentStep4Schema = z.object({
+  units: z.array(z.object({
+    name: z.string().trim().min(2, "Unit name is too short"),
+    template_name: z.string().trim().min(2, "Select a template"),
+    floor: z.number().int().min(1, "Floor must be at least 1"),
+  }))
+});
+
+export const appartmentStepSchemas = {
+  step1: apartmentStep1Schema,
+  step2: apartmentStep2Schema,
+  step3: apartmentStep3Schema,
+  step4: apartmentStep4Schema,
+}
+
+export const addAppartmentSchema = z.object({
+  ...apartmentStep1Schema.shape,
+  ...apartmentStep2Schema.shape,
+  ...apartmentStep3Schema.shape,
+  ...apartmentStep4Schema.shape,
+})
