@@ -40,7 +40,12 @@ export function UsdcBalanceCard() {
         <div className="text-2xl font-bold">
           {isLoading ? "Loading..." : `$${formattedBalance.toLocaleString()}`}
         </div>
-        <p className="text-xs text-orange-100">Ready for new investments</p>
+        <p className="text-xs text-orange-100">
+            {formattedBalance === 0 
+                ? "Deposit USDC to start investing"
+                : "Ready for new investments"
+            }
+        </p>
       </CardContent>
     </Card>
   );
