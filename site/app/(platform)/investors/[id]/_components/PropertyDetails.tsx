@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import BuyTokensForm from "./BuyTokensForm";
 import type { PropertyDetailView } from "@/types/property";
-
+import { useAccount, useReadContract } from "wagmi";
+import erc20Abi from "@/smartcontract/abi/ERC20.json";
 import {
   MapPin,
   TrendingUp,
@@ -24,13 +25,53 @@ import {
   Home,
   CheckCircle,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import DepositUSDC from "../../portfolio/_components/DepositUSDC";
 
 interface PropertyDetailsClientProps {
   property: PropertyDetailView;
 }
 const PropertyMap = dynamic(() => import("./PropertyMap"), { ssr: false });
 export function PropertyDetails({ property }: PropertyDetailsClientProps) {
-  const [isBuyTokensOpen, setIsBuyTokensOpen] = useState(false);
+  const [ buyTokensDialog, setBuyTokensDialog ] = useState(false);
+  const [ insufficientUSDCAlert, setInsufficientUSDCAlert] = useState(false)
+  const [ openDepositUSDCDialog, setOpenDepositUSDCDialog ] = useState(false);
+  const { address } = useAccount();
+
+  const USDC = process.env.USDC_TOKEN as `0x${string}`;
+
+  const { data: balance } = useReadContract({
+    address: USDC,
+    abi: erc20Abi.abi,
+    functionName: "balanceOf",
+    args: [address ?? "0x0000000000000000000000000000000000000000"],
+    query: { enabled: !!address }, // only runs if wallet is connected
+  });
+
+  const { data: decimals } = useReadContract({
+    address: USDC,
+    abi: erc20Abi.abi,
+    functionName: "decimals",
+  });
+
+  const formattedBalance =
+    balance && decimals
+      ? Number(balance) / 10 ** Number(decimals)
+      : 0;
+
+  const handleDepositUSDCClick = () => {
+    setOpenDepositUSDCDialog(true);
+  }
+
   return (
     <>
       <Link href="/investors">
@@ -158,7 +199,13 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
                 variant="default"
                 className="w-full"
                 size="lg"
-                onClick={() => setIsBuyTokensOpen(true)}
+                onClick={() => {
+                  if (formattedBalance === 0){
+                    setInsufficientUSDCAlert(true)
+                  } else {
+                    setBuyTokensDialog(true)
+                  } 
+                }}
               >
                 <DollarSign className="w-4 h-4 mr-2" />
                 Invest Now
@@ -485,8 +532,27 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
       <BuyTokensForm
         propertyId={property.id}
         propertyName={property.title}
-        isOpen={isBuyTokensOpen}
-        onClose={() => setIsBuyTokensOpen(false)}
+        isOpen={buyTokensDialog}
+        onClose={() => setBuyTokensDialog(false)}
+      />
+      <AlertDialog open={insufficientUSDCAlert} onOpenChange={setInsufficientUSDCAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Insufficient Funds</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please deposit some USDC before investing in this property
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDepositUSDCClick}>Deposit</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <DepositUSDC
+        open={openDepositUSDCDialog}
+        setOpen={setOpenDepositUSDCDialog}
       />
     </>
   );
