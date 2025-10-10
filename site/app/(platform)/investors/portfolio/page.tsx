@@ -18,7 +18,8 @@ import {
   Users,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Plus,
 } from "lucide-react";
 import {
   mockPortfolioData,
@@ -27,23 +28,34 @@ import {
   type PortfolioOverview,
   type InvestmentProperty,
   type Transaction,
-  type Dividend
+  type Dividend,
 } from "@/types/portfolio";
+import DepositUSDC from "./_components/DepositUSDC";
+import { UsdcBalanceCard } from "./_components/UsdcBalanceCard";
 
 export default function PortfolioPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [ openDepositUSDCDialog, setOpenDepositUSDCDialog ] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            My Investment Portfolio
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Track your real estate investments and returns
-          </p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+              My Investment Portfolio
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              Track your real estate investments and returns
+            </p>
+          </div>
+          <div>
+            <Button onClick={() => setOpenDepositUSDCDialog(true)}>
+              <Plus className="w-4 h-4" />
+              <span>Deposit USDC</span>
+            </Button>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
@@ -98,6 +110,14 @@ export default function PortfolioPage() {
           </TabsContent>
         </Tabs>
       </div>
+      <DepositUSDC
+        open={openDepositUSDCDialog}
+        setOpen={setOpenDepositUSDCDialog}
+        onSuccess={() => {
+          // Optional: Handle success (e.g., refetch balances)
+          console.log("Deposit successful!");
+        }}
+      />
     </div>
   );
 }
@@ -151,20 +171,7 @@ function PortfolioOverviewSection({ data }: { data: PortfolioOverview }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
-          <DollarSign className="h-4 w-4" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            ${data.availableBalance.toLocaleString()}
-          </div>
-          <p className="text-xs text-orange-100">
-            Ready for new investments
-          </p>
-        </CardContent>
-      </Card>
+      <UsdcBalanceCard />
     </div>
   );
 }
