@@ -31,11 +31,8 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
-//   const MARKETPLACE = process.env
-//     .NEXT_PUBLIC_MARKETPLACE_ADDRESS as `0x${string}`;
-//   const USDC = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`;
-    const MARKETPLACE = "0x00000000000000000000000000000000006a3530";
-    const USDC = "0x0000000000000000000000000000000000068cda";
+  const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
+  const USDC = process.env.USDC_TOKEN as `0x${string}`;
 
   const { data: decimalsData } = useReadContract({
     address: USDC,
