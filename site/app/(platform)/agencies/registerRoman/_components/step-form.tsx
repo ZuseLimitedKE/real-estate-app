@@ -2,16 +2,12 @@
 
 import { PropertyType } from "@/constants/properties";
 import React, { createContext, useState } from "react";
-import z, { number } from "zod";
-import PropertiesStep1Form from "./steps/single/step1";
-import PropertiesStep2Form from "./steps/single/step2";
-import ApartmentStep1Form from "./steps/appartments/step1";
-import ApartmentStep2Form from "./steps/appartments/step2";
-import { Button } from "@/components/ui/button";
-import CreatePropertyFormProgress from "./progress_indicator";
+import z from "zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { createPropertySchema } from "@/types/property";
 import { zodResolver } from "@hookform/resolvers/zod";
+import CreatePropertyStep1Form from "./steps/step1";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface MultiStepFormProps {
     userID: string
@@ -28,28 +24,6 @@ interface Steps {
     num: number,
     item: React.ReactElement
 }
-
-export const propertySteps: Steps[] = [
-    {
-        num: 1,
-        item: <PropertiesStep1Form />
-    },
-    {
-        num: 2,
-        item: <PropertiesStep2Form />
-    }
-];
-
-export const appartmentsteps: Steps[] = [
-    {
-        num: 1,
-        item: <ApartmentStep1Form />
-    },
-    {
-        num: 2,
-        item: <ApartmentStep2Form />
-    }
-]
 
 export const CreatePropertyContext = createContext<CreatePropertyContextType | null>(null);
 
@@ -70,7 +44,18 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
     return (
         <CreatePropertyContext value={value}>
             <FormProvider {...form}>
-                
+                <form className="space-y-6 max-w-4xl mx-auto p-6">
+                    <Card>
+                        <CardHeader>
+                            {/* Progress indicator */}
+                            <CardTitle>{"Test Title"}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {<CreatePropertyStep1Form /> }
+                            {/* Page controls */}
+                        </CardContent>
+                    </Card>
+                </form>
             </FormProvider>
         </CreatePropertyContext>
     );
