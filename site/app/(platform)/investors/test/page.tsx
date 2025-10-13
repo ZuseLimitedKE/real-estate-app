@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useWalletClient, useChainId } from "wagmi";
+import { useAccount, useWalletClient, useChainId, usePublicClient } from "wagmi";
 import { keccak256, encodePacked } from "viem";
-import { createOrder } from "@/server-actions/marketplace/actions";
+import { createOrder, associateTokentoContract } from "@/server-actions/marketplace/actions";
+import MARKETPLACE_ABI from "@/marketPlaceContractABI.json";
+import { hederaTestnet, hedera } from 'viem/chains';
+import { TokenId } from "@hashgraph/sdk";
+
 export default function TestMarketPlace() {
     const { address } = useAccount();
     const { data: walletClient } = useWalletClient();
@@ -22,7 +26,7 @@ export default function TestMarketPlace() {
     // Auto-generated values
     const [nonce, setNonce] = useState<bigint>(BigInt(0));
     const [expiry, setExpiry] = useState<bigint>(BigInt(0));
-
+    const publicClient = usePublicClient();
     useEffect(() => {
         // Simulate fetching user's next nonce (you’d do this from backend or contract)
         const generateNonce = () => BigInt(Date.now()); // for testing: timestamp-based
@@ -110,13 +114,75 @@ export default function TestMarketPlace() {
                 propertyToken: message.propertyToken,
                 remainingAmount: message.remainingAmount.toString(),
                 pricePerShare: message.pricePerShare.toString(),
-                expiry:  Number(message.expiry),
+                expiry: Number(message.expiry),
                 nonce: message.nonce.toString(),
             }, sig, address);
-          
+
         } catch (err) {
             console.error(err);
             alert("Signing failed.");
+        }
+    }
+    // ============================
+    // 🔹 Contract Interaction Logic
+    // ============================
+
+    async function handleDeposit() {
+        if (!walletClient || !address) return alert("Connect wallet first");
+
+        try {
+           
+            // const associateResult = await associateTokentoContract(order.propertyToken);
+            // if (!associateResult || !associateResult.success) {
+            //     console.log("Token association failed. Check console for details.");
+            //     return
+            // }
+            const amount = BigInt(order.remainingAmount);
+            if (amount <= BigInt(0)) return alert("Enter valid amount");
+
+            const txHash = await walletClient.writeContract({
+                address: process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT! as `0x${string}`,
+                abi: MARKETPLACE_ABI.abi,
+                functionName: "depositToken",
+                args: [order.propertyToken, amount],
+                chain: hederaTestnet,
+            });
+            const receipt = await publicClient?.waitForTransactionReceipt({ hash: txHash });
+            console.log("Receipt:", receipt);
+            console.log("Deposit Tx here:", txHash);
+        } catch (err) {
+            console.log("Deposit failed:", err);
+            alert("Deposit failed. Check console for details.");
+        }
+    }
+
+    async function handleInitOrder() {
+        if (!walletClient || !address) return alert("Connect wallet first");
+
+        try {
+            const amount = BigInt(order.remainingAmount || "0");
+            if (amount <= BigInt(0)) return alert("Enter valid amount");
+
+            const nonce64 = Number(nonce); // safe for testing (fits in uint64)
+            const fn =
+                orderType === "BUY" ? "initBuyOrder" : "initSellOrder";
+
+            const txHash = await walletClient.writeContract({
+                address: process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT! as `0x${string}`,
+                abi: MARKETPLACE_ABI.abi,
+                functionName: fn,
+                args:
+                    orderType === "BUY"
+                        ? [nonce64, order.propertyToken, Number(amount)]
+                        : [nonce64, order.propertyToken, Number(amount)],
+                chain: hederaTestnet,
+            });
+
+            console.log("Init Order Tx:", txHash);
+            alert(`${orderType} order initialized! Tx: ${txHash}`);
+        } catch (err) {
+            console.error("Initialization failed:", err);
+            alert("Order initialization failed. Check console for details.");
         }
     }
 
@@ -158,19 +224,55 @@ export default function TestMarketPlace() {
                 <div><strong>Nonce:</strong> {nonce.toString()}</div>
                 <div><strong>Expiry:</strong> {new Date(Number(expiry) * 1000).toLocaleString()}</div>
             </div>
+            <div>
+                {signature && (
+                    <div className="mt-4 break-all text-xs bg-gray-100 p-2 rounded">
+                        <div><strong>Signature:</strong> {signature}</div>
+                    </div>
+                )}
+                <button
+                    onClick={handleSignOrder}
+                    className="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                >
+                    Sign {orderType} Order
+                </button>
+                {/* Initialize marketplace */}
+
+
+                {/* Deposit tokens */}
+                <div className="mt-6 border-t pt-4">
+                    <h2 className="text-lg font-semibold mb-2">Deposit to Escrow</h2>
+                    <div className="space-y-3">
+                        <input
+                            placeholder="Token address (0x...)"
+                            onChange={(e) => setOrder({ ...order, propertyToken: e.target.value as `0x${string}` })}
+                            value={order.propertyToken}
+                            className="border rounded w-full p-2"
+                        />
+                        <input
+                            placeholder="Amount to deposit"
+                            onChange={(e) => setOrder({ ...order, remainingAmount: e.target.value })}
+                            value={order.remainingAmount}
+                            className="border rounded w-full p-2"
+                        />
+                        <button
+                            onClick={() => handleDeposit()}
+                            className="w-full bg-yellow-600 text-white py-2 rounded hover:bg-yellow-700"
+                        >
+                            Deposit Tokens
+                        </button>
+                    </div>
+                </div>
+
+            </div>
 
             <button
-                onClick={handleSignOrder}
-                className="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                onClick={handleInitOrder}
+                className="mt-6 w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700"
             >
-                Sign {orderType} Order
+                Initialize Marketplace
             </button>
 
-            {signature && (
-                <div className="mt-4 break-all text-xs bg-gray-100 p-2 rounded">
-                    <div><strong>Signature:</strong> {signature}</div>
-                </div>
-            )}
         </div>
     );
 }

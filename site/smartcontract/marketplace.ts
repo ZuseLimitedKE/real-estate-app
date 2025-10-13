@@ -1,7 +1,8 @@
 import { Order, ErrorResponse, SettleOrderSchema, type SettleOrder, SuccessResponse } from "@/types/marketplace";
 import Web3, { Web3Account } from "web3";
 import MarketPlaceABI from "@/marketPlaceContractABI.json";
-export class MarketPlace {
+import { AccountId, PrivateKey, Client, TokenAssociateTransaction, Status, ContractExecuteTransaction, ContractFunctionParameters } from "@hashgraph/sdk"
+export class MarketPlaceContract {
     async getWeb3(): Promise<Web3> {
         try {
             if (!process.env.HEDERA_RPC_URL) {
@@ -178,6 +179,37 @@ export class MarketPlace {
             return undefined;
         }
     }
+    static async associateTokentoContract(tokenId: string) {
+        try {
+            if (!tokenId) {
+                throw new Error("Token ID is required for association");
+            }
+            const mp = new MarketPlaceContract();
+            const web3 = await mp.getWeb3();
+            const contractAddress = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT;
+            if (!contractAddress) {
+                throw new Error('MARKETPLACE_CONTRACT env variable is not set');
+            }
+            const contract = new web3.eth.Contract(MarketPlaceABI.abi, contractAddress);
+            const account = await mp.getAccount();
+            const block = await web3.eth.getBlock();
+            const tx = contract.methods.tokenAssociate(tokenId);
+            console.log("Token Associate Tx:", tx);
+            const txData = {
+                from: account.address,
+                to: contractAddress as string,
+                data: tx.encodeABI(),
+                maxFeePerGas: block.baseFeePerGas! * BigInt(2),
+                maxPriorityFeePerGas: 100000,
+            };
+            console.log("Tx Data:", txData);
+            const signedTx = await web3.eth.accounts.signTransaction(txData, account.privateKey);
+            console.log("Signed Tx:", signedTx);
+            const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction as string);
+            return { status: "SUCCESS", message: "Trade settled successfully", data: receipt, success: true } as SuccessResponse;
+        } catch (error) {
+            console.error("Error associating token to contract", error);
+            return { success: false }
+        }
+    }
 }
-
-export const marketPlace = new MarketPlace();

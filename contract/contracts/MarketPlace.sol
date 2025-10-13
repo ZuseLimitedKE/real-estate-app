@@ -7,13 +7,14 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./system-contracts/hedera-token-service/IHederaTokenService.sol";
+import "./system-contracts/hedera-token-service/HederaTokenService.sol";
 
-contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
+contract MarketPlace is EIP712, Ownable, ReentrancyGuard, HederaTokenService {
     using ECDSA for bytes32;
 
     IHederaTokenService public constant HTS =
         IHederaTokenService(
-            address(0x0000000000000000000000000000000000000167)
+            address(0x167)
         );
 
     address public usdcToken; // HTS address for USDC
@@ -105,6 +106,17 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
             );
     }
 
+    function tokenAssociate(address tokenId) external {
+        int response = HederaTokenService.associateToken(
+            address(this),
+            tokenId
+        );
+
+        if (response != HederaResponseCodes.SUCCESS) {
+            revert("Associate Failed");
+        }
+    }
+
     function _hashSellOrder(
         SellOrder memory o
     ) internal view returns (bytes32) {
@@ -139,13 +151,15 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
      */
     function depositToken(address token, uint256 amount) external nonReentrant {
         require(amount > 0, "zero amount");
-        int256 rc = HTS.transferToken(
+        int rc = HTS.transferToken(
             token,
             msg.sender,
             address(this),
             int64(int256(amount))
         );
-        require(rc == 22 || rc == 0, "HTS transfer failed");
+        if (rc != HederaResponseCodes.SUCCESS) {
+            revert("HTS transfer failed");
+        }
         escrowBalances[token][msg.sender] += amount;
         emit Deposited(msg.sender, token, amount);
     }
@@ -422,4 +436,31 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard {
     function setUSDC(address token) external onlyOwner {
         usdcToken = token;
     }
+
+    /* Helper getters for tests / off-chain callers */
+    function getRemaining(address maker, uint64 nonce) external view returns (uint64) {
+        return remaining[maker][nonce];
+    }
+
+    function getEscrowBalance(address token, address account) external view returns (uint256) {
+        return escrowBalances[token][account];
+    }
+
+    function isCancelled(address maker, uint64 nonce) external view returns (bool) {
+        return cancelled[maker][nonce];
+    }
+
+    function getFeeBps() external view returns (uint256) {
+        return feeBps;
+    }
+
+    function getFeeCollector() external view returns (address) {
+        return feeCollector;
+    }
+
+    function getUSDC() external view returns (address) {
+        return usdcToken;
+    }
+
+    receive() external payable {}
 }

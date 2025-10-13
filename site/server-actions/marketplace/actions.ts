@@ -1,5 +1,7 @@
 'use server'
 import { MarketplaceService } from "./marketplace";
+import {MarketPlaceContract} from "@/smartcontract/marketplace";
+
 export const createOrder = MarketplaceService.createOrder.bind(MarketplaceService);
 export const getOrders = MarketplaceService.getOrders.bind(MarketplaceService);
 export const getOrderbook = MarketplaceService.getOrderbook.bind(MarketplaceService);
@@ -15,3 +17,4 @@ export const getUserOrderHistory = MarketplaceService.getUserOrderHistory.bind(M
 export const cleanupExpiredOrders = MarketplaceService.cleanupExpiredOrders.bind(MarketplaceService);
 export const getUserTradingStats = MarketplaceService.getUserTradingStats.bind(MarketplaceService);
 export const batchUpdateOrderStatuses = MarketplaceService.batchUpdateOrderStatuses.bind(MarketplaceService);
+export const associateTokentoContract = MarketPlaceContract.associateTokentoContract.bind(MarketPlaceContract);

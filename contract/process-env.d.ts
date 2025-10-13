@@ -7,7 +7,9 @@ declare global{
             NETWORK: string;
             PRIVATE_KEY: string;
             ACCOUNT_ID: string;
-
+            ORDER_MAKER_PRIVATE_KEY: string;
+            ORDER_MAKER_ACCOUNT_ID: string;
+            LOCAL_CONTRACT_ID: string;
         }
     }
 }

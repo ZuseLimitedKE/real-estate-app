@@ -56,6 +56,8 @@ declare global {
       FEE_COLLECTOR: string;
       USDC_TOKEN: string;
       ENVIRONMENT: string;
+      MARKETPLACE_HEDERA_ACCOUNTID: string;
+      DEPLOYER_ACCOUNT_ID: string;
     }
   }
 }
