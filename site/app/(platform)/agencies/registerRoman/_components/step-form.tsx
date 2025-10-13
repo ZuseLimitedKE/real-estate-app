@@ -8,6 +8,7 @@ import { createPropertySchema } from "@/types/property";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CreatePropertyStep1Form from "./steps/step1";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ApartmentEstateDetailsForm from "./steps/appartments/step1";
 
 interface MultiStepFormProps {
     userID: string
@@ -51,7 +52,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
                             <CardTitle>{"Test Title"}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {<CreatePropertyStep1Form /> }
+                            {<ApartmentEstateDetailsForm /> }
                             {/* Page controls */}
                         </CardContent>
                     </Card>
