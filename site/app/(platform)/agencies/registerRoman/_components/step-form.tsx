@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import CreatePropertyStep1Form from "./steps/step1";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ApartmentEstateDetailsForm from "./steps/appartments/step1";
+import ApartmentDocumentsForm from "./steps/appartments/step2";
 
 interface MultiStepFormProps {
     userID: string
@@ -18,7 +19,7 @@ interface CreatePropertyContextType {
     currentStep: number;
     type: PropertyType | null;
     setCurrentStep: (num: number) => void,
-
+    saveFormState: (step: number) => void,
 }
 
 interface Steps {
@@ -32,10 +33,15 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
 
+    const saveFormState = (step: number) => {
+        console.log(step);
+    }
+
     const value: CreatePropertyContextType = {
         currentStep,
         type: propertyType,
-        setCurrentStep
+        setCurrentStep,
+        saveFormState
     }
 
     const form = useForm<z.infer<typeof createPropertySchema>>({
@@ -52,7 +58,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
                             <CardTitle>{"Test Title"}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {<ApartmentEstateDetailsForm /> }
+                            {<ApartmentDocumentsForm /> }
                             {/* Page controls */}
                         </CardContent>
                     </Card>
