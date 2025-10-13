@@ -1,5 +1,5 @@
 import { PropertyType } from "@/constants/properties";
-import z, { size } from "zod";
+import z from "zod";
 import type { Properties } from "@/db/collections";
 
 const step1Schema = z.object({
@@ -298,3 +298,11 @@ export const addAppartmentSchema = z.object({
   ...apartmentStep3Schema.shape,
   ...apartmentStep4Schema.shape,
 })
+
+export const createPropertySchema = z.object({
+  property_type: z.enum([PropertyType.APARTMENT, PropertyType.SINGLE], "Invalid property type"),
+  single_property_details: addPropertySchema.optional(),
+  apartment_property_details: addAppartmentSchema.optional(),
+});
+
+export type CreatePropertyType = z.infer<typeof createPropertySchema>;
