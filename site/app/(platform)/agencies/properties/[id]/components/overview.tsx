@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type AgentPropertyOverview, AMENITIES } from "@/types/agent_dashboard";
 import {
+  Bed,
   Box,
   Camera,
   Car,
@@ -13,7 +14,10 @@ import {
   Shirt,
   Snowflake,
   LucideDroplet as SoapDispenserDroplet,
+  Sofa,
+  Toilet,
   Waves,
+  Wind,
 } from "lucide-react";
 
 export default function PropertyOverview(props: {
@@ -166,7 +170,7 @@ export default function PropertyOverview(props: {
   );
 }
 
-function getUIForAmenity(amenity: AMENITIES) {
+export function getUIForAmenity(amenity: AMENITIES, amount?: number) {
   const baseClasses =
     "flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow-md";
   const iconClasses = "w-5 h-5 text-slate-600 flex-shrink-0";
@@ -262,6 +266,38 @@ function getUIForAmenity(amenity: AMENITIES) {
         <div className={baseClasses}>
           <Flower className={iconClasses} />
           <p className={textClasses}>Garden Yard</p>
+        </div>
+      );
+
+    case AMENITIES.BALCONY:
+      return (
+        <div className={baseClasses}>
+          <Wind className={iconClasses} />
+          <p className={textClasses}>{`${amount ?? ""} Balcony`}</p>
+        </div>
+      );
+
+    case AMENITIES.BATHROOM:
+      return (
+        <div className={baseClasses}>
+          <Toilet className={iconClasses} />
+          <p className={textClasses}>{`${amount ?? ""} Bathroom`}</p>
+        </div>
+      );
+
+    case AMENITIES.BEDROOM:
+      return (
+        <div className={baseClasses}>
+          <Bed className={iconClasses} />
+          <p className={textClasses}>{`${amount ?? ""} Bedroom`}</p>
+        </div>
+      );
+
+    case AMENITIES.FURNISHED:
+      return (
+        <div className={baseClasses}>
+          <Sofa className={iconClasses} />
+          <p className={textClasses}>Furnished</p>
         </div>
       );
     default:

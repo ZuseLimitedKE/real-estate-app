@@ -5,6 +5,7 @@ import { CreatePropertyType } from "@/types/property";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import ApartmentUnitTemplateAmenities from "./step3Amenities";
 import ApartmentUnitTemplateImages from "./step3Images";
+import ApartmentCreatedUnitTemplate from "./step3CreatedTemplate";
 
 export default function ApartmentUnitTemplatesForm() {
     const {
@@ -29,8 +30,12 @@ export default function ApartmentUnitTemplatesForm() {
             </p>
 
             {/* Display Created Templates */}
-            <section className="bg-slate-200 rounded-md p-2">
+            <section className="bg-slate-200 rounded-md p-2 space-y-4">
                 <h3>Created Unit Templates</h3>
+
+                <div>
+                    <ApartmentCreatedUnitTemplate />
+                </div>
             </section>
 
             {/* Adding a template */}

@@ -44,7 +44,11 @@ export enum AMENITIES {
     PET_FRIENDLY = 'pet friendly',
     SECURITY = 'security system',
     ELEVATOR = 'elevator',
-    GARDEN = 'garden yard'
+    GARDEN = 'garden yard',
+    BEDROOM = 'bedroom',
+    BATHROOM = 'bathroom',
+    BALCONY = 'balcony',
+    FURNISHED = 'furnished'
 }
 
 export interface AgentProperty {
