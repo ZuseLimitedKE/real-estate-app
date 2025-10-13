@@ -10,6 +10,7 @@ import CreatePropertyStep1Form from "./steps/step1";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ApartmentEstateDetailsForm from "./steps/appartments/step1";
 import ApartmentDocumentsForm from "./steps/appartments/step2";
+import ApartmentUnitTemplatesForm from "./steps/appartments/step3";
 
 interface MultiStepFormProps {
     userID: string
@@ -58,7 +59,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
                             <CardTitle>{"Test Title"}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {<ApartmentDocumentsForm /> }
+                            {<ApartmentUnitTemplatesForm /> }
                             {/* Page controls */}
                         </CardContent>
                     </Card>
