@@ -122,7 +122,7 @@ async function mintToken(name: string, symbol: string, ACCOUNT_ID: AccountId, cl
         .setTokenSymbol(symbol)
         .setTokenType(TokenType.FungibleCommon)
         .setTreasuryAccountId(ACCOUNT_ID)
-        .setInitialSupply(5_000_000_000)
+        .setInitialSupply(500)
         .freezeWith(client);
     const signTxTokenCreate = await txTokenCreate.sign(PRIVATE_KEY);
     const txTokenCreateResponse = await signTxTokenCreate.execute(client);
@@ -285,6 +285,41 @@ async function allowanceApproval(tokenId: string, owner: string, spender: string
 
     return allowanceReceipt;
 }
+async function getTokenBalances(accountId: string): Promise<{ tokenId: string, balance: number }[]> {
+    const env = getEnv()
+    let OPERATOR_KEY: PrivateKey;
+    let OPERATOR_ID: AccountId;
+    let MIRROR_NODE_URL: string;
+    if (env.NETWORK == "localnet") {
+        OPERATOR_KEY = env.LPRIVATE_KEY!;
+        OPERATOR_ID = env.LACCOUNT_ID!;
+        MIRROR_NODE_URL = process.env.LMIRROR_NODE_URL!
+    }
+    else {
+        OPERATOR_KEY = env.PRIVATE_KEY!;
+        OPERATOR_ID = env.ACCOUNT_ID!;
+        MIRROR_NODE_URL = process.env.MIRROR_NODE_URL!
+    }
+    let tokens: { tokenId: string, balance: number }[] = [];
+    let nextLink: string | null = `/api/v1/accounts/${accountId}/balances?limit=100`;
+
+    while (nextLink) {
+        const response = await fetch(`${MIRROR_NODE_URL}${nextLink}`);
+        const data: {
+            tokens: {
+                token_id: string,
+                balance: number
+            }[], links: { next: string | null }
+        } = await response.json() as {
+            tokens: { token_id: string, balance: number }[],
+            links: { next: string | null }
+        };
+        tokens.push(...data.tokens.map(token => ({ tokenId: token.token_id, balance: token.balance })));
+        nextLink = data.links.next;
+    }
+    return tokens;
+}
+const getNonce = () => new Date().getTime();
 export {
     deploy,
     call,
@@ -303,5 +338,7 @@ export {
     getAssociatedTokens,
     setTokenId,
     getTokenId,
-    allowanceApproval
+    allowanceApproval,
+    getNonce,
+    getTokenBalances
 }

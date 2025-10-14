@@ -1,6 +1,7 @@
 import { describe, it } from "mocha";
 import { expect } from "chai";
-import { AccountId, ContractId, AccountCreateTransaction, Hbar, PrivateKey, TokenAssociateTransaction, 
+import {
+    AccountId, ContractId, AccountCreateTransaction, Hbar, PrivateKey, TokenAssociateTransaction,
     ContractExecuteTransaction, ContractFunctionParameters, TokenId,
     AccountAllowanceApproveTransaction
 } from "@hashgraph/sdk";
@@ -22,7 +23,9 @@ import {
     getAssociatedTokens,
     setTokenId,
     getTokenId,
-    allowanceApproval
+    allowanceApproval,
+    getNonce,
+    getTokenBalances
 } from "../test-utils.js";
 import fs from "fs";
 const abiStr = fs.readFileSync(`./artifacts/contracts/MarketPlace.sol/MarketPlace.json`, 'utf-8')
@@ -87,13 +90,13 @@ describe("MarketPlace Contract", function () {
     });
     it("should allow a user to give allowance to the contract", async () => {
         const contractId = getContractId();
-        const tokenId = getTokenId(); 
-        const allowanceReceipt = await allowanceApproval(tokenId, OPERATOR_ID.toString(),contractId, 100 , OPERATOR_KEY, client);
+        const tokenId = getTokenId();
+        const allowanceReceipt = await allowanceApproval(tokenId, OPERATOR_ID.toString(), contractId, 100, OPERATOR_KEY, client);
         expect(allowanceReceipt.status.toString()).to.equal("SUCCESS");
     })
-    it("Should allow a user to deposit token to contract", async ()=>{
+    it("Should allow a user to deposit token to contract", async () => {
         const contractId = getContractId();
-        const tokenId = getTokenId(); 
+        const tokenId = getTokenId();
         const evmTokenAddress = `0x${TokenId.fromString(tokenId).toEvmAddress()}`;
         const txDeposit = await new ContractExecuteTransaction()
             .setContractId(contractId)
@@ -104,6 +107,46 @@ describe("MarketPlace Contract", function () {
         const signTxDeposit = await txDeposit.sign(OPERATOR_KEY);
         const txDepositResponse = await signTxDeposit.execute(client);
         const receipt = await txDepositResponse.getReceipt(client);
+        expect(receipt.status.toString()).to.equal("SUCCESS");
+    })
+    it("should allow a user to initialize a buy order", async () => {
+        const contractId = getContractId();
+        const tokenId = getTokenId();
+        const evmTokenAddress = `0x${TokenId.fromString(tokenId).toEvmAddress()}`;
+        const nonce = getNonce();
+        const txInitBuyOrder = await new ContractExecuteTransaction()
+            .setContractId(contractId)
+            .setGas(4_000_000)
+            .setFunction("initBuyOrder", new ContractFunctionParameters()
+                .addUint64(nonce)
+                .addAddress(evmTokenAddress)
+                .addUint64(50)
+            )
+            .setMaxTransactionFee(new Hbar(5))
+            .freezeWith(client);
+        const signTxInitBuyOrder = await txInitBuyOrder.sign(OPERATOR_KEY);
+        const txInitBuyOrderResponse = await signTxInitBuyOrder.execute(client);
+        const receipt = await txInitBuyOrderResponse.getReceipt(client);
+        expect(receipt.status.toString()).to.equal("SUCCESS");
+    })
+     it("should allow a user to initialize a sell order", async () => {
+        const contractId = getContractId();
+        const tokenId = getTokenId();
+        const evmTokenAddress = `0x${TokenId.fromString(tokenId).toEvmAddress()}`;
+        const nonce = getNonce();
+        const txInitBuyOrder = await new ContractExecuteTransaction()
+            .setContractId(contractId)
+            .setGas(4_000_000)
+            .setFunction("initSellOrder", new ContractFunctionParameters()
+                .addUint64(nonce)
+                .addAddress(evmTokenAddress)
+                .addUint64(20)
+            )
+            .setMaxTransactionFee(new Hbar(5))
+            .freezeWith(client);
+        const signTxInitBuyOrder = await txInitBuyOrder.sign(OPERATOR_KEY);
+        const txInitBuyOrderResponse = await signTxInitBuyOrder.execute(client);
+        const receipt = await txInitBuyOrderResponse.getReceipt(client);
         expect(receipt.status.toString()).to.equal("SUCCESS");
     })
 
