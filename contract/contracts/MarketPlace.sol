@@ -151,7 +151,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard, HederaTokenService {
      */
     function depositToken(address token, uint256 amount) external nonReentrant {
         require(amount > 0, "zero amount");
-        int rc = HTS.transferToken(
+        int rc = HederaTokenService.transferToken(
             token,
             msg.sender,
             address(this),

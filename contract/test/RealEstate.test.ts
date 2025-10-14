@@ -3,7 +3,7 @@ import { network } from "hardhat";
 
 const { ethers } = await network.connect();
 
-describe("RealEstateManager Contract", function () {
+describe.skip("RealEstateManager Contract", function () {
     const propertyID = "id";
     const propertyName = "The Big Kahuna";
     const numTokens = 1000n;

@@ -31,6 +31,7 @@ import {
     TokenCreateTransaction,
     TokenType,
     TokenId,
+    AccountAllowanceApproveTransaction,
 } from "@hashgraph/sdk";
 
 import { Interface } from "@ethersproject/abi";
@@ -47,7 +48,7 @@ let contractId: string;
 let maxTransactionFee = new Hbar(5);
 let maxQueryPayment = new Hbar(5);
 let defaultGas = 100_000;
-
+let token: string;
 function getOperatorId() {
     return process.env.ACCOUNT_ID!;
 }
@@ -262,11 +263,27 @@ async function getAssociatedTokens(accountId: string): Promise<string[]> {
 
     while (nextLink) {
         const response = await fetch(`${MIRROR_NODE_URL}${nextLink}`);
-        const data: { tokens: {token_id: string}[], links: { next: string | null } } = await response.json() as { tokens: {token_id: string}[], links: { next: string | null } };
+        const data: { tokens: { token_id: string }[], links: { next: string | null } } = await response.json() as { tokens: { token_id: string }[], links: { next: string | null } };
         tokens.push(...data.tokens.map(token => token.token_id));
         nextLink = data.links.next;
     }
     return tokens;
+}
+function setTokenId(tokenId: string) {
+    token = tokenId;
+}
+function getTokenId(): string {
+    return token;
+}
+async function allowanceApproval(tokenId: string, owner: string, spender: string, amount: number, ownerPrivateKey: PrivateKey, client: Client) {
+    const allowanceTx = new AccountAllowanceApproveTransaction()
+        .approveTokenAllowance(tokenId, owner, spender, amount)
+        .freezeWith(client);
+    const allowanceSign = await allowanceTx.sign(ownerPrivateKey);
+    const allowanceSubmit = await allowanceSign.execute(client);
+    const allowanceReceipt = await allowanceSubmit.getReceipt(client);
+
+    return allowanceReceipt;
 }
 export {
     deploy,
@@ -283,5 +300,8 @@ export {
     getEnv,
     mintToken,
     getContractId,
-    getAssociatedTokens
+    getAssociatedTokens,
+    setTokenId,
+    getTokenId,
+    allowanceApproval
 }

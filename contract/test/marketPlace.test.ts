@@ -1,6 +1,9 @@
 import { describe, it } from "mocha";
 import { expect } from "chai";
-import { AccountId, ContractId, AccountCreateTransaction, Hbar, PrivateKey, TokenAssociateTransaction, ContractExecuteTransaction, ContractFunctionParameters } from "@hashgraph/sdk";
+import { AccountId, ContractId, AccountCreateTransaction, Hbar, PrivateKey, TokenAssociateTransaction, 
+    ContractExecuteTransaction, ContractFunctionParameters, TokenId,
+    AccountAllowanceApproveTransaction
+} from "@hashgraph/sdk";
 import {
     getClient,
     deploy,
@@ -16,7 +19,10 @@ import {
     getEnv,
     mintToken,
     getContractId,
-    getAssociatedTokens
+    getAssociatedTokens,
+    setTokenId,
+    getTokenId,
+    allowanceApproval
 } from "../test-utils.js";
 import fs from "fs";
 const abiStr = fs.readFileSync(`./artifacts/contracts/MarketPlace.sol/MarketPlace.json`, 'utf-8')
@@ -54,19 +60,18 @@ describe("MarketPlace Contract", function () {
         // deploy the contract
         const abi = JSON.parse(abiStr) as { abi: any, bytecode: string }
         const contractId = await deploy("MarketPlace", abi.bytecode);
-        // const contractId = "0.0.1037"
+        // const contractId = "0.0.1046"
         console.log(`contract deployed at: ${contractId}`);
         setContractId(contractId);
     });
     it("Should just test if testing works", async function () {
         const contractId = getContractId();
-        console.log("Using contract id:", contractId);
         expect(true).to.equal(true);
     });
     it("should associate a token to the contract", async () => {
         const token = await mintToken("testToken", "TT", OPERATOR_ID, client, OPERATOR_KEY);
+        setTokenId(token.toString());
         const evmTokenAddress = `0x${token.toEvmAddress()}`;
-        console.log("Minted token:", evmTokenAddress);
         const contractId = getContractId();
         const txTokenAssociate = await new ContractExecuteTransaction()
             .setContractId(contractId)
@@ -74,16 +79,33 @@ describe("MarketPlace Contract", function () {
             .setFunction("tokenAssociate", new ContractFunctionParameters().addAddress(evmTokenAddress))
             .setMaxTransactionFee(new Hbar(5))
             .freezeWith(client);
-        console.log("Associating token to contract:", token.toString());
-        // Sign the transaction with the operator key
         const signTxTokenAssociate = await txTokenAssociate.sign(OPERATOR_KEY);
         const txTokenAssociateResponse = await signTxTokenAssociate.execute(client);
-        //Get associated tokens
-        // Wait for the association transaction to be confirmed before querying associated tokens
-        await txTokenAssociateResponse.getReceipt(client);
-        const associatedTokens = await getAssociatedTokens(OPERATOR_ID.toString());
-        console.log("Associated tokens:", associatedTokens);
-        expect(associatedTokens).to.include(token.toString());
+        const receipt = await txTokenAssociateResponse.getReceipt(client);
+        const status = receipt.status;
+        expect(status.toString()).to.equal("SUCCESS");
     });
+    it("should allow a user to give allowance to the contract", async () => {
+        const contractId = getContractId();
+        const tokenId = getTokenId(); 
+        const allowanceReceipt = await allowanceApproval(tokenId, OPERATOR_ID.toString(),contractId, 100 , OPERATOR_KEY, client);
+        expect(allowanceReceipt.status.toString()).to.equal("SUCCESS");
+    })
+    it("Should allow a user to deposit token to contract", async ()=>{
+        const contractId = getContractId();
+        const tokenId = getTokenId(); 
+        const evmTokenAddress = `0x${TokenId.fromString(tokenId).toEvmAddress()}`;
+        const txDeposit = await new ContractExecuteTransaction()
+            .setContractId(contractId)
+            .setGas(4_000_000)
+            .setFunction("depositToken", new ContractFunctionParameters().addAddress(evmTokenAddress).addUint256(100))
+            .setMaxTransactionFee(new Hbar(5))
+            .freezeWith(client);
+        const signTxDeposit = await txDeposit.sign(OPERATOR_KEY);
+        const txDepositResponse = await signTxDeposit.execute(client);
+        const receipt = await txDepositResponse.getReceipt(client);
+        expect(receipt.status.toString()).to.equal("SUCCESS");
+    })
+
 
 })
