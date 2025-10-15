@@ -12,6 +12,8 @@ import ApartmentEstateDetailsForm from "./steps/appartments/step1";
 import ApartmentDocumentsForm from "./steps/appartments/step2";
 import ApartmentUnitTemplatesForm from "./steps/appartments/step3";
 import ApartmentUnitsForm from "./steps/appartments/step4";
+import { BookTemplate, File, HouseIcon, HousePlus, LucideIcon, Mouse } from "lucide-react";
+import CreatePropertyFormProgress from "./progress_indicator";
 
 interface MultiStepFormProps {
     userID: string
@@ -27,39 +29,47 @@ interface CreatePropertyContextType {
 interface Steps {
     num: number,
     item: React.ReactElement,
-    title: string
+    title: string,
+    icon: LucideIcon
 }
 
+const step1: Steps = {
+    num: 1,
+    item: <CreatePropertyStep1Form />,
+    title: "Select property type",
+    icon: Mouse
+};
+
 const apartmentSteps: Steps[] = [
-    {
-        num: 1,
-        item: <CreatePropertyStep1Form />,
-        title: "Select property type"
-    },
+    step1,
     {
         num: 2,
         item: <ApartmentEstateDetailsForm />,
-        title: "Apartment Estate Details"
+        title: "Apartment Estate Details",
+        icon: HousePlus
     },
     {
         num: 3,
         item: <ApartmentDocumentsForm />,
-        title: "Apartment Documents"
+        title: "Apartment Documents",
+        icon: File
     },
     {
         num: 4,
         item: <ApartmentUnitTemplatesForm />,
-        title: "Apartment Unit Templates"
+        title: "Apartment Unit Templates",
+        icon: BookTemplate
     },
     {
         num: 5,
         item: <ApartmentUnitsForm />,
-        title: "Apartment Units"
+        title: "Apartment Units",
+        icon: HouseIcon
     }
 ];
 
 const singlePropertySteps: Steps[] = [
-
+    step1,
 ]
 
 export const CreatePropertyContext = createContext<CreatePropertyContextType | null>(null);
@@ -78,11 +88,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
     }
 
     const propertyType = form.getValues('property_type');
-    const steps = propertyType === undefined || propertyType === null  ? [{
-        num: 1,
-        item: <CreatePropertyStep1Form />,
-        title: "Select property type"
-    }] : propertyType === PropertyType.APARTMENT ? apartmentSteps : singlePropertySteps;
+    const steps = propertyType === undefined || propertyType === null ? [step1] : propertyType === PropertyType.APARTMENT ? apartmentSteps : singlePropertySteps;
 
     const value: CreatePropertyContextType = {
         currentStep,
@@ -90,8 +96,6 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         saveFormState,
         steps
     }
-
-    
 
     const currentForm = steps.find((s) => s.num === currentStep + 1);
 
@@ -102,7 +106,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
                     <form className="space-y-6 max-w-4xl mx-auto p-6">
                         <Card>
                             <CardHeader>
-                                {/* Progress indicator */}
+                                <CreatePropertyFormProgress />
                                 <CardTitle>{currentForm.title}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
