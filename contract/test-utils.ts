@@ -49,6 +49,7 @@ let maxTransactionFee = new Hbar(5);
 let maxQueryPayment = new Hbar(5);
 let defaultGas = 100_000;
 let token: string;
+let usdcAddress: string;
 function getOperatorId() {
     return process.env.ACCOUNT_ID!;
 }
@@ -74,7 +75,7 @@ function setDefaultGas(newDefaultGas: number) {
     defaultGas = newDefaultGas;
 }
 
-async function deploy(contractName: string, byteCode: string): Promise<string> {
+async function deploy(contractName: string, byteCode: string, usdcOwner: AccountId, usdcOwnerKey: PrivateKey, usdcOwnerclient: Client): Promise<string> {
     // console.log("Bytecode", byteCode);
     console.log(`Deploying contract: ${contractName}`);
     const env = getEnv()
@@ -93,7 +94,8 @@ async function deploy(contractName: string, byteCode: string): Promise<string> {
     }
     const client = getClient()
 
-    const usdc_address = await mintToken("USDC", "USDC", OPERATOR_ID, client, OPERATOR_KEY);
+    const usdc_address = await mintToken("USDC", "USDC", usdcOwner, usdcOwnerclient, usdcOwnerKey);
+    setUSDCAddress(usdc_address.toString());
     const evmAddress = usdc_address.toEvmAddress();
     const _initialOwner = OPERATOR_ID.toEvmAddress();
     const feeCollector = OPERATOR_ID.toEvmAddress();
@@ -320,6 +322,58 @@ async function getTokenBalances(accountId: string): Promise<{ tokenId: string, b
     return tokens;
 }
 const getNonce = () => new Date().getTime();
+function getUserAccount(operator_key: string, operator_id: string, network: "localnet" | "testnet" | "mainnet"): { client: Client, accountId: AccountId, privateKey: PrivateKey } {
+    if (!operator_key || typeof operator_key !== "string") {
+        throw new Error("Invalid or missing operator_key");
+    }
+    if (!operator_id || typeof operator_id !== "string") {
+        throw new Error("Invalid or missing operator_id");
+    }
+    if (!network || !["localnet", "testnet", "mainnet"].includes(network)) {
+        throw new Error("Invalid or missing network");
+    }
+    const privateKey = PrivateKey.fromStringECDSA(operator_key);
+    const accountId = AccountId.fromString(operator_id);
+    let client: Client;
+    if (network == "localnet") {
+        client = Client.forLocalNode();
+    } else if (network == "testnet") {
+        client = Client.forTestnet();
+    } else {
+        client = Client.forMainnet();
+    }
+    client.setOperator(accountId, privateKey);
+    return { client, accountId, privateKey };
+}
+function getUserEnvs() {
+    const USER1_KEY = process.env.USER1_KEY!
+    const USER1_ID = process.env.USER1_ID!
+    const USER2_KEY = process.env.USER2_KEY!
+    const USER2_ID = process.env.USER2_ID!
+    const NETWORK = process.env.NETWORK!
+    if (!USER1_KEY || !USER1_ID) {
+        throw new Error("USER1_KEY or USER1_ID ENV VAR NOT SET")
+    }
+    if (!USER2_KEY || !USER2_ID) {
+        throw new Error("USER2_KEY or USER2_ID ENV VAR NOT SET")
+    }
+    if (!NETWORK) {
+        throw new Error("NETWORK ENV VAR NOT SET")
+    }
+    return {
+        USER1_KEY,
+        USER1_ID,
+        USER2_KEY,
+        USER2_ID,
+        NETWORK
+    }
+}
+function setUSDCAddress(address: string) {
+    usdcAddress = address;
+}
+function getUSDCAddress(): string {
+    return usdcAddress;
+}
 export {
     deploy,
     call,
@@ -340,5 +394,9 @@ export {
     getTokenId,
     allowanceApproval,
     getNonce,
-    getTokenBalances
+    getTokenBalances,
+    getUserAccount,
+    getUserEnvs,
+    setUSDCAddress,
+    getUSDCAddress
 }
