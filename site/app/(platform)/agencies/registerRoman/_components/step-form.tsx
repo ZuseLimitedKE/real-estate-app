@@ -154,10 +154,10 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
             ...data,
             property_type: data.property_type ?? defaultValue.propertyType,
             apartment_property_details: {
-                location: data.location ?? defaultValue.apartment_property_details.location,
-                documents: data.documents ?? [],
-                unit_templates: data.unit_templates ?? [],
-                units: data.units ?? []
+                location: data.apartment_property_details.location ?? defaultValue.apartment_property_details.location,
+                documents: data.apartment_property_details.documents ?? [],
+                unit_templates: data.apartment_property_details.unit_templates ?? [],
+                units: data.apartment_property_details.units ?? []
             }
         };
     };
