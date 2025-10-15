@@ -19,6 +19,7 @@ import {
 } from "wagmi";
 import marketPlaceAbi from "@/smartcontract/abi/MarketPlace.json";
 import erc20Abi from "@/smartcontract/abi/ERC20.json";
+import { formatUnits, parseUnits } from "viem";
 
 interface DepositUSDCProps {
   open: boolean;
@@ -27,7 +28,7 @@ interface DepositUSDCProps {
 }
 
 export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCProps) {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,18 +43,19 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
   });
 
   const decimals =
-    typeof decimalsData === "number" ? decimalsData : Number(decimalsData ?? 6);
+  typeof decimalsData === "bigint"
+    ? Number(decimalsData)
+    : Number(decimalsData ?? 6);
 
-  const parsedAmount = useMemo(() => {
-    if (!amount) return BigInt(0);
-    const [whole, frac = ""] = amount.split(".");
-    const fracPadded = (frac + "0".repeat(decimals)).slice(0, decimals);
-    const raw =
-      BigInt(whole || "0") * BigInt(10) ** BigInt(decimals) +
-      BigInt(fracPadded || "0");
-    return raw;
-  }, [amount, decimals]);
-
+    const parsedAmount = useMemo(() => {
+      if (!amount || isNaN(Number(amount))) return BigInt(0);
+      try {
+        return parseUnits(amount, decimals);
+      } catch {
+        return BigInt(0);
+      }
+    }, [amount, decimals]);
+    
   const {
     writeContract: writeApprove,
     data: approveHash,
@@ -200,6 +202,11 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
               placeholder="0.0"
             />
           </div>
+          {loading && (
+            <p className="text-xs text-gray-500">
+              Waiting for wallet confirmation or transaction to complete…
+            </p>
+          )}
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -212,12 +219,15 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
             <Button
               className="flex-1"
               onClick={handleDeposit}
-              disabled={loading}
+              disabled={busy || loading}
             >
-              {loading ? "Processing..." : "Approve & Deposit"}
+              {busy || loading ? "Processing..." : "Approve & Deposit"}
             </Button>
           </div>
         </div>
+        <p className="text-xs text-gray-400 mt-2">
+          Note: Approve and deposit require two on-chain transactions and some HBAR for gas.
+        </p>
       </DialogContent>
     </Dialog>
   );
