@@ -19,7 +19,6 @@ interface MultiStepFormProps {
 
 interface CreatePropertyContextType {
     currentStep: number;
-    type: PropertyType | null;
     setCurrentStep: (num: number) => void,
     saveFormState: (step: number) => void,
     steps: Steps[]
@@ -67,13 +66,19 @@ export const CreatePropertyContext = createContext<CreatePropertyContextType | n
 
 export default function MultiStepForm({ userID }: MultiStepFormProps) {
     const [currentStep, setCurrentStep] = useState<number>(0);
-    const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
+    const form = useForm<z.infer<typeof createPropertySchema>>({
+        resolver: zodResolver(createPropertySchema),
+        defaultValues: {
+            property_type: undefined
+        }
+    });
 
     const saveFormState = (step: number) => {
         console.log(step);
     }
 
-    const steps = propertyType === null ? [{
+    const propertyType = form.getValues('property_type');
+    const steps = propertyType === undefined || propertyType === null  ? [{
         num: 1,
         item: <CreatePropertyStep1Form />,
         title: "Select property type"
@@ -81,15 +86,12 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
 
     const value: CreatePropertyContextType = {
         currentStep,
-        type: propertyType,
         setCurrentStep,
         saveFormState,
         steps
     }
 
-    const form = useForm<z.infer<typeof createPropertySchema>>({
-        resolver: zodResolver(createPropertySchema)
-    })
+    
 
     const currentForm = steps.find((s) => s.num === currentStep + 1);
 

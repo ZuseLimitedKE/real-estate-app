@@ -14,7 +14,6 @@ export default function CreatePropertyStep1Form() {
         <section className="space-y-2">
             <Label htmlFor="property_type">What type of property are you creating?</Label>
             <RadioGroup
-                defaultValue={PropertyType.SINGLE}
                 {...register("property_type")}
                 id="property_type"
             >
