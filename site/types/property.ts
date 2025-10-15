@@ -252,33 +252,35 @@ export const apartmentStep2Schema = z.object({
     .min(1, "Upload your legal documents"),
 })
 
+export const unitTemplateSchema = z.object({
+  name: z.string().trim().min(2, "Template name is too short"),
+  gross_unit_size: z
+    .number()
+    .positive("Property size must be greater than 0"),
+  unit_value: z.number().positive("Property value must be greater than 0"),
+  amenities: z.object({
+    bedrooms: z.number().min(0).nullable().optional(),
+    bathrooms: z.number().min(0).nullable().optional(),
+    balconies: z.number().min(0).nullable().optional(),
+    gym: z.boolean().optional(),
+    air_conditioning: z.boolean().optional(),
+    heating: z.boolean().optional(),
+    furnished: z.boolean().optional(),
+    laundry_in_unit: z.boolean().optional(),
+    dishwasher: z.boolean().optional(),
+    storage_space: z.boolean().optional(),
+    pet_friendly: z.boolean().optional(),
+    security_system: z.boolean().optional(),
+    elevator: z.boolean().optional(),
+    garden_yard: z.boolean().optional(),
+  }),
+  images: z
+    .array(z.url({ protocol: /^https$/ }))
+    .min(1, "At least one image of the property is required"),
+})
+
 export const apartmentStep3Schema = z.object({
-  unit_templates: z.array(z.object({
-    name: z.string().trim().min(2, "Template name is too short"),
-    gross_unit_size: z
-      .number()
-      .positive("Property size must be greater than 0"),
-    unit_value: z.number().positive("Property value must be greater than 0"),
-    amenities: z.object({
-      bedrooms: z.number().min(0).nullable().optional(),
-      bathrooms: z.number().min(0).nullable().optional(),
-      balconies: z.number().min(0).nullable().optional(),
-      gym: z.boolean().optional(),
-      air_conditioning: z.boolean().optional(),
-      heating: z.boolean().optional(),
-      furnished: z.boolean().optional(),
-      laundry_in_unit: z.boolean().optional(),
-      dishwasher: z.boolean().optional(),
-      storage_space: z.boolean().optional(),
-      pet_friendly: z.boolean().optional(),
-      security_system: z.boolean().optional(),
-      elevator: z.boolean().optional(),
-      garden_yard: z.boolean().optional(),
-    }),
-    images: z
-      .array(z.url({ protocol: /^https$/ }))
-      .min(1, "At least one image of the property is required"),
-  }))
+  unit_templates: z.array(unitTemplateSchema).min(1, "At least one unit template is required"),
 });
 
 export const apartmentStep4Schema = z.object({
