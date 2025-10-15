@@ -226,10 +226,17 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
             // Grab values and validate current step
             const currentStepValues = form.getValues(currentForm.fields);
             const formValues = Object.fromEntries(
-                currentForm.fields.map((field, index) => [
-                    field,
-                    currentStepValues[index] || "",
-                ]),
+                currentForm.fields.map((field, index) => {
+                    if (field.startsWith('apartment_property_details')) {
+                        let components = field.split('.').slice(1);
+                        field = components.join('.');
+                    }
+
+                    return [
+                        field,
+                        currentStepValues[index] || "",
+                    ]
+                }),
             );
             console.log("Next button field", formValues);
 
