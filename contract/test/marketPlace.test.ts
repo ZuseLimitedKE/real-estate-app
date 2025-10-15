@@ -25,13 +25,18 @@ import {
     getTokenId,
     allowanceApproval,
     getNonce,
-    getTokenBalances
+    getTokenBalances,
+    getUserAccount,
+    getUserEnvs,
+    getUSDCAddress
 } from "../test-utils.js";
 import fs from "fs";
+import { network } from "hardhat";
 const abiStr = fs.readFileSync(`./artifacts/contracts/MarketPlace.sol/MarketPlace.json`, 'utf-8')
 describe("MarketPlace Contract", function () {
 
     const env = getEnv()
+    const { USER1_KEY, USER1_ID, USER2_KEY, USER2_ID, NETWORK } = getUserEnvs();
     let OPERATOR_KEY: PrivateKey;
     let OPERATOR_ID: AccountId;
     if (env.NETWORK == "localnet") {
@@ -43,7 +48,8 @@ describe("MarketPlace Contract", function () {
         OPERATOR_ID = env.ACCOUNT_ID!;
     }
     const client = getClient()
-
+    const BUYER = getUserAccount(USER1_KEY, USER1_ID, NETWORK as "localnet" | "testnet" | "mainnet");//Buys property tokens
+    const SELLER = getUserAccount(USER2_KEY, USER2_ID, NETWORK as "localnet" | "testnet" | "mainnet");//Sells property tokens
     this.timeout(0);
     before(async () => {
         console.log(`starting Markeplace tests`);
@@ -59,60 +65,104 @@ describe("MarketPlace Contract", function () {
         // if you already know the contract Id, you may do this instead
         // setContractId(ContractId.fromString("0.0.contractNumber"));
         // constructor parameters
-        let parameters = [];
+        // let parameters = [];
         // deploy the contract
         const abi = JSON.parse(abiStr) as { abi: any, bytecode: string }
-        const contractId = await deploy("MarketPlace", abi.bytecode);
-        // const contractId = "0.0.1046"
+        //Mint USDC token on the buyer's account
+        const contractId = await deploy("MarketPlace", abi.bytecode, BUYER.accountId, BUYER.privateKey, BUYER.client);
+        // const contractId = "0.0.1097"
         console.log(`contract deployed at: ${contractId}`);
         setContractId(contractId);
     });
-    it("Should just test if testing works", async function () {
-        const contractId = getContractId();
-        expect(true).to.equal(true);
-    });
     it("should associate a token to the contract", async () => {
-        const token = await mintToken("testToken", "TT", OPERATOR_ID, client, OPERATOR_KEY);
+        //Associate both the residential token and USDC to the contract
+        const token = await mintToken("ABC apartments Unit 33", "ABC3", SELLER.accountId, SELLER.client, SELLER.privateKey);
+        const usdcToken = getUSDCAddress();
+        console.log("USDC token id", usdcToken);
+        console.log("Property token id", token.toString());
         setTokenId(token.toString());
         const evmTokenAddress = `0x${token.toEvmAddress()}`;
+        const usdcEVMAddress = `0x${TokenId.fromString(usdcToken).toEvmAddress()}`;
         const contractId = getContractId();
+        //Tx for property token
         const txTokenAssociate = await new ContractExecuteTransaction()
             .setContractId(contractId)
             .setGas(4_000_000)
             .setFunction("tokenAssociate", new ContractFunctionParameters().addAddress(evmTokenAddress))
             .setMaxTransactionFee(new Hbar(5))
             .freezeWith(client);
+
+        //Sign and execute the property token transaction
         const signTxTokenAssociate = await txTokenAssociate.sign(OPERATOR_KEY);
         const txTokenAssociateResponse = await signTxTokenAssociate.execute(client);
         const receipt = await txTokenAssociateResponse.getReceipt(client);
         const status = receipt.status;
+
+        //Tx for USDC token
+        const usdctokenAssociate = await new ContractExecuteTransaction()
+            .setContractId(contractId)
+            .setGas(4_000_000)
+            .setFunction("tokenAssociate", new ContractFunctionParameters().addAddress(usdcEVMAddress))
+            .setMaxTransactionFee(new Hbar(5))
+            .freezeWith(client);
+        //Sign and execute the usdc transaction
+        const signTxUSDCAssociate = await usdctokenAssociate.sign(OPERATOR_KEY);
+        const txUSDCAssociateResponse = await signTxUSDCAssociate.execute(client);
+        const receiptUSDC = await txUSDCAssociateResponse.getReceipt(client);
+        const statusUSDC = receiptUSDC.status;
+
         expect(status.toString()).to.equal("SUCCESS");
+        expect(statusUSDC.toString()).to.equal("SUCCESS");
+
     });
     it("should allow a user to give allowance to the contract", async () => {
-        const contractId = getContractId();
+        //give allowance to the contract on both the property token and USDC
         const tokenId = getTokenId();
-        const allowanceReceipt = await allowanceApproval(tokenId, OPERATOR_ID.toString(), contractId, 100, OPERATOR_KEY, client);
+        const usdcToken = getUSDCAddress();
+        const contractId = getContractId();
+        const usdcAllowanceReceipt = await allowanceApproval(usdcToken, BUYER.accountId.toString(), contractId, 100, BUYER.privateKey, BUYER.client);
+        const allowanceReceipt = await allowanceApproval(tokenId, SELLER.accountId.toString(), contractId, 100, SELLER.privateKey, SELLER.client);
         expect(allowanceReceipt.status.toString()).to.equal("SUCCESS");
+        expect(usdcAllowanceReceipt.status.toString()).to.equal("SUCCESS");
     })
     it("Should allow a user to deposit token to contract", async () => {
+        //Both buyer and seller deposit tokens to the contract
         const contractId = getContractId();
         const tokenId = getTokenId();
+        const usdcToken = getUSDCAddress();
+
         const evmTokenAddress = `0x${TokenId.fromString(tokenId).toEvmAddress()}`;
+        const evmUSDCAddress = `0x${TokenId.fromString(usdcToken).toEvmAddress()}`;
+        //Deposit property token by the seller
         const txDeposit = await new ContractExecuteTransaction()
             .setContractId(contractId)
             .setGas(4_000_000)
             .setFunction("depositToken", new ContractFunctionParameters().addAddress(evmTokenAddress).addUint256(100))
             .setMaxTransactionFee(new Hbar(5))
-            .freezeWith(client);
-        const signTxDeposit = await txDeposit.sign(OPERATOR_KEY);
-        const txDepositResponse = await signTxDeposit.execute(client);
-        const receipt = await txDepositResponse.getReceipt(client);
+            .freezeWith(SELLER.client);
+        const signTxDeposit = await txDeposit.sign(SELLER.privateKey);
+        const txDepositResponse = await signTxDeposit.execute(SELLER.client);
+        const receipt = await txDepositResponse.getReceipt(SELLER.client);
+        console.log("Deposit Property token receipt", receipt.status.toString());
+        //Deposit USDC by the buyer
+        const txUSDCDeposit = await new ContractExecuteTransaction()
+            .setContractId(contractId)
+            .setGas(4_000_000)
+            .setFunction("depositToken", new ContractFunctionParameters().addAddress(evmUSDCAddress).addUint256(100))
+            .setMaxTransactionFee(new Hbar(5))
+            .freezeWith(BUYER.client);
+        const signTxUSDCDeposit = await txUSDCDeposit.sign(BUYER.privateKey);
+        const txUSDCDepositResponse = await signTxUSDCDeposit.execute(BUYER.client);
+        const receiptUSDC = await txUSDCDepositResponse.getReceipt(BUYER.client);
+        console.log("Deposit USDC token receipt", receiptUSDC.status.toString());
+        expect(receiptUSDC.status.toString()).to.equal("SUCCESS");
         expect(receipt.status.toString()).to.equal("SUCCESS");
     })
     it("should allow a user to initialize a buy order", async () => {
+        //Buyer should initialize a buy order
         const contractId = getContractId();
-        const tokenId = getTokenId();
-        const evmTokenAddress = `0x${TokenId.fromString(tokenId).toEvmAddress()}`;
+        const usdcTokenId = getUSDCAddress();
+        const evmTokenAddress = `0x${TokenId.fromString(usdcTokenId).toEvmAddress()}`;
         const nonce = getNonce();
         const txInitBuyOrder = await new ContractExecuteTransaction()
             .setContractId(contractId)
@@ -123,13 +173,13 @@ describe("MarketPlace Contract", function () {
                 .addUint64(50)
             )
             .setMaxTransactionFee(new Hbar(5))
-            .freezeWith(client);
-        const signTxInitBuyOrder = await txInitBuyOrder.sign(OPERATOR_KEY);
-        const txInitBuyOrderResponse = await signTxInitBuyOrder.execute(client);
-        const receipt = await txInitBuyOrderResponse.getReceipt(client);
+            .freezeWith(BUYER.client);
+        const signTxInitBuyOrder = await txInitBuyOrder.sign(BUYER.privateKey);
+        const txInitBuyOrderResponse = await signTxInitBuyOrder.execute(BUYER.client);
+        const receipt = await txInitBuyOrderResponse.getReceipt(BUYER.client);
         expect(receipt.status.toString()).to.equal("SUCCESS");
     })
-     it("should allow a user to initialize a sell order", async () => {
+    it("should allow a user to initialize a sell order", async () => {
         const contractId = getContractId();
         const tokenId = getTokenId();
         const evmTokenAddress = `0x${TokenId.fromString(tokenId).toEvmAddress()}`;
@@ -143,11 +193,16 @@ describe("MarketPlace Contract", function () {
                 .addUint64(20)
             )
             .setMaxTransactionFee(new Hbar(5))
-            .freezeWith(client);
-        const signTxInitBuyOrder = await txInitBuyOrder.sign(OPERATOR_KEY);
-        const txInitBuyOrderResponse = await signTxInitBuyOrder.execute(client);
-        const receipt = await txInitBuyOrderResponse.getReceipt(client);
+            .freezeWith(SELLER.client);
+        const signTxInitBuyOrder = await txInitBuyOrder.sign(SELLER.privateKey);
+        const txInitBuyOrderResponse = await signTxInitBuyOrder.execute(SELLER.client);
+        const receipt = await txInitBuyOrderResponse.getReceipt(SELLER.client);
         expect(receipt.status.toString()).to.equal("SUCCESS");
+    })
+    it("should test that a trade can settle onchain as expected", async () => {
+        //User 1 creates an order
+        //User 2 creates an order
+        //Do an automatic offchain match and settle onchain.
     })
 
 
