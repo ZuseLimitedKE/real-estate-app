@@ -13,6 +13,7 @@ import BuyTokensForm from "./BuyTokensForm";
 import type { PropertyDetailView } from "@/types/property";
 import { useAccount, useReadContract } from "wagmi";
 import erc20Abi from "@/smartcontract/abi/ERC20.json";
+import marketPlaceAbi from "@/smartcontract/abi/MarketPlace.json";
 import {
   MapPin,
   TrendingUp,
@@ -47,13 +48,14 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
   const [ openDepositUSDCDialog, setOpenDepositUSDCDialog ] = useState(false);
   const { address } = useAccount();
 
+  const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
   const USDC = process.env.USDC_TOKEN as `0x${string}`;
 
-  const { data: balance } = useReadContract({
-    address: USDC,
-    abi: erc20Abi.abi,
-    functionName: "balanceOf",
-    args: [address ?? "0x0000000000000000000000000000000000000000"],
+  const { data: escrowBalance, isLoading: isEscrowLoading } = useReadContract({
+    address: MARKETPLACE,
+    abi: marketPlaceAbi.abi,
+    functionName: "getEscrowBalance",
+    args: [USDC, address ?? "0x0000000000000000000000000000000000000000"],
     query: { enabled: !!address }, // only runs if wallet is connected
   });
 
@@ -64,8 +66,8 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
   });
 
   const formattedBalance =
-    balance && decimals
-      ? Number(balance) / 10 ** Number(decimals)
+    escrowBalance && decimals
+      ? Number(escrowBalance) / 10 ** Number(decimals)
       : 0;
 
   const handleDepositUSDCClick = () => {
@@ -540,7 +542,7 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Insufficient Funds</AlertDialogTitle>
             <AlertDialogDescription>
-              Please deposit some USDC before investing in this property
+              Please deposit some USDC to escrow before investing in this property
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
