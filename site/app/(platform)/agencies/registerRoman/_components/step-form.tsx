@@ -151,13 +151,17 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
     ): DefaultValues<CreatePropertyType> => {
         const data = (raw ?? {}) as Record<string, any>;
         return {
-            ...data,
             property_type: data.property_type ?? defaultValue.propertyType,
             apartment_property_details: {
                 location: data.apartment_property_details.location ?? defaultValue.apartment_property_details.location,
                 documents: data.apartment_property_details.documents ?? [],
                 unit_templates: data.apartment_property_details.unit_templates ?? [],
-                units: data.apartment_property_details.units ?? []
+                units: data.apartment_property_details.units ?? [],
+                name: data.apartment_property_details.name ?? "",
+                description: data.apartment_property_details.description ?? "",
+                parking_spaces: data.apartment_property_details.parking_spaces ?? 0,
+                serviceFeePercent: data.apartment_property_details.serviceFeePercent ?? 0,
+                floors: data.apartment_property_details.floors ?? 0,
             }
         };
     };
