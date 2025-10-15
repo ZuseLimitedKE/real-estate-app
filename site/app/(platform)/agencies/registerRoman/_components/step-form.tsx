@@ -4,7 +4,7 @@ import { PropertyType } from "@/constants/properties";
 import React, { createContext, useEffect, useState } from "react";
 import z, { ZodType } from "zod";
 import { DefaultValues, FormProvider, Path, useForm } from "react-hook-form";
-import { appartmentStepSchemas, createPropertySchema, CreatePropertyType } from "@/types/property";
+import { appartmentStepSchemas, createPropertySchema, CreatePropertyType, propertyTypeSchema } from "@/types/property";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CreatePropertyStep1Form from "./steps/step1";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +51,7 @@ const step1: Steps = {
     num: 1,
     item: <CreatePropertyStep1Form />,
     title: "Select property type",
-    validationSchema: z.enum([PropertyType.APARTMENT, PropertyType.SINGLE], "Invalid property type"),
+    validationSchema: propertyTypeSchema,
     icon: Mouse,
     fields: ["property_type"]
 };
@@ -187,7 +187,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         }, 400);
     };
 
-    const propertyType = form.getValues('property_type');
+    const propertyType = form.watch('property_type');
     const steps = propertyType === undefined || propertyType === null ? [step1] : propertyType === PropertyType.APARTMENT ? apartmentSteps : singlePropertySteps;
     const currentForm = steps.find((s) => s.num === currentStep + 1);
 
@@ -296,7 +296,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         nextStep,
         previousStep,
         isFirstStep: currentStep === 0,
-        isLastStep: currentStep === steps.length - 1,
+        isLastStep: currentStep === steps.length - 1 && (propertyType !== null && propertyType !== undefined),
         isSubmitting
     }
 

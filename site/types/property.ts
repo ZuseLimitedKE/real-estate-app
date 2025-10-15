@@ -217,6 +217,10 @@ export interface PropertyDetailView {
   amenities: string[];
 }
 
+export const propertyTypeSchema = z.object({
+  property_type: z.enum([PropertyType.APARTMENT, PropertyType.SINGLE], "Invalid property type"),
+})
+
 // APARTMENT PROPERTY TYPE
 export const apartmentStep1Schema = z.object({
   name: z.string().trim().min(2, "Apartment estate name is too short"),
@@ -300,7 +304,7 @@ export const addAppartmentSchema = z.object({
 })
 
 export const createPropertySchema = z.object({
-  property_type: z.enum([PropertyType.APARTMENT, PropertyType.SINGLE], "Invalid property type"),
+  ...propertyTypeSchema.shape,
   single_property_details: addPropertySchema.optional(),
   apartment_property_details: addAppartmentSchema.optional(),
 });
