@@ -27,7 +27,7 @@ interface ApartmentCreatedUnitTemplateProps {
 
 export default function ApartmentCreatedUnitTemplate(props: ApartmentCreatedUnitTemplateProps) {
     return (
-        <section className="rounded-md p-2 bg-slate-100 space-y-1 min-w-[200px] overflow-y-scroll max-h-[450px]">
+        <section className="rounded-md p-2 bg-slate-100 space-y-1 min-w-[200px] overflow-y-auto max-h-[450px]">
             <div className="flex gap-2 flex-wrap">
                 <p className="font-bold">Template Name: </p>
                 <p>{props.name}</p>
