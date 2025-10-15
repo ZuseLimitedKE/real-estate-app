@@ -31,8 +31,9 @@ export default function ApartmentUnitsForm() {
                 <h3>Registered Units</h3>
 
                 <div className="flex gap-2 flex-wrap">
-                    {units.map((u) => (
+                    {units.map((u, index) => (
                         <CreatedApartmentUnits 
+                            key={index}
                             {...u}
                         />
                     ))}

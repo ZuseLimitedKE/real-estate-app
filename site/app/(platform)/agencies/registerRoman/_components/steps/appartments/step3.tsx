@@ -34,8 +34,9 @@ export default function ApartmentUnitTemplatesForm() {
                 <h3>Created Unit Templates</h3>
 
                 <div className="flex gap-2 flex-wrap">
-                    {unitTemplates.map((template) => (
+                    {unitTemplates.map((template, index) => (
                         <ApartmentCreatedUnitTemplate 
+                            key={index}
                             {...template}
                         />
                     ))}
