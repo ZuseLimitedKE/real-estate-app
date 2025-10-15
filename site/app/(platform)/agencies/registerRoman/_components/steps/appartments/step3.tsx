@@ -33,8 +33,12 @@ export default function ApartmentUnitTemplatesForm() {
             <section className="bg-slate-200 rounded-md p-2 space-y-4">
                 <h3>Created Unit Templates</h3>
 
-                <div>
-                    <ApartmentCreatedUnitTemplate />
+                <div className="flex gap-2 flex-wrap">
+                    {unitTemplates.map((template) => (
+                        <ApartmentCreatedUnitTemplate 
+                            {...template}
+                        />
+                    ))}
                 </div>
             </section>
 

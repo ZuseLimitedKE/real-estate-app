@@ -2,29 +2,30 @@ import { getUIForAmenity } from "@/app/(platform)/agencies/properties/[id]/compo
 import { AMENITIES } from "@/types/agent_dashboard";
 import Image from "next/image";
 
-export default function ApartmentCreatedUnitTemplate() {
-    const props = {
-        name: "Test template",
-        gross_unit_size: 100,
-        unit_value: 10000000,
-        amenities: {
-            bedrooms: 2,
-            bathrooms: 2,
-            balconies: 2,
-            gym: true,
-            air_conditioning: true,
-            heating: true,
-            furnished: true,
-            laundry_in_unit: true,
-            dishwasher: true,
-            storage_space: true,
-            pet_friendly: true,
-            security_system: true,
-            elevator: true,
-            garden_yard: true,
-        },
-        images: ["/executive-apartments-karen-nairobi.jpg", "/garden-city-residences-thika-road-nairobi.jpg", "/executive-apartments-karen-nairobi.jpg"],
-    };
+interface ApartmentCreatedUnitTemplateProps {
+    name: string,
+    gross_unit_size: number,
+    unit_value: number,
+    images: string[],
+    amenities: {
+        bedrooms?: number | null,
+        bathrooms?: number | null,
+        balconies?: number | null,
+        gym?: boolean,
+        air_conditioning?: boolean,
+        heating?: boolean,
+        furnished?: boolean,
+        laundry_in_unit?: boolean,
+        dishwasher?: boolean,
+        storage_space?: boolean,
+        pet_friendly?: boolean,
+        security_system?: boolean,
+        elevator?: boolean,
+        garden_yard?: boolean,
+    }
+}
+
+export default function ApartmentCreatedUnitTemplate(props: ApartmentCreatedUnitTemplateProps) {
     return (
         <section className="rounded-md p-2 bg-slate-100 space-y-1 min-w-[200px] overflow-y-scroll max-h-[450px]">
             <div className="flex gap-2 flex-wrap">
@@ -107,7 +108,7 @@ export default function ApartmentCreatedUnitTemplate() {
                 <h4 className="font-bold">Unit Images</h4>
                 <div className="flex overflow-x-scroll relative gap-4">
                     {props.images.map((i, index) => (
-                        <Image 
+                        <Image
                             key={index}
                             src={i}
                             width={500}
