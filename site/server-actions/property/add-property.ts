@@ -61,7 +61,7 @@ export async function AddProperty(property: CreatePropertyType, userAddress: str
         }
         const unitID = crypto.randomUUID();
         const total_fractions = Math.floor(template.unitValue / INITIAL_FRACTION_PRICE);
-        
+
         // Getting appropriate unit symbol
         let propertySymbol = property.apartment_property_details.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
         if (propertySymbol.length < 3) {
@@ -72,7 +72,7 @@ export async function AddProperty(property: CreatePropertyType, userAddress: str
           propertySymbol = propertySymbol.padEnd(5, 'X');
         }
 
-        const {tokenID} = await realEstateManagerContract.register({
+        const { tokenID } = await realEstateManagerContract.register({
           tokenSymbol: propertySymbol,
           propertyName: `${property.apartment_property_details.name} - ${unit.name}`,
           numTokens: total_fractions,
@@ -117,9 +117,41 @@ export async function AddProperty(property: CreatePropertyType, userAddress: str
       await database.AddProperty(dbProperty);
     } else if (property.property_type === PropertyType.SINGLE && property.single_property_details) {
       // Create for single property
-    }
+      let payments: {
+        date: Date,
+        amount: number,
+        status: string
+      }[] = [];
+      if (property.single_property_details.tenant) {
+        payments = property.single_property_details.tenant.payments?.filter((p) => p !== undefined) ?? [];
+      }
 
-    await database.AddProperty(property);
+      const totalFractions = property.single_property_details.property_value != 0 ? Math.floor(property.single_property_details.property_value / INITIAL_FRACTION_PRICE) : 0;
+      let propertySymbol = property.single_property_details.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
+      if (propertySymbol.length < 3) {
+        propertySymbol = property.single_property_details.name.slice(0, Math.min(3, property.apartment_property_details.name.length)).toUpperCase().padEnd(3, 'X').replace(/[^A-Z]/g, '');
+      }
+      const {tokenID} = await realEstateManagerContract.register({
+        tokenSymbol: propertySymbol,
+        propertyName: property.single_property_details.name,
+        numTokens: totalFractions,
+        agentAddress: userAddress,
+        timeCreated: new Date(),
+        propertyAddress: property.single_property_details.location.address,
+        serviceFee: property.single_property_details?.serviceFeePercent ?? 0
+      })
+
+      await database.AddProperty({
+        ...property.single_property_details,
+        type: property.property_type,
+        tenant: property.single_property_details.tenant ? {
+          ...property.single_property_details.tenant,
+          payments: payments
+        } : undefined,
+        totalFractions: totalFractions,
+        token_address: tokenID
+      });
+    }
   } catch (error) {
     if (error instanceof MongoServerError && error.code === 11000) {
       // Duplicate key error from Mongo
