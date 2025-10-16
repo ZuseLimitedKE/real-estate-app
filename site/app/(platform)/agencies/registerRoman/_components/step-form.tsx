@@ -44,7 +44,7 @@ interface Steps {
     title: string,
     icon: LucideIcon,
     validationSchema: ZodType<unknown>;
-    fields: string[]
+    fields: Path<CreatePropertyType>[]
 }
 
 const step1: Steps = {
@@ -142,6 +142,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
             console.log("Restoring form state:", savedFormState);
             setCurrentStep(savedFormState.currentStepIndex);
             const convertedData = convertDataFromStorage(savedFormState.formValues);
+            console.log("Converted data", convertedData);
             form.reset(convertedData);
         }
     }, [form, savedFormState]);
@@ -231,13 +232,14 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
             const currentStepValues = form.getValues(currentForm.fields);
             const formValues = Object.fromEntries(
                 currentForm.fields.map((field, index) => {
+                    let key: string = field;
                     if (field.startsWith('apartment_property_details')) {
                         let components = field.split('.').slice(1);
-                        field = components.join('.');
+                        key = components.join('.');
                     }
 
                     return [
-                        field,
+                        key,
                         currentStepValues[index] || "",
                     ]
                 }),
@@ -281,6 +283,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         }
     };
     const previousStep = () => {
+        console.log("Previous state")
         if (currentStep > 0) {
             saveFormState(currentStep - 1);
             setCurrentStep((current) => current - 1);

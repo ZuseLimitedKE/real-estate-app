@@ -2,19 +2,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CreatePropertyType } from "@/types/property";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 
-export default function ApartmentUnitTemplateAmenities() {
+export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {unitTemplatesLength: number}) {
     const {
         register,
         formState: { errors },
         control,
     } = useFormContext<CreatePropertyType>();
-
-    const { fields: unitTemplates } = useFieldArray({
-        control,
-        name: "apartment_property_details.unit_templates"
-    })
 
     return (
         <div className="space-y-4">
@@ -28,15 +23,15 @@ export default function ApartmentUnitTemplateAmenities() {
                         id="unit.amenities.bedrooms"
                         type="number"
                         min="0"
-                        {...register(`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.bedrooms`, {
+                        {...register(`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.bedrooms`, {
                             setValueAs: (v) =>
                                 v === "" || v == null ? undefined : Number(v),
                         })}
                         placeholder="0"
                     />
-                    {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.amenities?.bedrooms && (
+                    {errors.apartment_property_details?.unit_templates?.[unitTemplatesLength]?.amenities?.bedrooms && (
                         <p className="text-sm text-red-500 mt-1">
-                            {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.amenities?.bedrooms?.message}
+                            {errors.apartment_property_details?.unit_templates?.[unitTemplatesLength]?.amenities?.bedrooms?.message}
                         </p>
                     )}
                 </div>
@@ -48,15 +43,15 @@ export default function ApartmentUnitTemplateAmenities() {
                         type="number"
                         min="0"
                         step="0.5"
-                        {...register(`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.bathrooms`, {
+                        {...register(`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.bathrooms`, {
                             setValueAs: (v) =>
                                 v === "" || v == null ? undefined : Number(v),
                         })}
                         placeholder="0"
                     />
-                    {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.amenities?.bathrooms && (
+                    {errors.apartment_property_details?.unit_templates?.[unitTemplatesLength]?.amenities?.bathrooms && (
                         <p className="text-sm text-red-500 mt-1">
-                            {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.amenities?.bathrooms?.message}
+                            {errors.apartment_property_details?.unit_templates?.[unitTemplatesLength]?.amenities?.bathrooms?.message}
                         </p>
                     )}
                 </div>
@@ -67,15 +62,15 @@ export default function ApartmentUnitTemplateAmenities() {
                         id="unit.amenities.balconies"
                         type="number"
                         min="0"
-                        {...register(`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.balconies`, {
+                        {...register(`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.balconies`, {
                             setValueAs: (v) =>
                                 v === "" || v == null ? undefined : Number(v),
                         })}
                         placeholder="0"
                     />
-                    {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.amenities?.balconies && (
+                    {errors.apartment_property_details?.unit_templates?.[unitTemplatesLength]?.amenities?.balconies && (
                         <p className="text-sm text-red-500 mt-1">
-                            {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.amenities?.balconies?.message}
+                            {errors.apartment_property_details?.unit_templates?.[unitTemplatesLength]?.amenities?.balconies?.message}
                         </p>
                     )}
                 </div>
@@ -87,7 +82,7 @@ export default function ApartmentUnitTemplateAmenities() {
                 <div className="grid grid-cols-2 gap-3">
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.gym`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.gym`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -104,7 +99,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.air_conditioning`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.air_conditioning`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -121,7 +116,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.heating`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.heating`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -138,7 +133,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.laundry_in_unit`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.laundry_in_unit`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -155,7 +150,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.furnished`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.furnished`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -172,7 +167,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.dishwasher`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.dishwasher`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -189,7 +184,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.storage_space`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.storage_space`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -206,7 +201,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.pet_friendly`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.pet_friendly`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -223,7 +218,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.security_system`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.security_system`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -240,7 +235,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.elevator`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.elevator`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
@@ -257,7 +252,7 @@ export default function ApartmentUnitTemplateAmenities() {
 
                     <div className="flex items-center space-x-2">
                         <Controller
-                            name={`apartment_property_details.unit_templates.${unitTemplates.length}.amenities.garden_yard`}
+                            name={`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.garden_yard`}
                             control={control}
                             render={({ field }) => (
                                 <Checkbox

@@ -1,8 +1,12 @@
 import { getUIForAmenity } from "@/app/(platform)/agencies/properties/[id]/components/overview";
+import { useCreatePropertyForm } from "@/hooks/use-stepped-form";
 import { AMENITIES } from "@/types/agent_dashboard";
+import { Trash } from "lucide-react";
 import Image from "next/image";
 
 interface ApartmentCreatedUnitTemplateProps {
+    index: number,
+    remove: (index: number) => void,
     name?: string,
     gross_unit_size?: number,
     unit_value?: number,
@@ -26,8 +30,19 @@ interface ApartmentCreatedUnitTemplateProps {
 }
 
 export default function ApartmentCreatedUnitTemplate(props: ApartmentCreatedUnitTemplateProps) {
+    const {saveFormState, currentStep} = useCreatePropertyForm();
     return (
-        <section className="rounded-md p-2 bg-slate-100 space-y-1 min-w-[200px] overflow-y-auto max-h-[450px]">
+        <section className="rounded-md p-2 bg-slate-100 space-y-1 min-w-[200px] overflow-y-auto max-h-[450px] relative">
+            <div 
+                onClick={() => {
+                    props.remove(props.index);
+                    saveFormState(currentStep);
+                }}
+                className="absolute top-[5px] right-[5px]"
+            >
+                <Trash className="text-red-500 w-6 h-6"/>
+            </div>
+
             <div className="flex gap-2 flex-wrap">
                 <p className="font-bold">Template Name: </p>
                 <p>{props.name ?? "N/A"}</p>
@@ -105,8 +120,8 @@ export default function ApartmentCreatedUnitTemplate(props: ApartmentCreatedUnit
             </section>
 
             <section>
-                <h4 className="font-bold">Unit Images</h4>
-                <div className="flex overflow-x-scroll relative gap-4">
+                <h4 className="font-bold">Unit Images ({props.images ? props.images.length : 0})</h4>
+                <div className="flex overflow-x-auto relative gap-4">
                     {props.images && props.images.map((i, index) => (
                         <Image
                             key={index}
@@ -114,7 +129,7 @@ export default function ApartmentCreatedUnitTemplate(props: ApartmentCreatedUnit
                             width={500}
                             height={500}
                             alt={`${props.name} image ${index}`}
-                            className="object-cover w-1/2 min-w-[200px]"
+                            className="object-cover w-[200px]"
                         />
                     ))}
                 </div>

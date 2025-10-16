@@ -7,13 +7,13 @@ import { toast } from "sonner";
 
 export default function ApartmentDocumentsForm() {
     const {
-        getValues,
+        watch,
         setValue,
         formState: { errors, isValid }
     } = useFormContext<CreatePropertyType>();
     const { saveFormState, currentStep } = useCreatePropertyForm();
 
-    const documents = getValues("apartment_property_details.documents") || [];
+    const documents = watch("apartment_property_details.documents") || [];
     // Get all form errors for debugging
     const allErrors = Object.keys(errors).length > 0 ? errors : null;
 
@@ -67,7 +67,7 @@ export default function ApartmentDocumentsForm() {
                                 }))
                                 .filter(Boolean) || [];
 
-                        const currentDocuments = getValues("apartment_property_details.documents") || [];
+                        const currentDocuments = watch("apartment_property_details.documents") || [];
                         const byUrl = new Map<string, { url: string; name: string, type: string, size: string }>();
                         [...(currentDocuments || []), ...newDocuments].forEach((d) => {
                             if (d?.url) byUrl.set(d.url, d);

@@ -255,9 +255,9 @@ export const apartmentStep2Schema = z.object({
 export const unitTemplateSchema = z.object({
   name: z.string().trim().min(2, "Template name is too short"),
   gross_unit_size: z
-    .number()
+    .number("You must enter size of unit")
     .positive("Property size must be greater than 0"),
-  unit_value: z.number().positive("Property value must be greater than 0"),
+  unit_value: z.number("You must enter a unit value").positive("Property value must be greater than 0"),
   amenities: z.object({
     bedrooms: z.number().min(0).nullable().optional(),
     bathrooms: z.number().min(0).nullable().optional(),

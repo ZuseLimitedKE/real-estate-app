@@ -1,23 +1,29 @@
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreatePropertyType } from "@/types/property";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { CreatePropertyType, unitTemplateSchema } from "@/types/property";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import ApartmentUnitTemplateAmenities from "./step3Amenities";
 import ApartmentUnitTemplateImages from "./step3Images";
 import ApartmentCreatedUnitTemplate from "./step3CreatedTemplate";
+import { Button } from "@/components/ui/button";
+import { useCreatePropertyForm } from "@/hooks/use-stepped-form";
 
 export default function ApartmentUnitTemplatesForm() {
     const {
         register,
         formState: { errors },
         control,
+        watch,
+        setError
     } = useFormContext<CreatePropertyType>();
-
-    const { fields: unitTemplates } = useFieldArray({
+    const {saveFormState, currentStep} = useCreatePropertyForm();
+    const unitTemplates = watch("apartment_property_details.unit_templates");
+    const unitTemplateNum = -1;
+    const unitTemplate = watch(`apartment_property_details.unit_templates.${unitTemplateNum}`);
+    const {append, remove} = useFieldArray({
         control,
         name: "apartment_property_details.unit_templates"
-    })
+    });
 
 
     return (
@@ -38,6 +44,8 @@ export default function ApartmentUnitTemplatesForm() {
                         <ApartmentCreatedUnitTemplate 
                             key={index}
                             {...template}
+                            remove={remove}
+                            index={index}
                         />
                     ))}
                 </div>
@@ -52,11 +60,11 @@ export default function ApartmentUnitTemplatesForm() {
                         <Label htmlFor="template_name">Template Name</Label>
                         <Input
                             id="template_name"
-                            {...register(`apartment_property_details.unit_templates.${unitTemplates.length}.name`)}
+                            {...register(`apartment_property_details.unit_templates.${unitTemplateNum}.name`)}
                             placeholder="Enter the name of the apartment estate"
                         />
-                        {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.name && (
-                            <p className="text-sm text-red-500 mt-1">{errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.name?.message}</p>
+                        {errors.apartment_property_details?.unit_templates?.[unitTemplateNum]?.name && (
+                            <p className="text-sm text-red-500 mt-1">{errors.apartment_property_details?.unit_templates?.[unitTemplateNum]?.name?.message}</p>
                         )}
                     </div>
 
@@ -66,14 +74,14 @@ export default function ApartmentUnitTemplatesForm() {
                             id="gross_unit_size"
                             type="number"
                             step="0.01"
-                            {...register(`apartment_property_details.unit_templates.${unitTemplates.length}.gross_unit_size`, {
+                            {...register(`apartment_property_details.unit_templates.${unitTemplateNum}.gross_unit_size`, {
                                 valueAsNumber: true,
                             })}
                             placeholder="0.00"
                         />
-                        {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.gross_unit_size && (
+                        {errors.apartment_property_details?.unit_templates?.[unitTemplateNum]?.gross_unit_size && (
                             <p className="text-sm text-red-500 mt-1">
-                                {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.gross_unit_size?.message}
+                                {errors.apartment_property_details?.unit_templates?.[unitTemplateNum]?.gross_unit_size?.message}
                             </p>
                         )}
                     </div>
@@ -84,19 +92,58 @@ export default function ApartmentUnitTemplatesForm() {
                             id="unit_value"
                             type="number"
                             min="0"
-                            {...register(`apartment_property_details.unit_templates.${unitTemplates.length}.unit_value`, { valueAsNumber: true })}
+                            {...register(`apartment_property_details.unit_templates.${unitTemplateNum}.unit_value`, { valueAsNumber: true })}
                             placeholder="0.00"
                         />
-                        {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.unit_value && (
+                        {errors.apartment_property_details?.unit_templates?.[unitTemplateNum]?.unit_value && (
                             <p className="text-sm text-red-500 mt-1">
-                                {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.unit_value?.message}
+                                {errors.apartment_property_details?.unit_templates?.[unitTemplateNum]?.unit_value?.message}
                             </p>
                         )}
                     </div>
 
-                    <ApartmentUnitTemplateImages />
+                    <ApartmentUnitTemplateImages unitTemplatesLength={unitTemplateNum}/>
 
-                    <ApartmentUnitTemplateAmenities />
+                    <ApartmentUnitTemplateAmenities unitTemplatesLength={unitTemplateNum}/>
+
+                    <Button
+                        type="button"
+                        onClick={() => {
+                            const parsed = unitTemplateSchema.safeParse(unitTemplate);
+                            if (parsed.success) {
+                                console.log("Parse success");
+                                append(parsed.data);
+                                saveFormState(currentStep);
+                            } else {
+                                console.log("Parse error", parsed.error.issues);
+                                for (const error of parsed.error.issues) {
+                                    if (error.path.includes("name")) {
+                                        setError(`apartment_property_details.unit_templates.${unitTemplateNum}.name`, {
+                                            type: "manual",
+                                            message: error.message
+                                        })
+                                    }
+
+                                    if (error.path.includes("gross_unit_size")) {
+                                        setError(`apartment_property_details.unit_templates.${unitTemplateNum}.gross_unit_size`, {
+                                            type: "manual",
+                                            message: error.message,
+                                        })
+                                    }
+
+                                    if (error.path.includes("unit_value")) {
+                                        console.log("This is called");
+                                        setError(`apartment_property_details.unit_templates.${unitTemplateNum}.unit_value`, {
+                                            type: "manual",
+                                            message: error.message
+                                        })
+                                    }
+                                }
+                            }
+                        }}
+                    >
+                        Add Unit
+                    </Button>
                 </section>
             </section>
         </section>

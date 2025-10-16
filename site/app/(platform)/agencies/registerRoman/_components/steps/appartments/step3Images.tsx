@@ -6,20 +6,15 @@ import { AlertCircle } from "lucide-react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
-export default function ApartmentUnitTemplateImages() {
+export default function ApartmentUnitTemplateImages({ unitTemplatesLength }: {unitTemplatesLength: number}) {
     const {
-        control,
+        watch,
         setValue,
         formState: { errors }
     } = useFormContext<CreatePropertyType>();
-    const { saveFormState, currentStep } = useCreatePropertyForm();
+    // const { saveFormState, currentStep } = useCreatePropertyForm();
 
-    const { fields: unitTemplates } = useFieldArray({
-        control,
-        name: "apartment_property_details.unit_templates"
-    });
-
-    const images = unitTemplates.map((i) => i.images);
+    const images = watch(`apartment_property_details.unit_templates.${unitTemplatesLength}.images`)
 
 
     return (
@@ -59,16 +54,16 @@ export default function ApartmentUnitTemplateImages() {
                     onClientUploadComplete={(res) => {
                         const newImageUrls =
                             res?.map((file) => file.ufsUrl).filter(Boolean) || [];
-                        const currentImages = unitTemplates.map((i) => i.images);
+                        const currentImages = watch(`apartment_property_details.unit_templates.${unitTemplatesLength}.images`) || [];
                         const updatedImages = Array.from(
                             new Set([...currentImages, ...newImageUrls]),
                         ) as string[];
-                        setValue(`apartment_property_details.unit_templates.${unitTemplates.length}.images`, updatedImages, {
+                        setValue(`apartment_property_details.unit_templates.${unitTemplatesLength}.images`, updatedImages, {
                             shouldValidate: true,
                         });
-                        setTimeout(() => {
-                            saveFormState(currentStep);
-                        }, 200);
+                        // setTimeout(() => {
+                        //     saveFormState(currentStep);
+                        // }, 200);
                         toast.success(
                             `${newImageUrls.length > 1 ? "Images" : "Image"} uploaded successfully`,
                         );
@@ -82,16 +77,16 @@ export default function ApartmentUnitTemplateImages() {
                 />
 
                 {/* Image-specific error */}
-                {errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.images && (
+                {errors.apartment_property_details?.unit_templates?.[unitTemplatesLength]?.images && (
                     <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <p className="text-sm text-red-600">{errors.apartment_property_details?.unit_templates?.[unitTemplates.length]?.images?.message}</p>
+                        <p className="text-sm text-red-600">{errors.apartment_property_details?.unit_templates?.[unitTemplatesLength]?.images?.message}</p>
                     </div>
                 )}
             </div>
 
             {/* Uploaded Images Display */}
-            {images.length > 0 && <div>{images.length} uploaded image(s)</div>}
+            {images && images.length > 0 && <div>{images.length} uploaded image(s)</div>}
         </div>
     );
 }
