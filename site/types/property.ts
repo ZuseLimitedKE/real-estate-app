@@ -5,10 +5,6 @@ import type { Properties } from "@/db/collections";
 const step1Schema = z.object({
   //STEP 1: property details
   name: z.string().trim().min(2, "The property name is too short"),
-  type: z.enum(
-    [PropertyType.APARTMENT, PropertyType.SINGLE],
-    "Invalid property type",
-  ),
   description: z
     .string()
     .trim()
@@ -91,7 +87,7 @@ const step3Schema = z.object({
           amount: z.number(),
           status: z.string(),
         }),
-      ),
+      ).optional(),
     })
     .optional(),
 });
@@ -163,6 +159,16 @@ export const addPropertySchema = z.object({
   ...step6Schema.shape,
   ...step7Schema.shape,
 });
+
+export const singlePropertySchema = z.object({
+  ...step1Schema.shape,
+  ...step2Schema.shape,
+  ...step3Schema.shape,
+  ...step4Schema.shape,
+  ...step5Schema.shape,
+  ...step6Schema.shape,
+  ...step7Schema.shape,
+})
 
 export const stepSchemas = {
   step1: step1Schema,
@@ -308,7 +314,7 @@ export const addAppartmentSchema = z.object({
 
 export const createPropertySchema = z.object({
   ...propertyTypeSchema.shape,
-  single_property_details: addPropertySchema.optional(),
+  single_property_details: singlePropertySchema.optional(),
   apartment_property_details: addAppartmentSchema.optional(),
 });
 

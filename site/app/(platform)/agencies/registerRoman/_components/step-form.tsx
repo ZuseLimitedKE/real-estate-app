@@ -4,7 +4,7 @@ import { PropertyType } from "@/constants/properties";
 import React, { createContext, useEffect, useState } from "react";
 import z, { ZodType } from "zod";
 import { DefaultValues, FormProvider, Path, useForm } from "react-hook-form";
-import { appartmentStepSchemas, createPropertySchema, CreatePropertyType, propertyTypeSchema } from "@/types/property";
+import { appartmentStepSchemas, createPropertySchema, CreatePropertyType, propertyTypeSchema, stepSchemas } from "@/types/property";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CreatePropertyStep1Form from "./steps/step1";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import ApartmentEstateDetailsForm from "./steps/appartments/step1";
 import ApartmentDocumentsForm from "./steps/appartments/step2";
 import ApartmentUnitTemplatesForm from "./steps/appartments/step3";
 import ApartmentUnitsForm from "./steps/appartments/step4";
-import { BookTemplate, File, HouseIcon, HousePlus, LucideIcon, Mouse } from "lucide-react";
+import { BookTemplate, Camera, File, House, HouseIcon, HousePlus, LucideIcon, MapIcon, Mouse, User, Wallet } from "lucide-react";
 import CreatePropertyFormProgress from "./progress_indicator";
 import PrevButton from "./prev-button";
 import NextButton from "./next-button";
@@ -20,6 +20,12 @@ import { useLocalStorage } from "@mantine/hooks";
 import { SavedFormState } from "@/types/form";
 import { MyError } from "@/constants/errors";
 import { toast } from "sonner";
+import { Step1 } from "./steps/single/step1";
+import { Step2 } from "./steps/single/step2";
+import { Step3 } from "./steps/single/step3";
+import { Step4 } from "./steps/single/step4";
+import { Step5 } from "./steps/single/step5";
+import { Step6 } from "./steps/single/step6";
 
 interface MultiStepFormProps {
     userID: string
@@ -94,6 +100,54 @@ const apartmentSteps: Steps[] = [
 
 const singlePropertySteps: Steps[] = [
     step1,
+    {
+        num: 2,
+        item: <Step1 />,
+        title: "Property Information",
+        validationSchema: stepSchemas.step1,
+        icon: House,
+        fields: ["single_property_details.name", "single_property_details.description", "single_property_details.gross_property_size", "single_property_details.amenities"]
+    },
+    {
+        num: 3,
+        item: <Step2 />,
+        title: "Address Details",
+        validationSchema: stepSchemas.step2,
+        icon: MapIcon,
+        fields: ["single_property_details.location"]
+    },
+    {
+        num: 4,
+        item: <Step3 />,
+        title: "Tenant Information",
+        validationSchema: stepSchemas.step3,
+        icon: User,
+        fields: ["single_property_details.tenant"]
+    },
+    {
+        num: 5,
+        item: <Step4 />,
+        title: "Financial Information",
+        validationSchema: stepSchemas.step4,
+        icon: Wallet,
+        fields: ["single_property_details.proposedRentPerMonth", "single_property_details.serviceFeePercent", "single_property_details.property_value"]
+    },
+    {
+        num: 6,
+        item: <Step5 />,
+        title: "Property Images",
+        validationSchema: stepSchemas.step5,
+        icon: Camera,
+        fields: ["single_property_details.images"]
+    },
+    {
+        num: 7,
+        item: <Step6 />,
+        title: "Legal Documents",
+        validationSchema: stepSchemas.step6,
+        icon: File,
+        fields: ["single_property_details.documents"]
+    }
 ]
 
 export const CreatePropertyContext = createContext<CreatePropertyContextType | null>(null);
@@ -104,7 +158,50 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
 
     const defaultValue = {
         propertyType: undefined,
-        single_property_details: undefined,
+        single_property_details: {
+            name: "",
+            description: "",
+            amenities: {
+                bedrooms: null,
+                bathrooms: null,
+                parking_spaces: null,
+                balconies: null,
+                swimming_pool: false,
+                gym: false,
+                air_conditioning: false,
+                heating: false,
+                laundry_in_unit: false,
+                dishwasher: false,
+                fireplace: false,
+                storage_space: false,
+                pet_friendly: false,
+                security_system: false,
+                elevator: false,
+                garden_yard: false,
+            },
+            location: {
+                address: "",
+                coordinates: {
+                    lat: -1.286389,
+                    lng: 36.817223,
+                },
+            },
+            images: [],
+            documents: [],
+            property_status: "pending" as const,
+            agencyId: userID,
+            token_address: "randomAddress",
+            proposedRentPerMonth: 0,
+            serviceFeePercent: 10,
+            property_value: 0,
+            gross_property_size: 0,
+            tenant: undefined,
+            time_listed_on_site: Date.now(),
+            property_owners: [],
+            secondary_market_listings: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        },
         apartment_property_details: {
             name: "",
             description: "",
@@ -163,6 +260,24 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
                 parking_spaces: data.apartment_property_details.parking_spaces ?? 0,
                 serviceFeePercent: data.apartment_property_details.serviceFeePercent ?? 0,
                 floors: data.apartment_property_details.floors ?? 0,
+            },
+            single_property_details: {
+                ...data?.single_property_details,
+                amenities: data?.single_property_details?.amenities ?? defaultValue.single_property_details.amenities,
+                createdAt: data?.single_property_details?.createdAt ? new Date(data.createdAt) : undefined,
+                updatedAt: data?.single_property_details?.updatedAt ? new Date(data.updatedAt) : undefined,
+                tenant: data?.single_property_details?.tenant ?? undefined,
+                property_owners: Array.isArray(data?.single_property_details?.property_owners)
+                    ? data?.single_property_details?.property_owners.map((owner: any) => ({
+                        ...owner,
+                        purchase_time: owner?.purchase_time
+                            ? new Date(owner.purchase_time)
+                            : undefined,
+                    }))
+                    : [],
+                images: data?.single_property_details?.images ?? [],
+                documents: data?.single_property_details?.documents ?? [],
+                secondary_market_listings: data?.single_property_details?.secondary_market_listings ?? [],
             }
         };
     };
@@ -233,7 +348,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
             const formValues = Object.fromEntries(
                 currentForm.fields.map((field, index) => {
                     let key: string = field;
-                    if (field.startsWith('apartment_property_details')) {
+                    if (field.startsWith('apartment_property_details') || field.startsWith('single_property_details')) {
                         let components = field.split('.').slice(1);
                         key = components.join('.');
                     }
