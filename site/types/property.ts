@@ -283,12 +283,13 @@ export const apartmentStep3Schema = z.object({
   unit_templates: z.array(unitTemplateSchema).min(1, "At least one unit template is required"),
 });
 
+export const unitSchema = z.object({
+  name: z.string().trim().min(2, "Unit name is too short"),
+  template_name: z.string().trim().min(2, "Select a template"),
+  floor: z.number().int().min(1, "Floor must be at least 1"),
+});
 export const apartmentStep4Schema = z.object({
-  units: z.array(z.object({
-    name: z.string().trim().min(2, "Unit name is too short"),
-    template_name: z.string().trim().min(2, "Select a template"),
-    floor: z.number().int().min(1, "Floor must be at least 1"),
-  }))
+  units: z.array(unitSchema)
 });
 
 export const appartmentStepSchemas = {

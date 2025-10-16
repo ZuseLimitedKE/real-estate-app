@@ -142,7 +142,7 @@ export default function ApartmentUnitTemplatesForm() {
                             }
                         }}
                     >
-                        Add Unit
+                        Add Unit Template
                     </Button>
                 </section>
             </section>
