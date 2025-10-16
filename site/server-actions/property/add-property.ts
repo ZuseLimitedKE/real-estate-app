@@ -1,12 +1,20 @@
 "use server";
 import database from "@/db";
 import { MyError, Errors } from "@/constants/errors";
-import { Properties } from "@/db/collections";
 import { MongoServerError } from "mongodb";
 import { AuthError, requireAnyRole } from "@/auth/utils";
 import { UserModel } from "@/db/models/user";
+import { CreatePropertyType } from "@/types/property";
+import { PropertyType } from "@/constants/properties";
+import { Properties } from "@/db/collections";
+import crypto from "crypto";
+import { te } from "date-fns/locale";
+import realEstateManagerContract from "@/smartcontract/registerContract";
+import { add } from "date-fns";
 
-export async function AddProperty(FormData: Properties) {
+const INITIAL_FRACTION_PRICE = 100; // KES
+
+export async function AddProperty(property: CreatePropertyType, userAddress: string) {
   try {
     const payload = await requireAnyRole("admin", "agency");
     if (payload.role === "agency") {
@@ -15,7 +23,103 @@ export async function AddProperty(FormData: Properties) {
         throw new AuthError("Your agency has not been approved yet");
       }
     }
-    await database.AddProperty(FormData);
+
+    // Create property for apartments
+    if (property.property_type === PropertyType.APARTMENT && property.apartment_property_details) {
+      const unitTemplates = property.apartment_property_details.unit_templates.map((template) => {
+        const templateID = crypto.randomUUID();
+        return {
+          id: templateID,
+          amenities: {
+            bedrooms: template.amenities?.bedrooms ?? undefined,
+            bathrooms: template.amenities?.bathrooms ?? undefined,
+            balconies: template.amenities?.balconies ?? undefined,
+            gym: template.amenities?.gym ?? undefined,
+            air_conditioning: template.amenities?.air_conditioning ?? undefined,
+            heating: template.amenities?.heating ?? undefined,
+            laundry_in_unit: template.amenities?.laundry_in_unit ?? undefined,
+            dishwasher: template.amenities?.dishwasher ?? undefined,
+            storage_space: template.amenities?.storage_space ?? undefined,
+            security_system: template.amenities?.security_system ?? undefined,
+            elevator: template.amenities?.elevator ?? undefined,
+            pet_friendly: template.amenities?.pet_friendly ?? undefined,
+            furnished: template.amenities?.furnished ?? undefined,
+          },
+          gross_size: template.gross_unit_size,
+          unitValue: template.unit_value,
+          images: template.images,
+          name: template.name,
+        }
+      });
+
+      const units = [];
+      for await (const unit of property.apartment_property_details.units) {
+        const template = unitTemplates.find((t) => t.name === unit.template_name);
+        if (!template) {
+          console.error("Template not found for unit", unit);
+          continue;
+        }
+        const unitID = crypto.randomUUID();
+        const total_fractions = Math.floor(template.unitValue / INITIAL_FRACTION_PRICE);
+        
+        // Getting appropriate unit symbol
+        let propertySymbol = property.apartment_property_details.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
+        if (propertySymbol.length < 3) {
+          propertySymbol = property.apartment_property_details.name.slice(0, Math.min(3, property.apartment_property_details.name.length)).toUpperCase().padEnd(3, 'X').replace(/[^A-Z]/g, '');
+        }
+        propertySymbol += unit.name.slice(0, 2).toUpperCase().replace(/[^A-Z]/g, '');
+        if (propertySymbol.length < 5) {
+          propertySymbol = propertySymbol.padEnd(5, 'X');
+        }
+
+        const {tokenID} = await realEstateManagerContract.register({
+          tokenSymbol: propertySymbol,
+          propertyName: `${property.apartment_property_details.name} - ${unit.name}`,
+          numTokens: total_fractions,
+          agentAddress: userAddress,
+          timeCreated: new Date(),
+          propertyAddress: property.apartment_property_details.location.address,
+          serviceFee: property.apartment_property_details?.serviceFeePercent ?? 0
+        });
+
+        units.push({
+          id: unitID,
+          templateId: template.id,
+          total_fractions: total_fractions,
+          name: unit.name,
+          floor: unit.floor,
+          token_details: {
+            address: tokenID,
+            total_fractions: total_fractions,
+          },
+          secondary_market_listings: []
+        });
+      }
+
+      const dbProperty: Properties = {
+        type: property.property_type,
+        description: property.apartment_property_details.description,
+        time_listed_on_site: Date.now(),
+        location: property.apartment_property_details.location,
+        agencyId: payload.userId,
+        serviceFeePercent: property.apartment_property_details?.serviceFeePercent,
+        name: property.apartment_property_details.name,
+        property_status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        apartmentDetails: {
+          unitTemplates,
+          parkingSpace: property.apartment_property_details.parking_spaces ?? 0,
+          floors: property.apartment_property_details.floors,
+          units, // Units will be added later by the agency
+        }
+      }
+      await database.AddProperty(dbProperty);
+    } else if (property.property_type === PropertyType.SINGLE && property.single_property_details) {
+      // Create for single property
+    }
+
+    await database.AddProperty(property);
   } catch (error) {
     if (error instanceof MongoServerError && error.code === 11000) {
       // Duplicate key error from Mongo

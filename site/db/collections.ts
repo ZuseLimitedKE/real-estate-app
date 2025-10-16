@@ -5,10 +5,10 @@ const propertiesCollection = "properties";
 const database = client.db(databaseName);
 export interface Properties {
   _id?: ObjectId;
-  totalFractions: number;
+  totalFractions?: number;
   type: string;
   description: string;
-  proposedRentPerMonth: number;
+  proposedRentPerMonth?: number;
   tenant?: {
     address: string;
     rentDate: number; //1-31
@@ -24,8 +24,8 @@ export interface Properties {
     joinDate: Date;
   };
   time_listed_on_site: number; // timestamp
-  property_value: number;
-  gross_property_size: number;
+  property_value?: number;
+  gross_property_size?: number;
   location: {
     coordinates: {
       lat: number;
@@ -33,8 +33,8 @@ export interface Properties {
     };
     address: string;
   };
-  images: string[];
-  documents: {
+  images?: string[];
+  documents?: {
     name: string;
     type: string;
     size: string;
@@ -42,10 +42,10 @@ export interface Properties {
   }[];
   agencyId: string;
   serviceFeePercent: number;
-  token_address: string;
+  token_address?: string;
   name: string;
   property_status: "pending" | "approved" | "rejected";
-  amenities: {
+  amenities?: {
     bedrooms?: number | null;
     bathrooms?: number | null;
     parking_spaces?: number | null;
@@ -63,12 +63,12 @@ export interface Properties {
     elevator?: boolean;
     garden_yard?: boolean;
   };
-  property_owners: {
+  property_owners?: {
     owner_address: string;
     amount_owned: number;
     purchase_time: Date;
   }[];
-  secondary_market_listings: {
+  secondary_market_listings?: {
     lister_address: string;
     amount_listed: number;
   }[];
@@ -78,8 +78,8 @@ export interface Properties {
     unitTemplates: {
       id: string;
       amenities: {
-        bedrooms: number;
-        bathrooms: number;
+        bedrooms?: number;
+        bathrooms?: number;
         balconies?: number;
         gym?: boolean;
         air_conditioning?: boolean;
@@ -100,6 +100,7 @@ export interface Properties {
     parkingSpace: number;
     floors: number;
     units: {
+      id: string;
       templateId: string;
       name: string;
       floor: number;
