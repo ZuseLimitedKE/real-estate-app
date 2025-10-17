@@ -48,8 +48,8 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
   const [ openDepositUSDCDialog, setOpenDepositUSDCDialog ] = useState(false);
   const { address } = useAccount();
 
-  const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
-  const USDC = process.env.USDC_TOKEN as `0x${string}`;
+  const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
+  const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
 
   const { data: escrowBalance, isLoading: isEscrowLoading } = useReadContract({
     address: MARKETPLACE,

@@ -27,8 +27,8 @@ import { toast } from "sonner";
 import { useWriteContract, useAccount, useTransactionReceipt } from "wagmi";
 import marketplaceAbi from "@/smartcontract/abi/MarketPlace.json";
 
-const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
-const PROPERTY_TOKEN = process.env.PROPERTY_TOKEN_TOKEN as `0x${string}`;
+const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
+const PROPERTY_TOKEN = process.env.NEXT_PUBLIC_PROPERTY_TOKEN as `0x${string}`;
 
 interface BuyTokensFormProps {
   propertyId: string;

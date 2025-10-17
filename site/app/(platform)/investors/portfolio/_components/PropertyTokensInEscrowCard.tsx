@@ -4,8 +4,8 @@ import erc20Abi from "@/smartcontract/abi/ERC20.json";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign } from "lucide-react";
 
-const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
-const PROPERTY_TOKEN = process.env.PROPERTY_TOKEN_TOKEN as `0x${string}`;
+const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
+const PROPERTY_TOKEN = process.env.NEXT_PUBLIC_PROPERTY_TOKEN as `0x${string}`;
 
 export function PropertyTokensInEscrowCard() {
   const { address } = useAccount();

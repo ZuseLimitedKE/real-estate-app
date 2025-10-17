@@ -4,8 +4,8 @@ import erc20Abi from "@/smartcontract/abi/ERC20.json";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign } from "lucide-react";
 
-const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
-const USDC = process.env.USDC_TOKEN as `0x${string}`;
+const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
+const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
 
 export function UsdcBalanceCard() {
   const { address } = useAccount();
