@@ -24,9 +24,7 @@ import {
   Clock,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useWriteContract, useAccount, useReadContract } from "wagmi";
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { config } from "@/lib/wagmi"; // or wherever your wagmi config is
+import { useWriteContract, useAccount, useTransactionReceipt } from "wagmi";
 import marketplaceAbi from "@/smartcontract/abi/MarketPlace.json";
 
 const MARKETPLACE = "0x00000000000000000000000000000000006bbea0";
@@ -100,8 +98,12 @@ export default function BuyTokensForm({
     hash?: string;
     amount?: number;
   }>({});
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
   const { address } = useAccount();
   const { writeContractAsync, isError } = useWriteContract();
+  const { data: receipt, isLoading: isConfirming, isSuccess: isConfirmed } = useTransactionReceipt({
+    hash: txHash,
+  });
 
   // Calculate total amount
   const totalAmount = tokenAmount ? parseFloat(tokenAmount) * pricePerToken : 0;
@@ -139,6 +141,30 @@ export default function BuyTokensForm({
     }
   }, [isOpen]);
 
+  // Handle transaction confirmation
+  useEffect(() => {
+    if (isConfirmed && receipt) {
+      console.log("Transaction confirmed:", receipt);
+      
+      if (receipt.status === "success") {
+        setTransactionData({
+          hash: txHash,
+          amount: totalAmount,
+        });
+        setNonce("");
+        setTokenAmount("");
+        setShowSuccessModal(true);
+        toast.success("Transaction successful!");
+      } else {
+        console.error("Transaction reverted:", receipt);
+        toast.error("Transaction failed!");
+      }
+      
+      setTxHash(undefined);
+      setIsLoading(false);
+    }
+  }, [isConfirmed, receipt, txHash, totalAmount]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -153,38 +179,18 @@ export default function BuyTokensForm({
     setIsLoading(true);
 
     try {    
-      const txHash = await writeContractAsync({
+      const hash = await writeContractAsync({
         address: MARKETPLACE,
         abi: marketplaceAbi.abi,
         functionName: "initBuyOrder",
         args: [BigInt(nonce), PROPERTY_TOKEN, BigInt(tokenAmount)],
       });
     
-      console.log("Buy order TX:", txHash);
-    
-      const receipt = await waitForTransactionReceipt(config, {
-        hash: txHash,
-      });
-    
-      console.log("TX receipt:", receipt);
-    
-      if (receipt.status === "success") {
-        setTransactionData({
-          hash: txHash,
-          amount: totalAmount,
-        });
-        setNonce("");
-        setTokenAmount("");
-        setShowSuccessModal(true);
-      } else {
-        console.error("Transaction failed:", receipt);
-        toast.error("Transaction failed!");
-      }
+      console.log("Buy order TX submitted:", hash);
+      setTxHash(hash);
     } catch (err) {
       console.error("Transaction error:", err);
-      toast.error("Transaction reverted or rejected.");
-    }
-     finally {
+      toast.error("Transaction rejected or failed to submit.");
       setIsLoading(false);
     }
   };
