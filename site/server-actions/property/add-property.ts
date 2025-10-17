@@ -139,7 +139,12 @@ export async function AddProperty(property: CreatePropertyType) {
           payments: payments
         } : undefined,
         totalFractions: totalFractions,
-        token_address: tokenID
+        token_address: tokenID,
+        agencyId: payload.userId,
+        property_status: "pending",
+        time_listed_on_site: Date.now(),
+        createdAt: property.single_property_details.createdAt || new Date(),
+        updatedAt: property.single_property_details.updatedAt || new Date(),
       });
     }
   } catch (error) {
