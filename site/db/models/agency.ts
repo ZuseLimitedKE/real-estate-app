@@ -4,7 +4,7 @@ import client from "../connection";
 import {
   AgentDashboardTenantsData,
   AgentProperty,
-  AgentPropertyTenants,
+  PropertyTenant,
   AMENITIES,
   DashboardProperties,
 } from "@/types/agent_dashboard";
@@ -12,7 +12,8 @@ import { Errors, MyError } from "@/constants/errors";
 import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 import { AgencyStatistics } from "@/server-actions/agent/dashboard/getStatistics";
 import { PropertyType } from "@/constants/properties";
-import { title } from "process";
+
+const NUM_YEARS_INVESTMENT = 5;
 
 function getNumMonthsBetweenDates(startDate: Date, endDate: Date): number {
   const startYear = startDate.getFullYear();
@@ -106,6 +107,54 @@ export class AgencyModel {
       throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
     }
   }
+
+  static _getListOfAmenities(amenities: Properties["amenities"]): AMENITIES[] {
+    const amenitiesList: AMENITIES[] = [];
+    if (amenities) {
+      if (amenities.parking_spaces) {
+        amenitiesList.push(AMENITIES.PARKING);
+      }
+      if (amenities.swimming_pool) {
+        amenitiesList.push(AMENITIES.SWIMMING);
+      }
+      if (amenities.gym) {
+        amenitiesList.push(AMENITIES.FITNESS);
+      }
+      if (amenities.air_conditioning) {
+        amenitiesList.push(AMENITIES.AIR_CONDITIONING);
+      }
+      if (amenities.heating) {
+        amenitiesList.push(AMENITIES.HEATING);
+      }
+      if (amenities.laundry_in_unit) {
+        amenitiesList.push(AMENITIES.LAUNDRY);
+      }
+      if (amenities.dishwasher) {
+        amenitiesList.push(AMENITIES.DISHWASHER);
+      }
+      if (amenities.fireplace) {
+        amenitiesList.push(AMENITIES.FIREPLACE);
+      }
+      if (amenities.storage_space) {
+        amenitiesList.push(AMENITIES.STORAGE);
+      }
+      if (amenities.pet_friendly) {
+        amenitiesList.push(AMENITIES.PET_FRIENDLY);
+      }
+      if (amenities.security_system) {
+        amenitiesList.push(AMENITIES.SECURITY);
+      }
+      if (amenities.elevator) {
+        amenitiesList.push(AMENITIES.ELEVATOR);
+      }
+      if (amenities.garden_yard) {
+        amenitiesList.push(AMENITIES.GARDEN);
+      }
+    }
+
+    return amenitiesList;
+  }
+
   static async getPropertyFromID(
     agencyID: string,
     propertyID: string,
@@ -123,6 +172,53 @@ export class AgencyModel {
         return null;
       }
 
+      // Getting details for apartments
+      if (property.type === PropertyType.APARTMENT && property.apartmentDetails) {
+
+      } else if (property.type === PropertyType.SINGLE) {
+        const monthlyRevenue = property.tenant?.rentAmount ?? property.proposedRentPerMonth ?? 0;
+        const propertyValue = property.property_value ?? 0;
+        return {
+          single_property: {
+            name: property.name,
+            address: property.location.address,
+            status: property.property_status,
+            images: property.images ?? [],
+            overview: {
+              occupancy: {
+                occupied: property.tenant ? 1 : 0,
+                monthlyRevenue: property.tenant ? property.tenant.rentAmount : 0,
+              },
+              propertyDetails: {
+                size: property.gross_property_size ?? 0,
+                parkingSpace: property.amenities?.parking_spaces ?? 0,
+                createdAt: property.createdAt,
+              },
+              about: property.description,
+              amenities: this._getListOfAmenities(property.amenities),
+            },
+            financials: {
+              propertyValue: property.property_value ?? 0,
+              monthlyRevenue: monthlyRevenue,
+              annualRevenue: monthlyRevenue * 12,
+              expectedYield: monthlyRevenue === 0 || propertyValue === 0 ? 0 : ((monthlyRevenue * 12) / propertyValue) * 100,
+              roi: monthlyRevenue === 0 || propertyValue === 0 ? 0 : (((monthlyRevenue * 12 * NUM_YEARS_INVESTMENT) - propertyValue) / propertyValue) * 100,
+            },
+            tenant: property.tenant && {
+              name: property.tenant.name,
+              rent: property.tenant.rentAmount,
+              joinDate: property.tenant.joinDate,
+              paymentHistory: property.tenant.payments,
+            },
+            documents: property.documents ?? [],
+          }
+        }
+      } else {
+        console.log(`Unknown property type when getting property from ID: ${propertyID}`, property);
+        return null;
+      }
+
+
       let monthlyRevenue = 0;
       let occupied = 0;
       if (property.apartmentDetails) {
@@ -135,49 +231,11 @@ export class AgencyModel {
       }
       const amenities: AMENITIES[] = [];
 
-      if (property.amenities.parking_spaces) {
-        amenities.push(AMENITIES.PARKING);
-      }
-      if (property.amenities.swimming_pool) {
-        amenities.push(AMENITIES.SWIMMING);
-      }
-      if (property.amenities.gym) {
-        amenities.push(AMENITIES.FITNESS);
-      }
-      if (property.amenities.air_conditioning) {
-        amenities.push(AMENITIES.AIR_CONDITIONING);
-      }
-      if (property.amenities.heating) {
-        amenities.push(AMENITIES.HEATING);
-      }
-      if (property.amenities.laundry_in_unit) {
-        amenities.push(AMENITIES.LAUNDRY);
-      }
-      if (property.amenities.dishwasher) {
-        amenities.push(AMENITIES.DISHWASHER);
-      }
-      if (property.amenities.fireplace) {
-        amenities.push(AMENITIES.FIREPLACE);
-      }
-      if (property.amenities.storage_space) {
-        amenities.push(AMENITIES.STORAGE);
-      }
-      if (property.amenities.pet_friendly) {
-        amenities.push(AMENITIES.PET_FRIENDLY);
-      }
-      if (property.amenities.security_system) {
-        amenities.push(AMENITIES.SECURITY);
-      }
-      if (property.amenities.elevator) {
-        amenities.push(AMENITIES.ELEVATOR);
-      }
-      if (property.amenities.garden_yard) {
-        amenities.push(AMENITIES.GARDEN);
-      }
 
-      const NUM_YEARS_INVESTMENT = 5;
 
-      const tenants: AgentPropertyTenants[] = [];
+      
+
+      const tenants: PropertyTenant[] = [];
       if (property.apartmentDetails) {
         for (const unit of property.apartmentDetails.units) {
           if (unit.tenant) {
