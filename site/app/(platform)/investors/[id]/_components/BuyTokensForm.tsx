@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -23,6 +23,12 @@ import {
   Shield,
   Clock,
 } from "lucide-react";
+import { toast } from "sonner";
+import { useWriteContract, useAccount, useTransactionReceipt } from "wagmi";
+import marketplaceAbi from "@/smartcontract/abi/MarketPlace.json";
+
+const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
+const PROPERTY_TOKEN = process.env.NEXT_PUBLIC_PROPERTY_TOKEN as `0x${string}`;
 
 interface BuyTokensFormProps {
   propertyId: string;
@@ -83,6 +89,7 @@ export default function BuyTokensForm({
 }: BuyTokensFormProps) {
   const [tokenAmount, setTokenAmount] = useState<string>("");
   const [pricePerToken, setPricePerToken] = useState<number>(0);
+  const [nonce, setNonce] = useState("");
   const [selectedPayment, setSelectedPayment] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPrice, setIsLoadingPrice] = useState(true);
@@ -91,6 +98,12 @@ export default function BuyTokensForm({
     hash?: string;
     amount?: number;
   }>({});
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+  const { address } = useAccount();
+  const { writeContractAsync, isError } = useWriteContract();
+  const { data: receipt, isLoading: isConfirming, isSuccess: isConfirmed } = useTransactionReceipt({
+    hash: txHash,
+  });
 
   // Calculate total amount
   const totalAmount = tokenAmount ? parseFloat(tokenAmount) * pricePerToken : 0;
@@ -128,37 +141,56 @@ export default function BuyTokensForm({
     }
   }, [isOpen]);
 
+  // Handle transaction confirmation
+  useEffect(() => {
+    if (isConfirmed && receipt) {
+      console.log("Transaction confirmed:", receipt);
+      
+      if (receipt.status === "success") {
+        setTransactionData({
+          hash: txHash,
+          amount: totalAmount,
+        });
+        setNonce("");
+        setTokenAmount("");
+        setShowSuccessModal(true);
+        toast.success("Transaction successful!");
+      } else {
+        console.error("Transaction reverted:", receipt);
+        toast.error("Transaction failed!");
+      }
+      
+      setTxHash(undefined);
+      setIsLoading(false);
+    }
+  }, [isConfirmed, receipt, txHash, totalAmount]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!tokenAmount || !selectedPayment || totalAmount <= 0) {
+    if (!tokenAmount || !selectedPayment || totalAmount <= 0 || !nonce) {
+      return;
+    }
+    if (!address) {
+      toast.error("Please connect your wallet.");
       return;
     }
 
     setIsLoading(true);
 
-    try {
-      const result = await purchaseTokens({
-        propertyId,
-        tokenAmount: parseFloat(tokenAmount),
-        paymentMethod: selectedPayment,
-        totalAmount,
-        userWalletAddress: "0x1234567890abcdef", // In real app, get from wallet connection
+    try {    
+      const hash = await writeContractAsync({
+        address: MARKETPLACE,
+        abi: marketplaceAbi.abi,
+        functionName: "initBuyOrder",
+        args: [BigInt(nonce), PROPERTY_TOKEN, BigInt(tokenAmount)],
       });
-
-      if (result.success) {
-        setTransactionData({
-          hash: result.transactionHash,
-          amount: totalAmount,
-        });
-        setShowSuccessModal(true);
-      } else {
-        alert(result.message); // In a real app, you'd use a proper toast notification
-      }
-    } catch (error) {
-      console.error("Purchase failed:", error);
-      alert("An error occurred. Please try again.");
-    } finally {
+    
+      console.log("Buy order TX submitted:", hash);
+      setTxHash(hash);
+    } catch (err) {
+      console.error("Transaction error:", err);
+      toast.error("Transaction rejected or failed to submit.");
       setIsLoading(false);
     }
   };
@@ -182,7 +214,18 @@ export default function BuyTokensForm({
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-2">
+            {/* Nonce Input */}
+            <div className="space-y-2">
+              <label htmlFor="nonce" className="text-sm font-medium">
+                Nonce
+              </label>
+              <Input
+                placeholder="Nonce (e.g. 1)"
+                value={nonce}
+                onChange={(e) => setNonce(e.target.value)}
+              />
+            </div>
             {/* Token Amount Input */}
             <div className="space-y-2">
               <label htmlFor="tokenAmount" className="text-sm font-medium">
