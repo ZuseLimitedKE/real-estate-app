@@ -33,7 +33,7 @@ async function deploy(contractName: string, byteCode: string) {
 async function main() {
 
     // get contract abi at ./abi/MarketPlace.json
-    const abiStr = fs.readFileSync(`./abi/MarketPlace.json`, 'utf-8')
+    const abiStr = fs.readFileSync(`./artifacts/contracts/MarketPlace.sol/MarketPlace.json`, 'utf-8')
     // console.log("abiStr:", abiStr);
     const abi = JSON.parse(abiStr) as { abi: any, bytecode: string }
     // console.log("abi:", abi.bytecode);
