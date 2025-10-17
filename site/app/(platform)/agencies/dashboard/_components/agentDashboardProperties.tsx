@@ -22,34 +22,41 @@ export default async function AgentDashboardProperties(props: {
 
         return (
           <li key={index} className="m-1">
-            <h4 className="font-semibold text-foreground truncate">{t.name}</h4>
-            <div className="relative h-48 bg-muted">
-              <Image
-                src={t.image || "/placeholder.svg"}
-                alt={t.name}
-                fill
-                className="object-cover"
-              />
-            </div>
+            <section className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+              <header>
+                <div className="relative h-48 bg-muted">
+                  <Image
+                    src={t.image || "/placeholder.svg"}
+                    alt={t.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </header>
 
-            <div className="flex flex-row gap-2">
-              <span className="font-medium text-muted-foreground">Number of units:</span>
-              <span className="text-foreground">{t.numUnits}</span>
-            </div>
+              <section className="p-4">
+                <h4 className="font-semibold text-foreground truncate mb-2">{t.name}</h4>
 
-            <div>
-              <span className="font-medium text-muted-foreground">Proposed rent of each unit:</span>
-              <p className="text-xl font-bold text-foreground">
-                KSh {t.rent.toLocaleString()}
-                <span className="text-sm font-normal text-muted-foreground">
-                  /month
-                </span>
-              </p>
-            </div>
+                <div className="flex flex-row gap-2 text-sm">
+                  <span className="font-medium text-muted-foreground">Number of units:</span>
+                  <span className="text-foreground">{t.numUnits}</span>
+                </div>
 
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              {detailItems}
-            </div>
+                <div>
+                  <span className="font-medium text-muted-foreground text-sm">Proposed rent of each unit:</span>
+                  <p className="text-xl font-bold text-foreground">
+                    KSh {t.rent.toLocaleString()}
+                    <span className="text-sm font-normal text-muted-foreground">
+                      /month
+                    </span>
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
+                  {detailItems}
+                </div>
+              </section>
+            </section>
           </li>
         );
       });
