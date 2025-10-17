@@ -93,6 +93,7 @@ export interface Properties {
         furnished?: boolean;
       },
       gross_size: number;
+      proposedRentPerMonth: number;
       unitValue: number;
       images: string[];
       name: string;
