@@ -8,9 +8,7 @@ import { CreatePropertyType } from "@/types/property";
 import { PropertyType } from "@/constants/properties";
 import { Properties } from "@/db/collections";
 import crypto from "crypto";
-import { te } from "date-fns/locale";
 import realEstateManagerContract from "@/smartcontract/registerContract";
-import { add } from "date-fns";
 
 const INITIAL_FRACTION_PRICE = 100; // KES
 
