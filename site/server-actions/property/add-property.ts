@@ -47,6 +47,7 @@ export async function AddProperty(property: CreatePropertyType) {
           unitValue: template.unit_value,
           images: template.images,
           name: template.name,
+          proposedRentPerMonth: template.proposedRentPerMonth,
         }
       });
 
