@@ -6,34 +6,20 @@ import {
     AccountAllowanceApproveTransaction
 } from "@hashgraph/sdk";
 import {
-    getClient,
-    deploy,
-    call,
-    query,
-    setMaxTransactionFee,
-    setMaxQueryPayment,
-    setDefaultGas,
-    setClient,
-    setContractId,
-    getOperatorId,
-    getOperatorKey,
-    getEnv,
-    mintToken,
-    getContractId,
-    getAssociatedTokens,
-    setTokenId,
-    getTokenId,
-    allowanceApproval,
-    getNonce,
-    getTokenBalances,
-    getUserAccount,
-    getUserEnvs,
-    getUSDCAddress
+    getClient, deploy, call, query, setMaxTransactionFee, setMaxQueryPayment, setDefaultGas, setClient, setContractId, getOperatorId,
+    getOperatorKey, getEnv, mintToken, getContractId, getAssociatedTokens, setTokenId, getTokenId, allowanceApproval, getNonce,
+    getTokenBalances, getUserAccount, getUserEnvs, getUSDCAddress, encodeFunctionParameters, setBuyerNonce,
+    setSellerNonce,
+    getBuyerNonce,
+    getSellerNonce
 } from "../test-utils.js";
 import fs from "fs";
 import { network } from "hardhat";
+import { signBuyOrder, signSellOrder } from "../settle-util.js";
+import { hexToBytes } from "viem";
 const abiStr = fs.readFileSync(`./artifacts/contracts/MarketPlace.sol/MarketPlace.json`, 'utf-8')
 describe("MarketPlace Contract", function () {
+    console.log("Starting this");
 
     const env = getEnv()
     const { USER1_KEY, USER1_ID, USER2_KEY, USER2_ID, NETWORK } = getUserEnvs();
@@ -70,7 +56,7 @@ describe("MarketPlace Contract", function () {
         const abi = JSON.parse(abiStr) as { abi: any, bytecode: string }
         //Mint USDC token on the buyer's account
         const contractId = await deploy("MarketPlace", abi.bytecode, BUYER.accountId, BUYER.privateKey, BUYER.client);
-        // const contractId = "0.0.1097"
+        // const contractId = "0.0.1038"
         console.log(`contract deployed at: ${contractId}`);
         setContractId(contractId);
     });
@@ -115,6 +101,32 @@ describe("MarketPlace Contract", function () {
         expect(statusUSDC.toString()).to.equal("SUCCESS");
 
     });
+    it("should allow users to associate tokens to their accounts", async () => {
+        //Associate the property token and USDC to the buyer and seller accounts
+        const tokenId = getTokenId();
+        const usdcToken = getUSDCAddress();
+        const propertyTokenAssociatetx = await new TokenAssociateTransaction()
+            .setAccountId(BUYER.accountId)
+            .setTokenIds([TokenId.fromString(tokenId)])
+            .freezeWith(BUYER.client);
+        const signPropertyTokenAssociate = await propertyTokenAssociatetx.sign(BUYER.privateKey);
+        const propertyTokenAssociateResponse = await signPropertyTokenAssociate.execute(BUYER.client);
+        const receipt = await propertyTokenAssociateResponse.getReceipt(BUYER.client);
+        console.log("Property token associate receipt", receipt.status.toString());
+        expect(receipt.status.toString()).to.equal("SUCCESS");
+
+        //Associate USDC token to the buyer
+        const usdcTokenAssociateTx = await new TokenAssociateTransaction()
+            .setAccountId(SELLER.accountId)
+            .setTokenIds([TokenId.fromString(usdcToken)])
+            .freezeWith(SELLER.client);
+        const signUSDCAssociate = await usdcTokenAssociateTx.sign(SELLER.privateKey);
+        const usdcTokenAssociateResponse = await signUSDCAssociate.execute(SELLER.client);
+        const receiptUSDC = await usdcTokenAssociateResponse.getReceipt(SELLER.client);
+        console.log("USDC token associate receipt", receiptUSDC.status.toString());
+        expect(receiptUSDC.status.toString()).to.equal("SUCCESS");
+
+    })
     it("should allow a user to give allowance to the contract", async () => {
         //give allowance to the contract on both the property token and USDC
         const tokenId = getTokenId();
@@ -164,6 +176,7 @@ describe("MarketPlace Contract", function () {
         const usdcTokenId = getUSDCAddress();
         const evmTokenAddress = `0x${TokenId.fromString(usdcTokenId).toEvmAddress()}`;
         const nonce = getNonce();
+        setBuyerNonce(nonce);
         const txInitBuyOrder = await new ContractExecuteTransaction()
             .setContractId(contractId)
             .setGas(4_000_000)
@@ -184,13 +197,14 @@ describe("MarketPlace Contract", function () {
         const tokenId = getTokenId();
         const evmTokenAddress = `0x${TokenId.fromString(tokenId).toEvmAddress()}`;
         const nonce = getNonce();
+        setSellerNonce(nonce);
         const txInitBuyOrder = await new ContractExecuteTransaction()
             .setContractId(contractId)
             .setGas(4_000_000)
             .setFunction("initSellOrder", new ContractFunctionParameters()
                 .addUint64(nonce)
                 .addAddress(evmTokenAddress)
-                .addUint64(20)
+                .addUint64(50)
             )
             .setMaxTransactionFee(new Hbar(5))
             .freezeWith(SELLER.client);
@@ -200,10 +214,59 @@ describe("MarketPlace Contract", function () {
         expect(receipt.status.toString()).to.equal("SUCCESS");
     })
     it("should test that a trade can settle onchain as expected", async () => {
-        //User 1 creates an order
-        //User 2 creates an order
-        //Do an automatic offchain match and settle onchain.
-    })
+        const generateExpiry = () => Math.floor(Date.now() / 1000) + 24 * 60 * 60; // expires in 24h
 
+        const contractId = getContractId();
+        const buyOrder = {
+            maker: `0x${BUYER.accountId.toEvmAddress()}` as `0x${string}`,
+            propertyToken: `0x${TokenId.fromString(getTokenId()).toEvmAddress()}` as `0x${string}`,
+            remainingAmount: 50,
+            pricePerShare: 1,
+            expiry: generateExpiry(),
+            type: "BuyOrder",
+            nonce: getBuyerNonce()
+
+        }
+        const sellOrder = {
+            maker: `0x${SELLER.accountId.toEvmAddress()}` as `0x${string}`,
+            propertyToken: `0x${TokenId.fromString(getTokenId()).toEvmAddress()}` as `0x${string}`,
+            remainingAmount: 50,
+            pricePerShare: 1,
+            expiry: generateExpiry(),
+            type: "SellOrder",
+            nonce: getSellerNonce()
+        }
+        //Sign the buy order
+        const buyOrderSignature = await signBuyOrder(buyOrder, USER1_KEY as `0x${string}`, contractId);
+        console.log("Buy order signature", buyOrderSignature.signature, "Buy order hash", buyOrderSignature.hash);
+        //Sign the sell order
+        const sellOrderSignature = await signSellOrder(sellOrder, USER2_KEY as `0x${string}`, contractId);
+        console.log("Sell order signature", sellOrderSignature.signature, "Sell order hash", sellOrderSignature.hash);
+        //Settle the trade
+        const buySignatureBytes = hexToBytes(buyOrderSignature.signature as `0x${string}`);
+        const sellSignatureBytes = hexToBytes(sellOrderSignature.signature as `0x${string}`);
+        const { type: _bt, ...buyOrderNoType } = buyOrder;
+        const { type: _st, ...sellOrderNoType } = sellOrder;
+        const params = encodeFunctionParameters("settle", [buyOrderNoType, buySignatureBytes, sellOrderNoType, sellSignatureBytes]);
+        const txSettleTrade = await new ContractExecuteTransaction()
+            .setContractId(contractId)
+            .setFunctionParameters(params)
+            .setGas(5_000_000)
+            .setMaxTransactionFee(new Hbar(10))
+            .freezeWith(client);
+        const signTxSettleTrade = await txSettleTrade.sign(OPERATOR_KEY);
+        const txSettleTradeResponse = await signTxSettleTrade.execute(client);
+        const receipt = await txSettleTradeResponse.getReceipt(client);
+        console.log("Settle trade receipt", receipt.status.toString());
+        expect(receipt.status.toString()).to.equal("SUCCESS");
+    })
+    it.skip("Should confirm the balances of the investors", async()=>{
+        //Check whether buyer got the property tokens
+        //check whether seller got the usdc
+        const buyerTokens = await getTokenBalances(BUYER.accountId.toString());
+        const sellerTokens = await getTokenBalances(SELLER.accountId.toString());
+        console.log("Buyer token balances", buyerTokens);
+        console.log("Seller token balances", sellerTokens);
+    })
 
 })

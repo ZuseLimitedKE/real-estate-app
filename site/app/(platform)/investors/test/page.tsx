@@ -7,7 +7,7 @@ import { createOrder, associateTokentoContract } from "@/server-actions/marketpl
 import MARKETPLACE_ABI from "@/marketPlaceContractABI.json";
 import { hederaTestnet, hedera } from 'viem/chains';
 import { TokenId } from "@hashgraph/sdk";
-
+import { signTypedData } from 'viem/accounts';
 export default function TestMarketPlace() {
     const { address } = useAccount();
     const { data: walletClient } = useWalletClient();

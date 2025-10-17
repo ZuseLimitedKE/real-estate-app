@@ -41,9 +41,9 @@ import "dotenv/config";
 const abiStr = fs.readFileSync(`./artifacts/contracts/MarketPlace.sol/MarketPlace.json`, 'utf-8')
 // console.log("abiStr:", abiStr);
 const abi = JSON.parse(abiStr) as { abi: any, bytecode: string }
-
 let client: Client;
-let abiInterface;
+let abiInterface = new Interface(abi.abi);
+// let abiInterface;
 let contractId: string;
 let maxTransactionFee = new Hbar(5);
 let maxQueryPayment = new Hbar(5);
@@ -307,17 +307,9 @@ async function getTokenBalances(accountId: string): Promise<{ tokenId: string, b
 
     while (nextLink) {
         const response = await fetch(`${MIRROR_NODE_URL}${nextLink}`);
-        const data: {
-            tokens: {
-                token_id: string,
-                balance: number
-            }[], links: { next: string | null }
-        } = await response.json() as {
-            tokens: { token_id: string, balance: number }[],
-            links: { next: string | null }
-        };
-        tokens.push(...data.tokens.map(token => ({ tokenId: token.token_id, balance: token.balance })));
-        nextLink = data.links.next;
+        const data = await response.json()
+        return tokens
+        nextLink = null
     }
     return tokens;
 }
@@ -374,6 +366,20 @@ function setUSDCAddress(address: string) {
 function getUSDCAddress(): string {
     return usdcAddress;
 }
+let buyerNonce = 0;
+let sellerNonce = 0;
+function setBuyerNonce(nonce: number) {
+    buyerNonce = nonce;
+}
+function setSellerNonce(nonce: number) {
+    sellerNonce = nonce;
+}
+function getBuyerNonce(): number {
+    return buyerNonce;
+}
+function getSellerNonce(): number {
+    return sellerNonce;
+}
 export {
     deploy,
     call,
@@ -398,5 +404,10 @@ export {
     getUserAccount,
     getUserEnvs,
     setUSDCAddress,
-    getUSDCAddress
+    getUSDCAddress,
+    encodeFunctionParameters,
+    setBuyerNonce,
+    setSellerNonce,
+    getBuyerNonce,
+    getSellerNonce
 }
