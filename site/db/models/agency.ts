@@ -314,29 +314,14 @@ export class AgencyModel {
       const tenants: AgentDashboardTenantsData[] = [];
 
       for await (const property of cursor) {
-        if (property.tenant) {
-          tenants.push({
-            name: property.tenant.name,
-            property: property.name,
-            rent: property.tenant.rentAmount,
-            status: property.property_status,
-            contactInfo: {
-              email: property.tenant.email,
-              number: property.tenant.number,
-            },
-            leaseInfo: {
-              property: property.location.address,
-              initialDate: property.createdAt,
-            },
-            paymentHistory: property.tenant.payments,
-          });
-        } else if (property.apartmentDetails) {
+        if (property.type === PropertyType.APARTMENT && property.apartmentDetails) {
+          // Loop through each unit in the apartment
           for (const unit of property.apartmentDetails.units) {
             if (unit.tenant) {
               tenants.push({
                 name: unit.tenant.name,
-                property: property.name,
-                rent: unit.tenant.rent,
+                property: `${property.name} - ${unit.name}`,
+                rent: unit.tenant.rent_amount,
                 status: property.property_status,
                 contactInfo: {
                   email: unit.tenant.email,
@@ -344,12 +329,32 @@ export class AgencyModel {
                 },
                 leaseInfo: {
                   property: property.location.address,
-                  initialDate: property.createdAt,
+                  initialDate: property.createdAt
                 },
-                paymentHistory: unit.tenant.paymentHistory,
+                paymentHistory: unit.tenant.paymentHistory
               });
             }
           }
+        } else if (property.type === PropertyType.SINGLE) {
+          if (property.tenant) {
+            tenants.push({
+              name: property.tenant.name,
+              property: property.name,
+              rent: property.tenant.rentAmount,
+              status: property.property_status,
+              contactInfo: {
+                email: property.tenant.email,
+                number: property.tenant.number,
+              },
+              leaseInfo: {
+                property: property.location.address,
+                initialDate: property.createdAt,
+              },
+              paymentHistory: property.tenant.payments,
+            });
+          }
+        } else {
+          console.log("Unknown property type for tenant extraction", property);
         }
       }
 
