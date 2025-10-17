@@ -16,11 +16,11 @@ export default function ApartmentUnitTemplatesForm() {
         watch,
         setError
     } = useFormContext<CreatePropertyType>();
-    const {saveFormState, currentStep} = useCreatePropertyForm();
+    const { saveFormState, currentStep } = useCreatePropertyForm();
     const unitTemplates = watch("apartment_property_details.unit_templates");
     const unitTemplateNum = -1;
     const unitTemplate = watch(`apartment_property_details.unit_templates.${unitTemplateNum}`);
-    const {append, remove} = useFieldArray({
+    const { append, remove } = useFieldArray({
         control,
         name: "apartment_property_details.unit_templates"
     });
@@ -41,7 +41,7 @@ export default function ApartmentUnitTemplatesForm() {
 
                 <div className="flex gap-2 flex-wrap">
                     {unitTemplates.map((template, index) => (
-                        <ApartmentCreatedUnitTemplate 
+                        <ApartmentCreatedUnitTemplate
                             key={index}
                             {...template}
                             remove={remove}
@@ -87,6 +87,26 @@ export default function ApartmentUnitTemplatesForm() {
                     </div>
 
                     <div className="space-y-2">
+                        <Label htmlFor="unit_template_proposedRentPerMonth">
+                            Proposed Monthly Rent (KSH)
+                        </Label>
+                        <Input
+                            id="unit_template_proposedRentPerMonth"
+                            type="number"
+                            min="0"
+                            {...register(`apartment_property_details.unit_templates.${unitTemplateNum}.proposedRentPerMonth`, {
+                                valueAsNumber: true,
+                            })}
+                            placeholder="0.00"
+                        />
+                        {errors.apartment_property_details?.unit_templates?.[unitTemplateNum]?.proposedRentPerMonth && (
+                            <p className="text-sm text-red-500 mt-1">
+                                {errors.apartment_property_details?.unit_templates?.[unitTemplateNum]?.proposedRentPerMonth.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
                         <Label htmlFor="unit_value">Unit Value (KSH)</Label>
                         <Input
                             id="unit_value"
@@ -102,9 +122,9 @@ export default function ApartmentUnitTemplatesForm() {
                         )}
                     </div>
 
-                    <ApartmentUnitTemplateImages unitTemplatesLength={unitTemplateNum}/>
+                    <ApartmentUnitTemplateImages unitTemplatesLength={unitTemplateNum} />
 
-                    <ApartmentUnitTemplateAmenities unitTemplatesLength={unitTemplateNum}/>
+                    <ApartmentUnitTemplateAmenities unitTemplatesLength={unitTemplateNum} />
 
                     <Button
                         type="button"

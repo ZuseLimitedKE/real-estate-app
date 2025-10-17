@@ -11,6 +11,7 @@ interface ApartmentCreatedUnitTemplateProps {
     gross_unit_size?: number,
     unit_value?: number,
     images?: string[],
+    proposedMonthlyRent?: number,
     amenities?: {
         bedrooms?: number | null,
         bathrooms?: number | null,
@@ -51,6 +52,11 @@ export default function ApartmentCreatedUnitTemplate(props: ApartmentCreatedUnit
             <div className="flex gap-2 flex-wrap">
                 <p className="font-bold">Gross unit size: </p>
                 <p>{props.gross_unit_size ?? "N/A"}</p>
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+                <p className="font-bold">Proposed Monthly Rent (KSH): </p>
+                <p>{props.proposedMonthlyRent ?? "N/A"}</p>
             </div>
 
             <div className="flex gap-2 flex-wrap">

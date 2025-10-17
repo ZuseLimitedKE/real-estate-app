@@ -264,6 +264,9 @@ export const unitTemplateSchema = z.object({
     .number("You must enter size of unit")
     .positive("Property size must be greater than 0"),
   unit_value: z.number("You must enter a unit value").positive("Property value must be greater than 0"),
+  proposedRentPerMonth: z
+    .number()
+    .positive("Proposed rent per month must be greater than 0"),
   amenities: z.object({
     bedrooms: z.number().min(0).nullable().optional(),
     bathrooms: z.number().min(0).nullable().optional(),
