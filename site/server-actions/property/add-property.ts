@@ -73,11 +73,7 @@ export async function AddProperty(property: CreatePropertyType, userAddress: str
         const { tokenID } = await realEstateManagerContract.register({
           tokenSymbol: propertySymbol,
           propertyName: `${property.apartment_property_details.name} - ${unit.name}`,
-          numTokens: total_fractions,
-          agentAddress: userAddress,
-          timeCreated: new Date(),
-          propertyAddress: property.apartment_property_details.location.address,
-          serviceFee: property.apartment_property_details?.serviceFeePercent ?? 0
+          numTokens: total_fractions
         });
 
         units.push({
@@ -127,16 +123,12 @@ export async function AddProperty(property: CreatePropertyType, userAddress: str
       const totalFractions = property.single_property_details.property_value != 0 ? Math.floor(property.single_property_details.property_value / INITIAL_FRACTION_PRICE) : 0;
       let propertySymbol = property.single_property_details.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
       if (propertySymbol.length < 3) {
-        propertySymbol = property.single_property_details.name.slice(0, Math.min(3, property.apartment_property_details.name.length)).toUpperCase().padEnd(3, 'X').replace(/[^A-Z]/g, '');
+        propertySymbol = property.single_property_details.name.slice(0, Math.min(3, property.single_property_details.name.length)).toUpperCase().padEnd(3, 'X').replace(/[^A-Z]/g, '');
       }
       const {tokenID} = await realEstateManagerContract.register({
         tokenSymbol: propertySymbol,
         propertyName: property.single_property_details.name,
-        numTokens: totalFractions,
-        agentAddress: userAddress,
-        timeCreated: new Date(),
-        propertyAddress: property.single_property_details.location.address,
-        serviceFee: property.single_property_details?.serviceFeePercent ?? 0
+        numTokens: totalFractions
       })
 
       await database.AddProperty({

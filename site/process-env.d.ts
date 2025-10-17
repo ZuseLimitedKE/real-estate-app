@@ -7,6 +7,8 @@ declare global {
 
       HEDERA_RPC_URL: string;
       HEDERA_ACCOUNT: string;
+      HEDERA_ACCOUNT_ID: string;
+      HEDERA_NETWORK: string;
       REAL_ESTATE_MANAGER_CONTRACT: string;
 
       AUTH_SECRET: string;

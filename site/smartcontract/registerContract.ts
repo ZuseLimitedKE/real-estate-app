@@ -1,51 +1,55 @@
-import {Web3} from 'web3';
-import abi from "../realEstateManagerABI.json";
+import { Web3 } from 'web3';
+import { AccountId, Client, PrivateKey, TokenCreateTransaction, TokenType } from "@hashgraph/sdk";
 
 export interface RegisterPropertyContract {
     tokenSymbol: string,
     propertyName: string,
     numTokens: number,
-    agentAddress: string,
-    timeCreated: Date,
-    propertyAddress: string,
-    serviceFee: number
 }
 
 const rpcURL = process.env.HEDERA_RPC_URL;
 const pkEnv = process.env.HEDERA_ACCOUNT;
+const accountID = process.env.HEDERA_ACCOUNT_ID;
 const contractAddress = process.env.REAL_ESTATE_MANAGER_CONTRACT;
+const network = process.env.HEDERA_NETWORK || "testnet";
 
 if (!rpcURL || !pkEnv || !contractAddress) {
     throw new Error("Invalid environment variable set up, set HEDERA_RPC_URL, HEDERA_ACCOUNT and REAL_ESTATE_MANAGER_CONTRACT in env variables");
 }
 
 const web3 = new Web3(rpcURL);
-const account = web3.eth.accounts.wallet.add(pkEnv);
-const contract = new web3.eth.Contract(abi.abi, contractAddress);
 
 class RealEstateManagerContract {
-    async register(args: RegisterPropertyContract): Promise<{tokenID: string, txHash: string}> {
+    async register(args: RegisterPropertyContract): Promise<{ tokenID: string, txHash: string }> {
         try {
-            // const tx = await contract.methods.registerProperty(
-            //     args.propertyID,
-            //     args.tokenSymbol,
-            //     args.propertyName,
-            //     BigInt(args.numTokens),
-            //     args.agentAddress,
-            //     BigInt(args.timeCreated.getTime()),
-            //     args.propertyAddress,
-            //     BigInt(args.serviceFee)
-            // ).send({from: account[0].address});
+            if (!pkEnv || !accountID) {
+                throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
+            }
 
-            // const tokenID = tx.events?.PropertyRegistered?.returnValues?.tokenID;
-            // if (!tokenID) {
-            //     throw new Error("Token ID not returned from contract");
-            // }
+            const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
+            const operatorID = AccountId.fromString(accountID);
+            
+            // Create token for property
+            const client = Client.forName(network).setOperator(operatorID, operatorKey);
+            const tokenCreate = await new TokenCreateTransaction()
+                .setTokenName(args.propertyName)
+                .setTokenSymbol(args.tokenSymbol)
+                .setTokenType(TokenType.FungibleCommon)
+                .setDecimals(0)
+                .setInitialSupply(args.numTokens)
+                .setTreasuryAccountId(operatorID)
+                .setSupplyKey(operatorKey)
+                .execute(client);
 
-            // return {txHash: tx.transactionHash, tokenID: tokenID as string};
+            const tokenCreateReceipt = await tokenCreate.getReceipt(client);
+            const tokenID = tokenCreateReceipt.tokenId;
 
-            throw new Error("Contract interaction is currently disabled");
-        } catch(err) {
+            if (!tokenID) {
+                throw new Error("Token ID is null after creation");
+            }
+
+            return { tokenID: tokenID.toString(), txHash: tokenCreate.transactionId.toString() };
+        } catch (err) {
             console.error("Error registering property in contract", err);
             throw new Error(`Error registering contract: ${(err as Error).message}`);
         }
