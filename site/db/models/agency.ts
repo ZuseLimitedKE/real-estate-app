@@ -206,6 +206,7 @@ export class AgencyModel {
           }
 
           unitTemplates.push({
+            name: template.name,
             images: template.images,
             overview: {
               size: template.gross_size,

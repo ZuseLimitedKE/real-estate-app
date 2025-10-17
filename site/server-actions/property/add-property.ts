@@ -107,7 +107,8 @@ export async function AddProperty(property: CreatePropertyType) {
           parkingSpace: property.apartment_property_details.parking_spaces ?? 0,
           floors: property.apartment_property_details.floors,
           units, // Units will be added later by the agency
-        }
+        },
+        documents: property.apartment_property_details.documents
       }
       await database.AddProperty(dbProperty);
     } else if (property.property_type === PropertyType.SINGLE && property.single_property_details) {

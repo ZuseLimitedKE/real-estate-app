@@ -94,6 +94,7 @@ export interface AgentProperty {
 }
 
 export interface ApartmentUnitTemplate {
+    name: string,
     images: string[],
     overview: {
         size: number,
