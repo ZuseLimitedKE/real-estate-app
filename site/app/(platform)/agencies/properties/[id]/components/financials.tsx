@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { AgentPropertyFinances } from "@/types/agent_dashboard";
+import type { SinglePropertyFinances } from "@/types/agent_dashboard";
 
 export default function PropertyFinancials(props: {
-  finances: AgentPropertyFinances;
+  finances: SinglePropertyFinances;
 }) {
   return (
     <div className="space-y-8">
@@ -27,7 +27,7 @@ export default function PropertyFinancials(props: {
                 Expected Yield
               </span>
               <span className="text-2xl font-bold text-success">
-                {props.finances.expectedYield}%
+                {props.finances.expectedYield.toFixed(2)}%
               </span>
             </div>
             <div className="flex items-center justify-between py-4">
@@ -71,7 +71,7 @@ export default function PropertyFinancials(props: {
                 ROI
               </span>
               <span className="text-2xl font-bold text-success">
-                {props.finances.roi}%
+                {props.finances.roi.toFixed(2)}%
               </span>
             </div>
           </div>

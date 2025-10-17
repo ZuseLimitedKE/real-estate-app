@@ -78,9 +78,11 @@ export interface AgentProperty {
         overview: SinglePropertyOverview,
         financials: SinglePropertyFinances,
         documents: PropertyDocuments[],
-        tenants: PropertyTenant[]
+        tenant?: PropertyTenant
     },
     apartment_property?: {
+        occupancyRate: number,
+        numTenants: number,
         name: string,
         about: string,
         address: string,
@@ -97,6 +99,12 @@ export interface ApartmentUnitTemplate {
         size: number,
         amenities: AMENITIES[],
     },
+    units: ApartmentUnit[]
+}
+
+export interface ApartmentUnit {
+    name: string
+    tenant?: PropertyTenant,
     financials: {
         unitValue: number,
         expectedYield: number,
@@ -104,15 +112,10 @@ export interface ApartmentUnitTemplate {
         annualRevenue: number,
         roi: number,
     },
-    units: {
-        name: string
-        tenants: PropertyTenant[]
-    }[]
 }
 
 export interface SinglePropertyOverview {
     propertyDetails: {
-        type: 'single',
         size: number,
         parkingSpace?: number,
         createdAt: Date
@@ -120,8 +123,6 @@ export interface SinglePropertyOverview {
     occupancy?: {
         occupied: number,
         monthlyRevenue: number,
-        totalUnits: number,
-        rate: number
     },
     about: string,
     amenities: AMENITIES[],

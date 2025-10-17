@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type AgentPropertyOverview, AMENITIES } from "@/types/agent_dashboard";
+import { type SinglePropertyOverview, AMENITIES } from "@/types/agent_dashboard";
 import {
   Bed,
   Box,
@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 export default function PropertyOverview(props: {
-  overview: AgentPropertyOverview;
+  overview: SinglePropertyOverview;
 }) {
   const amenitiesUI = props.overview.amenities.map((amenity, index) => (
     <div key={index}>{getUIForAmenity(amenity)}</div>
@@ -42,7 +42,7 @@ export default function PropertyOverview(props: {
                 Type
               </span>
               <p className="text-lg font-semibold text-foreground">
-                {props.overview.propertyDetails.type}
+                single
               </p>
             </div>
 
@@ -54,28 +54,6 @@ export default function PropertyOverview(props: {
                 {props.overview.propertyDetails.size} sqft
               </p>
             </div>
-
-            {props.overview.propertyDetails.units && (
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  Units
-                </span>
-                <p className="text-lg font-semibold text-foreground">
-                  {props.overview.propertyDetails.units}
-                </p>
-              </div>
-            )}
-
-            {props.overview.propertyDetails.floors && (
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  Floors
-                </span>
-                <p className="text-lg font-semibold text-foreground">
-                  {props.overview.propertyDetails.floors}
-                </p>
-              </div>
-            )}
 
             {props.overview.propertyDetails.parkingSpace && (
               <div className="space-y-1">
@@ -111,20 +89,10 @@ export default function PropertyOverview(props: {
             <div className="space-y-6">
               <div className="flex items-center justify-between py-3 border-b border-border">
                 <span className="text-muted-foreground font-medium">
-                  Occupied Units
+                  Occupancy status
                 </span>
                 <span className="text-xl font-bold text-foreground">
-                  {props.overview.occupancy.occupied}/
-                  {props.overview.occupancy.totalUnits}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between py-3 border-b border-border">
-                <span className="text-muted-foreground font-medium">
-                  Occupancy Rate
-                </span>
-                <span className="text-xl font-bold text-success">
-                  {props.overview.occupancy.rate}%
+                  {props.overview.occupancy.occupied ? "occupied" : "vacant"}
                 </span>
               </div>
 
