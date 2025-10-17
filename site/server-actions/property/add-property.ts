@@ -12,7 +12,7 @@ import realEstateManagerContract from "@/smartcontract/registerContract";
 
 const INITIAL_FRACTION_PRICE = 100; // KES
 
-export async function AddProperty(property: CreatePropertyType, userAddress: string) {
+export async function AddProperty(property: CreatePropertyType) {
   try {
     const payload = await requireAnyRole("admin", "agency");
     if (payload.role === "agency") {
@@ -58,7 +58,7 @@ export async function AddProperty(property: CreatePropertyType, userAddress: str
           continue;
         }
         const unitID = crypto.randomUUID();
-        const total_fractions = Math.floor(template.unitValue / INITIAL_FRACTION_PRICE);
+        const total_fractions = template.unitValue === 0 ? 0 : Math.ceil(template.unitValue / INITIAL_FRACTION_PRICE);
 
         // Getting appropriate unit symbol
         let propertySymbol = property.apartment_property_details.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
@@ -120,7 +120,7 @@ export async function AddProperty(property: CreatePropertyType, userAddress: str
         payments = property.single_property_details.tenant.payments?.filter((p) => p !== undefined) ?? [];
       }
 
-      const totalFractions = property.single_property_details.property_value != 0 ? Math.floor(property.single_property_details.property_value / INITIAL_FRACTION_PRICE) : 0;
+      const totalFractions = property.single_property_details.property_value != 0 ? Math.ceil(property.single_property_details.property_value / INITIAL_FRACTION_PRICE) : 0;
       let propertySymbol = property.single_property_details.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
       if (propertySymbol.length < 3) {
         propertySymbol = property.single_property_details.name.slice(0, Math.min(3, property.single_property_details.name.length)).toUpperCase().padEnd(3, 'X').replace(/[^A-Z]/g, '');

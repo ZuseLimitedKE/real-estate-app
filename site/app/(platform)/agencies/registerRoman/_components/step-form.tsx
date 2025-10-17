@@ -26,6 +26,7 @@ import { Step3 } from "./steps/single/step3";
 import { Step4 } from "./steps/single/step4";
 import { Step5 } from "./steps/single/step5";
 import { Step6 } from "./steps/single/step6";
+import { AddProperty } from "@/server-actions/property/add-property";
 
 interface MultiStepFormProps {
     userID: string
@@ -315,6 +316,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         setIsSubmitting(true);
         try {
             console.log(data);
+            await AddProperty(data);
             toast.success(
                 "The property is under review ,we will get back to you shortly",
             );
