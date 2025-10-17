@@ -33,15 +33,15 @@ export default function DepositPropertyTokens({ open, setOpen, onSuccess }: Depo
   const [loading, setLoading] = useState(false);
 
   // const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
-  // const USDC = process.env.USDC_TOKEN as `0x${string}`;
+  // const PROPERTY_TOKEN = process.env.PROPERTY_TOKEN_TOKEN as `0x${string}`;
   const MARKETPLACE = "0x00000000000000000000000000000000006bbea0"
-  const USDC = "0x00000000000000000000000000000000006bc911";
+  const PROPERTY_TOKEN = "0x00000000000000000000000000000000006bc911";
 
   const { data: decimalsData } = useReadContract({
-    address: USDC,
+    address: PROPERTY_TOKEN,
     abi: erc20Abi.abi,
     functionName: "decimals",
-    query: { enabled: Boolean(USDC) },
+    query: { enabled: Boolean(PROPERTY_TOKEN) },
   });
 
   const decimals =
@@ -89,10 +89,10 @@ export default function DepositPropertyTokens({ open, setOpen, onSuccess }: Depo
         address: MARKETPLACE,
         abi: marketPlaceAbi.abi,
         functionName: "depositToken",
-        args: [USDC, parsedAmount],
+        args: [PROPERTY_TOKEN, parsedAmount],
       });
     }
-  }, [approved, depositHash, isDepositPending, waitingDeposit, writeDeposit, MARKETPLACE, USDC, parsedAmount]);
+  }, [approved, depositHash, isDepositPending, waitingDeposit, writeDeposit, MARKETPLACE, PROPERTY_TOKEN, parsedAmount]);
 
   // Handle deposit success
   useEffect(() => {
@@ -130,7 +130,7 @@ export default function DepositPropertyTokens({ open, setOpen, onSuccess }: Depo
       console.log("🔍 Deposit Debug Info:", {
         isConnected,
         MARKETPLACE,
-        USDC,
+        PROPERTY_TOKEN,
         amount,
         parsedAmount: parsedAmount.toString(),
       });
@@ -139,9 +139,9 @@ export default function DepositPropertyTokens({ open, setOpen, onSuccess }: Depo
         toast.error("Connect your wallet first");
         return;
       }
-      if (!MARKETPLACE || !USDC) {
+      if (!MARKETPLACE || !PROPERTY_TOKEN) {
         toast.error("Missing contract addresses");
-        console.error("Missing addresses:", { MARKETPLACE, USDC });
+        console.error("Missing addresses:", { MARKETPLACE, PROPERTY_TOKEN });
         return;
       }
       if (parsedAmount <= BigInt(0)) {
@@ -152,14 +152,14 @@ export default function DepositPropertyTokens({ open, setOpen, onSuccess }: Depo
       setLoading(true);
 
       console.log("✅ Calling writeApprove with:", {
-        address: USDC,
+        address: PROPERTY_TOKEN,
         functionName: "approve",
         args: [MARKETPLACE, parsedAmount.toString()],
       });
 
-      // Approve Marketplace to spend USDC
+      // Approve Marketplace to spend PROPERTY_TOKEN
       writeApprove({
-        address: USDC,
+        address: PROPERTY_TOKEN,
         abi: erc20Abi.abi,
         functionName: "approve",
         args: [MARKETPLACE, parsedAmount],
