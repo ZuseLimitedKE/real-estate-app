@@ -1,14 +1,32 @@
 export interface DashboardProperties {
-    id: string,
-    image: string,
-    name: string,
-    status: string,
-    location: string,
-    details: {
-        title: string,
-        value: string
-    }[],
-    rent: number,
+    single?: {
+        id: string,
+        image: string | null,
+        name: string,
+        status: string,
+        location: string,
+        details: {
+            title: string,
+            value: string
+        }[],
+        rent: number,
+    },
+    apartment?: {
+        id: string,
+        status: string,
+        location: string,
+        name: string,
+        unit_templates: {
+            image: string | null,
+            name: string,
+            details: {
+                title: string,
+                value: string
+            }[],
+            numUnits: number,
+            rent: number,
+        }[]
+    }
 }
 
 export interface AgentDashboardTenantsData {

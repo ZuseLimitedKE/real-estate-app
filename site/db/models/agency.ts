@@ -11,6 +11,8 @@ import {
 import { Errors, MyError } from "@/constants/errors";
 import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 import { AgencyStatistics } from "@/server-actions/agent/dashboard/getStatistics";
+import { PropertyType } from "@/constants/properties";
+import { title } from "process";
 
 function getNumMonthsBetweenDates(startDate: Date, endDate: Date): number {
   const startYear = startDate.getFullYear();
@@ -362,6 +364,73 @@ export class AgencyModel {
     }
   }
 
+  static _getDetailsFromAmenities(amenities: Properties["amenities"]): { title: string, value: string }[] {
+    const details = [];
+    if (amenities) {
+      if (amenities.bedrooms) {
+        details.push({
+          title: AMENITIES.BEDROOM,
+          value: amenities.bedrooms.toString(),
+        });
+      }
+      if (amenities.bathrooms) {
+        details.push({
+          title: AMENITIES.BATHROOM,
+          value: amenities.bathrooms.toString(),
+        });
+      }
+      if (amenities.parking_spaces) {
+        details.push({
+          title: AMENITIES.PARKING,
+          value: amenities.parking_spaces.toString(),
+        });
+      }
+      if (amenities.balconies) {
+        details.push({
+          title: AMENITIES.BALCONY,
+          value: amenities.balconies.toString(),
+        });
+      }
+      if (amenities.swimming_pool) {
+        details.push({ title: AMENITIES.SWIMMING, value: "available" });
+      }
+      if (amenities.gym) {
+        details.push({ title: AMENITIES.FITNESS, value: "available" });
+      }
+      if (amenities.air_conditioning) {
+        details.push({ title: AMENITIES.AIR_CONDITIONING, value: "available" });
+      }
+      if (amenities.heating) {
+        details.push({ title: AMENITIES.HEATING, value: "available" });
+      }
+      if (amenities.laundry_in_unit) {
+        details.push({ title: AMENITIES.LAUNDRY, value: "available" });
+      }
+      if (amenities.dishwasher) {
+        details.push({ title: AMENITIES.DISHWASHER, value: "available" });
+      }
+      if (amenities.fireplace) {
+        details.push({ title: AMENITIES.FIREPLACE, value: "available" });
+      }
+      if (amenities.storage_space) {
+        details.push({ title: AMENITIES.STORAGE, value: "available" });
+      }
+      if (amenities.pet_friendly) {
+        details.push({ title: AMENITIES.PET_FRIENDLY, value: "available" });
+      }
+      if (amenities.security_system) {
+        details.push({ title: AMENITIES.SECURITY, value: "available" });
+      }
+      if (amenities.elevator) {
+        details.push({ title: AMENITIES.ELEVATOR, value: "available" });
+      }
+      if (amenities.garden_yard) {
+        details.push({ title: AMENITIES.GARDEN, value: "available" });
+      }
+    }
+    return details;
+  }
+
   static async getDashboardProperties(
     agencyID: string,
     page: number,
@@ -374,40 +443,39 @@ export class AgencyModel {
         .skip((page - 1) * RESULT_PAGE_SIZE);
       const dashboardProperties: DashboardProperties[] = [];
 
+      // The data gotten for each type of property should be different
       for await (const property of cursor) {
-        const details: {
-          title: string;
-          value: string;
-        }[] = [];
-
-        if (property.amenities.bedrooms) {
-          details.push({
-            title: "Bedrooms",
-            value: property.amenities.bedrooms.toString(),
-          });
+        if (property.type === PropertyType.APARTMENT && property.apartmentDetails) {
+          dashboardProperties.push({
+            apartment: {
+              id: property._id.toString(),
+              name: property.name,
+              status: property.property_status,
+              location: property.location.address,
+              unit_templates: property.apartmentDetails.unitTemplates.map((template) => {
+                return ({
+                  image: template.images && template.images.length > 0 ? template.images[0] : null,
+                  name: template.name,
+                  rent: template.proposedRentPerMonth,
+                  numUnits: property.apartmentDetails?.units && property.apartmentDetails.units.length > 0 ? property.apartmentDetails.units.filter((u) => u.templateId === template.id).length : 0,
+                  details: this._getDetailsFromAmenities(template.amenities),
+                });
+              })
+            }
+          })
+        } else if (property.type === PropertyType.SINGLE) {
+          dashboardProperties.push({
+            single: {
+              id: property._id.toString(),
+              image: property.images && property.images.length > 0 ? property.images[0] : null,
+              name: property.name,
+              status: property.property_status,
+              location: property.location.address,
+              rent: property.proposedRentPerMonth ?? 0,
+              details: this._getDetailsFromAmenities(property.amenities),
+            }
+          })
         }
-        if (property.amenities.bathrooms) {
-          details.push({
-            title: "Bathrooms",
-            value: property.amenities.bathrooms.toString(),
-          });
-        }
-        if (property.amenities.swimming_pool) {
-          details.push({ title: "Swimming pool", value: "available" });
-        }
-        if (property.amenities.gym) {
-          details.push({ title: "Gym", value: "avaialble" });
-        }
-
-        dashboardProperties.push({
-          id: property._id.toString(),
-          image: property.images[0],
-          name: property.name,
-          status: property.property_status,
-          location: property.location.address,
-          details,
-          rent: property.proposedRentPerMonth,
-        });
       }
 
       const totalProperties = await collection.countDocuments({
