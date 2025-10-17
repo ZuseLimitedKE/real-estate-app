@@ -7,6 +7,8 @@ import {
   PropertyTenant,
   AMENITIES,
   DashboardProperties,
+  ApartmentUnitTemplate,
+  ApartmentUnit,
 } from "@/types/agent_dashboard";
 import { Errors, MyError } from "@/constants/errors";
 import { RESULT_PAGE_SIZE } from "@/constants/pagination";
@@ -174,8 +176,61 @@ export class AgencyModel {
 
       // Getting details for apartments
       if (property.type === PropertyType.APARTMENT && property.apartmentDetails) {
+        let totalOccupants = 0;
+        let totalUnits = property.apartmentDetails.units.length;
+        let unitTemplates: ApartmentUnitTemplate[] = [];
 
+        for (const template of property.apartmentDetails.unitTemplates) {
+          const units: ApartmentUnit[] = [];
+
+          const unitsForTemplate = property.apartmentDetails.units.filter((u) => u.templateId === template.id);
+          for (const unit of unitsForTemplate) {
+            const monthlyRevenue = unit.tenant ? unit.tenant.rent_amount : template.proposedRentPerMonth || 0;
+            const unitValue = template.unitValue || 0;
+            units.push({
+              name: unit.name,
+              tenant: unit.tenant && {
+                name: unit.tenant.name,
+                rent: unit.tenant.rent_amount,
+                joinDate: unit.tenant.joinDate,
+                paymentHistory: unit.tenant.paymentHistory,
+              },
+              financials: {
+                unitValue: unitValue,
+                expectedYield: monthlyRevenue === 0 || unitValue === 0 ? 0 : ((monthlyRevenue * 12) / unitValue) * 100,
+                roi: monthlyRevenue === 0 || unitValue === 0 ? 0 : (((monthlyRevenue * 12 * NUM_YEARS_INVESTMENT) - unitValue) / unitValue) * 100,
+                monthlyRevenue: monthlyRevenue,
+                annualRevenue: monthlyRevenue * 12,
+              },
+            })
+          }
+
+          unitTemplates.push({
+            images: template.images,
+            overview: {
+              size: template.gross_size,
+              amenities: this._getListOfAmenities(template.amenities),
+            },
+            units: units
+          })
+        }
+
+
+        return {
+          apartment_property: {
+            name: property.name,
+            address: property.location.address,
+            status: property.property_status,
+            createdAt: property.createdAt,
+            occupancyRate: totalUnits === 0 || totalOccupants === 0 ? 0 : totalOccupants / totalUnits * 100,
+            numTenants: totalOccupants,
+            about: property.description,
+            documents: property.documents ?? [],
+            unitTemplates
+          }
+        }
       } else if (property.type === PropertyType.SINGLE) {
+        // Getting property details for single properties
         const monthlyRevenue = property.tenant?.rentAmount ?? property.proposedRentPerMonth ?? 0;
         const propertyValue = property.property_value ?? 0;
         return {
@@ -198,7 +253,7 @@ export class AgencyModel {
               amenities: this._getListOfAmenities(property.amenities),
             },
             financials: {
-              propertyValue: property.property_value ?? 0,
+              propertyValue: propertyValue,
               monthlyRevenue: monthlyRevenue,
               annualRevenue: monthlyRevenue * 12,
               expectedYield: monthlyRevenue === 0 || propertyValue === 0 ? 0 : ((monthlyRevenue * 12) / propertyValue) * 100,
@@ -217,95 +272,6 @@ export class AgencyModel {
         console.log(`Unknown property type when getting property from ID: ${propertyID}`, property);
         return null;
       }
-
-
-      let monthlyRevenue = 0;
-      let occupied = 0;
-      if (property.apartmentDetails) {
-        occupied = property.apartmentDetails.units.filter(
-          (s) => s.tenant,
-        ).length;
-        for (const unit of property.apartmentDetails.units) {
-          monthlyRevenue += unit.tenant?.rent ?? 0;
-        }
-      }
-      const amenities: AMENITIES[] = [];
-
-
-
-      
-
-      const tenants: PropertyTenant[] = [];
-      if (property.apartmentDetails) {
-        for (const unit of property.apartmentDetails.units) {
-          if (unit.tenant) {
-            tenants.push({
-              name: unit.tenant.name,
-              paymentHistory: unit.tenant.paymentHistory,
-              rent: unit.tenant.rent,
-              joinDate: unit.tenant.joinDate,
-              unit: unit.name,
-            });
-          }
-        }
-      } else if (property.tenant) {
-        tenants.push({
-          name: property.tenant.name,
-          paymentHistory: property.tenant.payments,
-          rent: property.tenant.rentAmount,
-          joinDate: property.tenant.joinDate,
-          unit: property.name,
-        });
-      }
-
-      return {
-        name: property.name,
-        address: property.location.address,
-        status: property.property_status,
-        images: property.images,
-        overview: {
-          propertyDetails: {
-            type: property.type,
-            size: property.gross_property_size,
-            units: property.apartmentDetails
-              ? property.apartmentDetails.units.length
-              : undefined,
-            floors: property.apartmentDetails
-              ? property.apartmentDetails.floors
-              : undefined,
-            parkingSpace: property.apartmentDetails
-              ? property.apartmentDetails.parkingSpace
-              : undefined,
-            createdAt: property.createdAt,
-          },
-          occupancy: property.apartmentDetails
-            ? {
-              occupied: property.apartmentDetails.units.filter(
-                (s) => s.tenant,
-              ).length,
-              monthlyRevenue: monthlyRevenue,
-              totalUnits: property.apartmentDetails.units.length,
-              rate: (occupied / property.apartmentDetails.units.length) * 100,
-            }
-            : undefined,
-          about: property.description,
-          amenities,
-        },
-        financials: {
-          propertyValue: property.property_value,
-          expectedYield:
-            ((monthlyRevenue * 12) / property.property_value) * 100,
-          monthlyRevenue: monthlyRevenue,
-          annualRevenue: monthlyRevenue * 12,
-          roi:
-            ((monthlyRevenue * 12 * NUM_YEARS_INVESTMENT -
-              property.property_value) /
-              property.property_value) *
-            100,
-        },
-        documents: property.documents,
-        tenants,
-      };
     } catch (err) {
       console.error(
         `Could not get property ${propertyID} for agent ${agencyID}`,
