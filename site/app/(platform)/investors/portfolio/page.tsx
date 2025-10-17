@@ -37,8 +37,8 @@ import { useWriteContract } from "wagmi";
 import marketplaceAbi from "@/smartcontract/abi/MarketPlace.json";
 import InitSellOrderDialog from "./_components/InitSellOrderDialog";
 
-// const MARKETPLACE = "0x00000000000000000000000000000000006bbea0"
-// const USDC = "0x00000000000000000000000000000000006bc911";
+  // const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
+  // const PROPERTY_TOKEN = process.env.PROPERTY_TOKEN_TOKEN as `0x${string}`;
 
 export default function PortfolioPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -52,7 +52,7 @@ export default function PortfolioPage() {
   //     address: MARKETPLACE,
   //     abi: marketplaceAbi.abi,
   //     functionName: "tokenAssociate",
-  //     args: [USDC],
+  //     args: [PROPERTY_TOKEN],
   //   });
   // };
 

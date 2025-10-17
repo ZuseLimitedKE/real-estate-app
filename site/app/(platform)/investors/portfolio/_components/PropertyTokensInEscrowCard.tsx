@@ -4,10 +4,8 @@ import erc20Abi from "@/smartcontract/abi/ERC20.json";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign } from "lucide-react";
 
-const MARKETPLACE = "0x00000000000000000000000000000000006bbea0";
-
-// property token address i minted on hedera portal playground
-const PROPERTY_TOKEN = "0x00000000000000000000000000000000006bc911";
+const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
+const PROPERTY_TOKEN = process.env.PROPERTY_TOKEN_TOKEN as `0x${string}`;
 
 export function PropertyTokensInEscrowCard() {
   const { address } = useAccount();
