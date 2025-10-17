@@ -70,22 +70,50 @@ export enum AMENITIES {
 }
 
 export interface AgentProperty {
-    name: string,
-    address: string,
-    status: string,
-    images: string[],
-    overview: AgentPropertyOverview,
-    financials: AgentPropertyFinances,
-    documents: AgentPropertyDocument[],
-    tenants: AgentPropertyTenants[]
+    single_property?: {
+        name: string,
+        address: string,
+        status: string,
+        images: string[],
+        overview: SinglePropertyOverview,
+        financials: SinglePropertyFinances,
+        documents: PropertyDocuments[],
+        tenants: PropertyTenant[]
+    },
+    apartment_property?: {
+        name: string,
+        about: string,
+        address: string,
+        status: string,
+        createdAt: Date,
+        documents: PropertyDocuments[],
+        unitTemplates: ApartmentUnitTemplate[]
+    },
 }
 
-export interface AgentPropertyOverview {
-    propertyDetails: {
-        type: string,
+export interface ApartmentUnitTemplate {
+    images: string[],
+    overview: {
         size: number,
-        units?: number,
-        floors?: number,
+        amenities: AMENITIES[],
+    },
+    financials: {
+        unitValue: number,
+        expectedYield: number,
+        monthlyRevenue: number,
+        annualRevenue: number,
+        roi: number,
+    },
+    units: {
+        name: string
+        tenants: PropertyTenant[]
+    }[]
+}
+
+export interface SinglePropertyOverview {
+    propertyDetails: {
+        type: 'single',
+        size: number,
         parkingSpace?: number,
         createdAt: Date
     },
@@ -99,7 +127,7 @@ export interface AgentPropertyOverview {
     amenities: AMENITIES[],
 }
 
-export interface AgentPropertyFinances {
+export interface SinglePropertyFinances {
     propertyValue: number,
     expectedYield: number,
     monthlyRevenue: number,
@@ -107,16 +135,15 @@ export interface AgentPropertyFinances {
     roi: number,
 }
 
-export interface AgentPropertyDocument {
+export interface PropertyDocuments {
     name: string,
     type: string,
     size: string,
     url: string
 }
 
-export interface AgentPropertyTenants {
+export interface PropertyTenant {
     name: string,
-    unit?: string,
     rent: number,
     joinDate: Date,
     paymentHistory: {
