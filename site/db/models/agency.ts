@@ -14,6 +14,7 @@ import { Errors, MyError } from "@/constants/errors";
 import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 import { AgencyStatistics } from "@/server-actions/agent/dashboard/getStatistics";
 import { PropertyType } from "@/constants/properties";
+import { EditPropertyDetails } from "@/types/edit_property";
 
 const NUM_YEARS_INVESTMENT = 5;
 
@@ -106,6 +107,64 @@ export class AgencyModel {
       return property;
     } catch (err) {
       console.error(err);
+      throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
+    }
+  }
+
+  static async getEditPropertyDetails(_id: ObjectId, agencyID: string): Promise<EditPropertyDetails> {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const property = await collection.findOne({
+        _id: _id,
+        agencyId: agencyID
+      });
+
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+
+      if (property.type === PropertyType.SINGLE) {
+        return {
+          single_property_details: {
+            tenant: property.tenant && {
+              rentAmount: property.tenant?.rentAmount,
+              rentDate: property.tenant?.rentDate,
+              name: property.tenant?.name,
+              number: property?.tenant?.number,
+              address: property?.tenant?.address,
+              joinDate: property?.tenant?.joinDate,
+              email: property?.tenant?.email
+            },
+            payments: property?.tenant?.payments ?? []
+          }
+        }
+      } else if (property.type === PropertyType.APARTMENT && property.apartmentDetails) {
+        return {
+          apartment_details: {
+            num_floors: property.apartmentDetails?.floors,
+            parking_spaces: property.apartmentDetails?.parkingSpace,
+            units: property.apartmentDetails.units.map((u) => {
+              return ({
+                name: u.name,
+                tenant: u.tenant && {
+                  rentAmount:u.tenant?.rent_amount,
+                  rentDate:u.tenant?.rent_date,
+                  name:u.tenant?.name,
+                  number:u?.tenant?.number,
+                  address:u?.tenant?.address,
+                  joinDate:u?.tenant?.joinDate,
+                  email:u?.tenant?.email
+                },
+                payments: u.tenant?.paymentHistory ?? []
+              });
+            })
+          }
+        }
+      } else {
+        throw new MyError("Invalid property");
+      }
+    } catch (err) {
+      console.error("Error getting edit property details", err);
       throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
     }
   }
