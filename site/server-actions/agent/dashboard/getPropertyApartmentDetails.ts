@@ -16,7 +16,7 @@ export async function getEditPropertyDetails(_id: string): Promise<EditPropertyD
     return property;
   } catch(err) {
     console.error(err, `Error getting details for editing apartment ${_id}`)
-    if (err instanceof MyError) {
+    if (err instanceof AuthError) {
       throw new MyError(Errors.UNAUTHORIZED, {cause: err});
     }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -25,44 +25,56 @@ import { updateProperty } from "@/server-actions/agent/dashboard/updateProperty"
 import { Properties } from "@/db/collections";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { EditPropertyDetails } from "@/types/edit_property";
+import EditSinglePropertyForm from "./EditSinglePropertyForm";
 
 // Zod schema for apartment details validation
-const apartmentDetailsSchema = z.object({
-  floors: z
+const tenantSchema = z.object({
+  rentDate: z.number().min(1).max(31).int(),
+  name: z.string().trim().min(1, "Tenant name is required"),
+  email: z.email("Valid email is required"),
+  number: z.string().trim().min(1, "Phone number is required"),
+  rentAmount: z.number().gt(0, "Rent must be more than 0"),
+  address: z.string().trim().min(1, "Tenant address is required"),
+  joinDate: z.date()
+});
+
+export const paymentsSchema = z.object({
+  date: z.date(),
+  amount: z.number().gt(0),
+  status: z.enum(["paid", "pending", "overdue", "partial"]),
+});
+
+const single_property_edit_schema = z.object({
+  tenant: tenantSchema.optional(),
+  payments: z.array(paymentsSchema)
+});
+
+const apartmentUnitSchema = z.object({
+  name: z.string().trim().min(1, "Unit name is required"),
+  tenant: tenantSchema.optional(),
+  payments: z.array(paymentsSchema)
+})
+
+const apartment_property_edit_schema = z.object({
+  num_floors: z
     .number()
     .min(1, "Must have at least 1 floor")
     .max(100, "Maximum 100 floors"),
-  parkingSpace: z.number().min(0, "Parking spaces cannot be negative"),
-  units: z
-    .array(
-      z.object({
-        name: z.string().min(1, "Unit name is required"),
-        tenant: z
-          .object({
-            name: z.string().min(1, "Tenant name is required"),
-            email: z.email("Valid email is required"),
-            number: z.string().min(1, "Phone number is required"),
-            rent: z.number().min(0, "Rent cannot be negative"),
-            joinDate: z.date(),
-            paymentHistory: z.array(
-              z.object({
-                date: z.date(),
-                amount: z.number().min(0),
-                status: z.enum(["paid", "pending", "overdue", "partial"]),
-              }),
-            ),
-          })
-          .optional(),
-      }),
-    )
-    .min(1, "At least one unit is required"),
+  parking_spaces: z.number().min(0, "Parking spaces cannot be negative"),
+  units: z.array(apartmentUnitSchema)
 });
 
-type ApartmentDetailsForm = z.infer<typeof apartmentDetailsSchema>;
+const edit_property_schema = z.object({
+  single_property_details: single_property_edit_schema.optional(),
+  apartment_details: apartment_property_edit_schema.optional()
+});
+
+export type EditPropertyDetailsForm = z.infer<typeof edit_property_schema>;
 
 interface ApartmentDetailsUpdateFormProps {
   propertyId: string;
-  initialData: Properties["apartmentDetails"] | null;
+  initialData: EditPropertyDetails;
 }
 export default function ApartmentDetailsUpdateForm({
   propertyId,
@@ -71,40 +83,63 @@ export default function ApartmentDetailsUpdateForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<ApartmentDetailsForm>({
-    resolver: zodResolver(apartmentDetailsSchema),
+  const form = useForm({
+    resolver: zodResolver(edit_property_schema),
     defaultValues: initialData
-      ? {
-        floors: initialData.floors || 1,
-        parkingSpace: initialData.parkingSpace || 0,
-        units:
-          initialData.units?.length > 0
-            ? initialData.units.map((unit: any) => ({
-              name: unit.name || "",
-              tenant: unit.tenant
-                ? {
-                  name: unit.tenant.name || "",
-                  email: unit.tenant.email || "",
-                  number: unit.tenant.number || "",
-                  rent: unit.tenant.rent || 0,
-                  joinDate: new Date(unit.tenant.joinDate) || new Date(),
-                  paymentHistory:
-                    unit.tenant.paymentHistory?.map((payment: any) => ({
-                      date: new Date(payment.date),
-                      amount: payment.amount || 0,
-                      status: payment.status || "pending",
-                    })) || [],
-                }
-                : undefined,
-            }))
-            : [{ name: "", tenant: undefined }],
-      }
-      : {
-        floors: 1,
-        parkingSpace: 0,
-        units: [{ name: "", tenant: undefined }],
-      },
   });
+
+  const onSubmit = async (data: EditPropertyDetailsForm) => {
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      console.log(data);
+      // await updateProperty(propertyId, { apartmentDetails: data });
+
+      toast.success("Apartment details updated successfully!");
+    } catch (err) {
+      toast.error("Failed to update apartment details");
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-3 mb-6">
+        <Home className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-bold">Update Property Details</h1>
+      </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          {initialData.single_property_details ? <EditSinglePropertyForm /> : <div>No form</div>}
+
+          {/* Submit Button */}
+          <div className="flex justify-end gap-4 mt-4">
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? (
+                <Spinner size="small" className="text-white" />
+              ) : (
+                "Update Property Details"
+              )}
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
+    </div>
+
+  );
 
   const {
     fields: unitFields,
@@ -115,21 +150,7 @@ export default function ApartmentDetailsUpdateForm({
     name: "units",
   });
 
-  const onSubmit = async (data: ApartmentDetailsForm) => {
-    try {
-      setSubmitting(true);
-      setError(null);
 
-      await updateProperty(propertyId, { apartmentDetails: data });
-
-      toast.success("Apartment details updated successfully!");
-    } catch (err) {
-      toast.error("Failed to update apartment details");
-      console.error(err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const addPaymentHistory = (unitIndex: number) => {
     const currentPayments =

@@ -1,3 +1,5 @@
+import { PaymentStatus } from "./property"
+
 export interface EditPropertyDetails {
     single_property_details?: {
         tenant?: EditPropertyTenantDetails,
@@ -27,5 +29,5 @@ interface EditPropertyTenantDetails {
 interface EditPropertyPayments {
     date: Date;
     amount: number;
-    status: string;
+    status: PaymentStatus;
 }

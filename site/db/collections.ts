@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import client from "./connection";
+import { PaymentStatus } from "@/types/property";
 const databaseName = "real-estate-app";
 const propertiesCollection = "properties";
 const database = client.db(databaseName);
@@ -19,7 +20,7 @@ export interface Properties {
     payments: {
       date: Date;
       amount: number;
-      status: string;
+      status: PaymentStatus;
     }[];
     joinDate: Date;
   };
@@ -125,7 +126,7 @@ export interface Properties {
         paymentHistory: {
           date: Date;
           amount: number;
-          status: 'paid' | 'pending' | 'late';
+          status: PaymentStatus;
         }[];
         rent_date: number; //1-31
         joinDate: Date;

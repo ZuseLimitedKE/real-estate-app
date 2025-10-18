@@ -2,6 +2,13 @@ import { PropertyType } from "@/constants/properties";
 import z from "zod";
 import type { Properties } from "@/db/collections";
 
+export enum PaymentStatus {
+  PAID="paid", 
+  PENDING="pending", 
+  OVERDUE="overdue", 
+  PARTIAL="partial"
+}
+
 const step1Schema = z.object({
   //STEP 1: property details
   name: z.string().trim().min(2, "The property name is too short"),
@@ -85,7 +92,7 @@ const step3Schema = z.object({
         z.object({
           date: z.date(),
           amount: z.number(),
-          status: z.string(),
+          status: z.enum([PaymentStatus.OVERDUE, PaymentStatus.PAID, PaymentStatus.PARTIAL, PaymentStatus.PENDING]),
         }),
       ).optional(),
     })
