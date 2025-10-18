@@ -8,6 +8,7 @@ import PropertyOverview from "./overview";
 import PropertyFinancials from "./financials";
 import PropertyDocuments from "./documents";
 import PropertyTenants from "./tenants";
+import Link from "next/link";
 
 export default function SinglePropertyDetails(props: AgentProperty['single_property']) {
     if (!props) {
@@ -35,10 +36,16 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                         </div>
                     </div>
 
-                    <Button size="lg" className="lg:w-auto w-full">
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit Property
-                    </Button>
+                    <Link
+                        href={`/agencies/properties/${props.id}/edit`}
+                        className="flex items-center gap-2"
+                    >
+                        <Button size="lg" className="lg:w-auto w-full">
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit Property
+                        </Button>
+                    </Link>
+
                 </div>
             </header>
 

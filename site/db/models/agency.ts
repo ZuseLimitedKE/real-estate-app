@@ -219,6 +219,7 @@ export class AgencyModel {
 
         return {
           apartment_property: {
+            id: property._id.toString(),
             name: property.name,
             address: property.location.address,
             status: property.property_status,
@@ -236,6 +237,7 @@ export class AgencyModel {
         const propertyValue = property.property_value ?? 0;
         return {
           single_property: {
+            id: property._id.toString(),
             name: property.name,
             address: property.location.address,
             status: property.property_status,

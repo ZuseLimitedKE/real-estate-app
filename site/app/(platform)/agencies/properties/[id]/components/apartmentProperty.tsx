@@ -5,6 +5,7 @@ import { AgentProperty } from "@/types/agent_dashboard";
 import { Edit, MapPin } from "lucide-react";
 import PropertyDocuments from "./documents";
 import ApartmentTemplateView from "./apartmentPropertyTemplate";
+import Link from "next/link";
 
 
 export default function ApartmentPropertyDetails(props: AgentProperty['apartment_property']) {
@@ -31,10 +32,15 @@ export default function ApartmentPropertyDetails(props: AgentProperty['apartment
                         </div>
                     </div>
 
-                    <Button size="lg" className="lg:w-auto w-full">
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit Property
-                    </Button>
+                    <Link
+                        href={`/agencies/properties/${props.id}/edit`}
+                        className="flex items-center gap-2"
+                    >
+                        <Button size="lg" className="lg:w-auto w-full">
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit Property
+                        </Button>
+                    </Link>
                 </div>
             </header>
 

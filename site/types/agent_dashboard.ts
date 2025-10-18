@@ -71,6 +71,7 @@ export enum AMENITIES {
 
 export interface AgentProperty {
     single_property?: {
+        id: string,
         name: string,
         address: string,
         status: string,
@@ -81,6 +82,7 @@ export interface AgentProperty {
         tenant?: PropertyTenant
     },
     apartment_property?: {
+        id: string,
         occupancyRate: number,
         numTenants: number,
         name: string,
