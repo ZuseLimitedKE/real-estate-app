@@ -49,6 +49,15 @@ declare global {
       JWT_ACCESS_EXPIRY: string; // seconds (numeric string)
       JWT_REFRESH_EXPIRY: string; // seconds (numeric string)
       JWT_ISSUER: string;
+      NEXT_PUBLIC_MARKETPLACE_CONTRACT: string;
+      DEPLOYER_PRIVATE_KEY: string;
+      DEPLOYER_ACCOUNT: string;
+      INITIAL_OWNER: string;
+      FEE_COLLECTOR: string;
+      USDC_TOKEN: string;
+      ENVIRONMENT: string;
+      MARKETPLACE_HEDERA_ACCOUNTID: string;
+      DEPLOYER_ACCOUNT_ID: string;
     }
   }
 }
