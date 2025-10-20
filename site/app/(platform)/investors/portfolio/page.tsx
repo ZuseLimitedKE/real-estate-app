@@ -11,14 +11,14 @@ import {
   DollarSign, 
   PieChart, 
   Download, 
-  Eye,
   Calendar,
   Building,
   MapPin,
-  Users,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  ArrowDown,
 } from "lucide-react";
 import {
   mockPortfolioData,
@@ -27,44 +27,86 @@ import {
   type PortfolioOverview,
   type InvestmentProperty,
   type Transaction,
-  type Dividend
+  type Dividend,
 } from "@/types/portfolio";
+import DepositUSDC from "./_components/DepositUSDC";
+import { UsdcBalanceCard } from "./_components/UsdcBalanceCard";
+import { PropertyTokensInEscrowCard } from "./_components/PropertyTokensInEscrowCard";
+import DepositPropertyTokens from "./_components/DepositPropertyTokens";
+import { useWriteContract } from "wagmi";
+import marketplaceAbi from "@/smartcontract/abi/MarketPlace.json";
+import InitSellOrderDialog from "./_components/InitSellOrderDialog";
+
+  // const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
+  // const PROPERTY_TOKEN = process.env.PROPERTY_TOKEN_TOKEN as `0x${string}`;
 
 export default function PortfolioPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [ openDepositUSDCDialog, setOpenDepositUSDCDialog ] = useState(false);
+  const [ openDepositTokensDialog, setOpenDepositTokensDialog ] = useState(false);
+  const [initSellOrder, setInitSellOrder] = useState(false)
+  // const { writeContract, isPending } = useWriteContract();
+
+  // const handleAssociate = async () => {
+  //   await writeContract({
+  //     address: MARKETPLACE,
+  //     abi: marketplaceAbi.abi,
+  //     functionName: "tokenAssociate",
+  //     args: [PROPERTY_TOKEN],
+  //   });
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            My Investment Portfolio
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Track your real estate investments and returns
-          </p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+              My Investment Portfolio
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              Track your real estate investments and returns
+            </p>
+          </div>
+          <div className="space-x-2">
+            <Button onClick={() => setOpenDepositUSDCDialog(true)}>
+              <Plus className="w-4 h-4" />
+              <span>Deposit USDC</span>
+            </Button>
+            {/* <Button onClick={() => setOpenDepositTokensDialog(true)}>
+              <Plus className="w-4 h-4" />
+              <span>Deposit Property Tokens</span>
+            </Button> */}
+            {/* <button
+              onClick={handleAssociate}
+              disabled={isPending}
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              {isPending ? "Associating..." : "Associate Contract with USDC"}
+            </button> */}
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-1 rounded-2xl border">
-            <TabsTrigger value="overview" className="flex items-center gap-2 py-3">
+          <TabsList className="grid w-full h-full grid-cols-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-1.5 rounded-2xl border">
+            <TabsTrigger value="overview" className="flex items-center gap-2 py-3 cursor-pointer">
               <PieChart className="w-4 h-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="investments" className="flex items-center gap-2 py-3">
+            <TabsTrigger value="investments" className="flex items-center gap-2 py-3 cursor-pointer">
               <Building className="w-4 h-4" />
               Investments
             </TabsTrigger>
-            <TabsTrigger value="transactions" className="flex items-center gap-2 py-3">
+            <TabsTrigger value="transactions" className="flex items-center gap-2 py-3 cursor-pointer">
               <DollarSign className="w-4 h-4" />
               Transactions
             </TabsTrigger>
-            <TabsTrigger value="dividends" className="flex items-center gap-2 py-3">
+            <TabsTrigger value="dividends" className="flex items-center gap-2 py-3 cursor-pointer">
               <TrendingUp className="w-4 h-4" />
               Dividends
             </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2 py-3">
+            <TabsTrigger value="documents" className="flex items-center gap-2 py-3 cursor-pointer">
               <Download className="w-4 h-4" />
               Documents
             </TabsTrigger>
@@ -79,7 +121,11 @@ export default function PortfolioPage() {
 
           {/* Investments Tab */}
           <TabsContent value="investments">
-            <InvestmentsSection properties={mockInvestmentProperties} />
+            <InvestmentsSection
+             properties={mockInvestmentProperties} 
+             onSellTokens={() => setInitSellOrder(true)}
+             onDepositTokens={() => setOpenDepositTokensDialog(true)} 
+            />
           </TabsContent>
 
           {/* Transactions Tab */}
@@ -98,6 +144,26 @@ export default function PortfolioPage() {
           </TabsContent>
         </Tabs>
       </div>
+      <DepositUSDC
+        open={openDepositUSDCDialog}
+        setOpen={setOpenDepositUSDCDialog}
+        onSuccess={() => {
+          // Optional: Handle success (e.g., refetch balances)
+          console.log("Deposit successful!");
+        }}
+      />
+      <DepositPropertyTokens
+        open={openDepositTokensDialog}
+        setOpen={setOpenDepositTokensDialog}
+        onSuccess={() => {
+          // Optional: Handle success (e.g., refetch balances)
+          console.log("Deposit successful!");
+        }}
+      />      
+      <InitSellOrderDialog
+        open={initSellOrder}
+        onOpenChange={setInitSellOrder}
+      />
     </div>
   );
 }
@@ -136,35 +202,9 @@ function PortfolioOverviewSection({ data }: { data: PortfolioOverview }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Annual Yield</CardTitle>
-          <PieChart className="h-4 w-4" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {data.annualYield}%
-          </div>
-          <p className="text-xs text-purple-100">
-            Average return across portfolio
-          </p>
-        </CardContent>
-      </Card>
+      <PropertyTokensInEscrowCard />
 
-      <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
-          <DollarSign className="h-4 w-4" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            ${data.availableBalance.toLocaleString()}
-          </div>
-          <p className="text-xs text-orange-100">
-            Ready for new investments
-          </p>
-        </CardContent>
-      </Card>
+      <UsdcBalanceCard />
     </div>
   );
 }
@@ -237,7 +277,7 @@ function QuickStatsSection({ stats }: { stats: any }) {
 }
 
 // Investments Section Component
-function InvestmentsSection({ properties }: { properties: InvestmentProperty[] }) {
+function InvestmentsSection({ properties, onSellTokens, onDepositTokens }: { properties: InvestmentProperty[]; onSellTokens: () => void; onDepositTokens: () => void; }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -348,17 +388,17 @@ function InvestmentsSection({ properties }: { properties: InvestmentProperty[] }
 
               {/* Action Buttons */}
               <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <Button variant="outline" className="flex-1">
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Details
+                <Button variant="outline" className="flex-1" onClick={onSellTokens}>
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Sell Tokens
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={onDepositTokens}>
+                  <ArrowDown className="w-4 h-4 mr-2" />
+                  Deposit Tokens to Escrow
                 </Button>
                 <Button variant="outline" className="flex-1">
                   <TrendingUp className="w-4 h-4 mr-2" />
                   Performance
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  <Download className="w-4 h-4 mr-2" />
-                  Documents
                 </Button>
               </div>
             </CardContent>
