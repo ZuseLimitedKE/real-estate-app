@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
+import { createOrder } from "@/server-actions/marketplace/actions";
 const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
 const PROPERTY_TOKEN = process.env.NEXT_PUBLIC_PROPERTY_TOKEN as `0x${string}`;
 
@@ -21,11 +21,13 @@ interface InitSellOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
+const getNonce = () => new Date().getTime();
+const getExpiry = () => Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // 7 days from now
 export default function InitSellOrderDialog({ open, onOpenChange }: InitSellOrderDialogProps) {
   const { address } = useAccount();
   const [amount, setAmount] = useState("");
-  const [nonce, setNonce] = useState("");
+  const nonce = getNonce();
+  const expiry = getExpiry();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { writeContractAsync } = useWriteContract();
@@ -41,10 +43,11 @@ export default function InitSellOrderDialog({ open, onOpenChange }: InitSellOrde
         functionName: "initSellOrder",
         args: [BigInt(nonce), PROPERTY_TOKEN, BigInt(amount)],
       });
-
+      //TODO: Check on how to do price per share later
+      await createOrder({nonce: nonce.toString(), expiry: expiry, propertyToken: PROPERTY_TOKEN, remainingAmount: amount, orderType: "SELL", pricePerShare: '1'}, address, '0xImplementThisLater');
       toast.success("Sell order created successfully");
       setAmount("");
-      setNonce("");
+
       onOpenChange(false);
     } catch (err) {
       console.error("❌ Sell order failed:", err);
@@ -64,13 +67,7 @@ export default function InitSellOrderDialog({ open, onOpenChange }: InitSellOrde
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <Input
-            type="number"
-            placeholder="Nonce (unique order ID)"
-            value={nonce}
-            onChange={(e) => setNonce(e.target.value)}
-            min="1"
-          />
+          
           <Input
             type="number"
             placeholder="Number of property tokens to sell"

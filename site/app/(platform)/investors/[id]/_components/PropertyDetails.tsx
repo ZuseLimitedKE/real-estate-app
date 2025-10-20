@@ -58,7 +58,7 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
     args: [USDC, address ?? "0x0000000000000000000000000000000000000000"],
     query: { enabled: !!address }, // only runs if wallet is connected
   });
-
+  console.log("🏦 Escrow Balance:", escrowBalance);
   const { data: decimals } = useReadContract({
     address: USDC,
     abi: erc20Abi.abi,
@@ -69,7 +69,7 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
     escrowBalance && decimals
       ? Number(escrowBalance) / 10 ** Number(decimals)
       : 0;
-
+console.log("💰 Formatted Escrow Balance:", formattedBalance);
   const handleDepositUSDCClick = () => {
     setOpenDepositUSDCDialog(true);
   }
