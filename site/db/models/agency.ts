@@ -141,11 +141,16 @@ export class AgencyModel {
       } else if (property.type === PropertyType.APARTMENT && property.apartmentDetails) {
         return {
           apartment_details: {
+            templates: property.apartmentDetails?.unitTemplates.map((template) => {
+              return ({name: template.name, id: template.id});
+            }),
             num_floors: property.apartmentDetails?.floors,
             parking_spaces: property.apartmentDetails?.parkingSpace,
             units: property.apartmentDetails.units.map((u) => {
               return ({
                 name: u.name,
+                templateID: u.templateId,
+                floor: u.floor,
                 tenant: u.tenant && {
                   rentAmount:u.tenant?.rent_amount,
                   rentDate:u.tenant?.rent_date,

@@ -6,10 +6,13 @@ export interface EditPropertyDetails {
         payments: EditPropertyPayments[]
     },
     apartment_details?: {
+        templates: {name: string, id: string}[]
         num_floors: number,
         parking_spaces: number,
         units: {
             name: string,
+            templateID: string,
+            floor: number
             tenant?: EditPropertyTenantDetails,
             payments: EditPropertyPayments[]
         }[]
