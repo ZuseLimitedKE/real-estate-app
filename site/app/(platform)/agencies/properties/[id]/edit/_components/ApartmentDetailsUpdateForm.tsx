@@ -28,6 +28,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { EditPropertyDetails } from "@/types/edit_property";
 import EditSinglePropertyForm from "./EditSinglePropertyForm";
 import EditApartmentPropertyForm from "./EditApartmentPropertyForm";
+import { PaymentStatus } from "@/types/property";
 
 // Zod schema for apartment details validation
 const tenantSchema = z.object({
@@ -43,7 +44,7 @@ const tenantSchema = z.object({
 export const paymentsSchema = z.object({
   date: z.date(),
   amount: z.number().gt(0),
-  status: z.enum(["paid", "pending", "overdue", "partial"]),
+  status: z.enum([PaymentStatus.PAID, PaymentStatus.PENDING, PaymentStatus.OVERDUE, PaymentStatus.PARTIAL]),
 });
 
 const single_property_edit_schema = z.object({
@@ -52,6 +53,22 @@ const single_property_edit_schema = z.object({
 });
 
 export const apartmentUnitSchema = z.object({
+  id: z.string(),
+  token_details: z.object({
+    address: z.string(),
+    total_fractions: z.number(),
+  }),
+  owner: z.array(z.object({
+    investor_id: z.string(),
+    investor_address: z.string(),
+    fractions_owned: z.number(),
+    purchase_time: z.date(),
+    purchase_transaction_hash: z.string(),
+  })).optional(),
+  secondary_market_listings: z.array(z.object({
+    lister_address: z.string(),
+    amount_listed: z.number()
+  })),
   name: z.string().trim().min(1, "Unit name is required"),
   templateID: z.string(),
   floor: z.number().min(0).max(100),
@@ -65,7 +82,30 @@ const apartment_property_edit_schema = z.object({
     .min(1, "Must have at least 1 floor")
     .max(100, "Maximum 100 floors"),
   parking_spaces: z.number().min(0, "Parking spaces cannot be negative"),
-  units: z.array(apartmentUnitSchema)
+  units: z.array(apartmentUnitSchema),
+  templates: z.array(z.object({
+    id: z.string(),
+    amenities: z.object({
+      bedrooms: z.number().optional(),
+      bathrooms: z.number().optional(),
+      balconies: z.number().optional(),
+      gym: z.boolean().optional(),
+      air_conditioning: z.boolean().optional(),
+      heating: z.boolean().optional(),
+      laundry_in_unit: z.boolean().optional(),
+      dishwasher: z.boolean().optional(),
+      storage_space: z.boolean().optional(),
+      security_system: z.boolean().optional(),
+      elevator: z.boolean().optional(),
+      pet_friendly: z.boolean().optional(),
+      furnished: z.boolean().optional(),
+    }),
+    gross_size: z.number(),
+    proposedRentPerMonth: z.number(),
+    unitValue: z.number(),
+    images: z.array(z.string()),
+    name: z.string(),
+  }))
 });
 
 const edit_property_schema = z.object({
@@ -97,7 +137,7 @@ export default function ApartmentDetailsUpdateForm({
       setError(null);
 
       console.log(data);
-      // await updateProperty(propertyId, { apartmentDetails: data });
+      await updateProperty(propertyId, data);
 
       toast.success("Apartment details updated successfully!");
     } catch (err) {
@@ -123,7 +163,7 @@ export default function ApartmentDetailsUpdateForm({
 
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          {initialData.single_property_details ? <EditSinglePropertyForm /> : initialData.apartment_details ? <EditApartmentPropertyForm templates={initialData.apartment_details.templates}/> : <div>No form</div>}
+          {initialData.single_property_details ? <EditSinglePropertyForm /> : initialData.apartment_details ? <EditApartmentPropertyForm templates={initialData.apartment_details.templates} /> : <div>No form</div>}
 
           {/* Submit Button */}
           <div className="flex justify-end gap-4 mt-4">
