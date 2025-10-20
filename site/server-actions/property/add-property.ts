@@ -4,7 +4,7 @@ import { MyError, Errors } from "@/constants/errors";
 import { MongoServerError } from "mongodb";
 import { AuthError, requireAnyRole } from "@/auth/utils";
 import { UserModel } from "@/db/models/user";
-import { CreatePropertyType } from "@/types/property";
+import { CreatePropertyType, PaymentStatus } from "@/types/property";
 import { PropertyType } from "@/constants/properties";
 import { Properties } from "@/db/collections";
 import crypto from "crypto";
@@ -138,7 +138,12 @@ export async function AddProperty(property: CreatePropertyType) {
         type: property.property_type,
         tenant: property.single_property_details.tenant ? {
           ...property.single_property_details.tenant,
-          payments: payments
+          payments: payments.map((p) => {
+            return ({
+              ...p,
+              status: p.status as PaymentStatus
+            })
+          })
         } : undefined,
         totalFractions: totalFractions,
         token_address: tokenID,
