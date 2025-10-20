@@ -67,9 +67,10 @@ export class AgencyModel {
           ).length;
           totalSpaces += property.apartmentDetails.units.length;
           for (const unit of property.apartmentDetails.units) {
+
             if (unit.tenant) {
               totalEarnings +=
-                unit.tenant.rent *
+                unit.tenant.rent_amount *
                 getNumMonthsBetweenDates(unit.tenant.joinDate, new Date());
             }
           }
@@ -141,24 +142,26 @@ export class AgencyModel {
       } else if (property.type === PropertyType.APARTMENT && property.apartmentDetails) {
         return {
           apartment_details: {
-            templates: property.apartmentDetails?.unitTemplates.map((template) => {
-              return ({name: template.name, id: template.id});
-            }),
+            templates: property.apartmentDetails?.unitTemplates,
             num_floors: property.apartmentDetails?.floors,
             parking_spaces: property.apartmentDetails?.parkingSpace,
             units: property.apartmentDetails.units.map((u) => {
               return ({
+                id: u.id,
+                token_details: u.token_details,
+                secondary_market_listings: u.secondary_market_listings,
+                owner: u.owner,
                 name: u.name,
                 templateID: u.templateId,
                 floor: u.floor,
                 tenant: u.tenant && {
-                  rentAmount:u.tenant?.rent_amount,
-                  rentDate:u.tenant?.rent_date,
-                  name:u.tenant?.name,
-                  number:u?.tenant?.number,
-                  address:u?.tenant?.address,
-                  joinDate:u?.tenant?.joinDate,
-                  email:u?.tenant?.email
+                  rentAmount: u.tenant?.rent_amount,
+                  rentDate: u.tenant?.rent_date,
+                  name: u.tenant?.name,
+                  number: u?.tenant?.number,
+                  address: u?.tenant?.address,
+                  joinDate: u?.tenant?.joinDate,
+                  email: u?.tenant?.email
                 },
                 payments: u.tenant?.paymentHistory ?? []
               });
@@ -350,10 +353,91 @@ export class AgencyModel {
   static async updateProperty(
     _id: ObjectId,
     agencyId: string,
-    data: Partial<Properties>,
+    data: EditPropertyDetails,
   ) {
     try {
       const collection = await this.getPropertiesCollection();
+
+      if (data.single_property_details) {
+        const tenantData = data.single_property_details.tenant ? {
+          address: data.single_property_details.tenant?.address,
+          rentDate: data.single_property_details.tenant?.rentDate,
+          rentAmount: data.single_property_details.tenant?.rentAmount,
+          name: data.single_property_details.tenant?.name,
+          email: data.single_property_details.tenant?.email,
+          number: data.single_property_details.tenant?.number,
+          payments: data.single_property_details.payments.map((p) => {
+            return ({
+              date: p.date,
+              amount: p.amount,
+              status: p.status
+            })
+          }),
+          joinDate: data.single_property_details.tenant?.joinDate ?? new Date(),
+        } : undefined;
+
+        const result = await collection.findOneAndUpdate(
+          {
+            _id: _id,
+            agencyId: agencyId,
+          },
+          {
+            $set: {
+              tenant: tenantData,
+              updatedAt: new Date(),
+            },
+          },
+          { returnDocument: "after" },
+        );
+        if (!result) {
+          throw new MyError("Property does not exist");
+        }
+        return result;
+      } else if (data.apartment_details) {
+        const result = await collection.findOneAndUpdate(
+          {
+            _id: _id,
+            agencyId: agencyId,
+          },
+          {
+            $set: {
+              apartmentDetails: {
+                unitTemplates: data.apartment_details.templates,
+                floors: data.apartment_details.num_floors,
+                parkingSpace: data.apartment_details.parking_spaces,
+                units: data.apartment_details.units.map((u) => {
+                  return ({
+                    id: u.id,
+                    secondary_market_listings: u.secondary_market_listings,
+                    token_details: u.token_details,
+                    owner: u.owner,
+                    templateId: u.templateID,
+                    name: u.name,
+                    floor: u.floor,
+                    tenant: u.tenant ? {
+                      ...u.tenant,
+                      rent_amount: u.tenant.rentAmount,
+                      rent_date: u.tenant.rentDate,
+                      paymentHistory: u.payments
+                    } : undefined,
+
+                  });
+                })
+              },
+              
+              updatedAt: new Date(),
+            },
+          },
+          { returnDocument: "after" },
+        );
+        if (!result) {
+          throw new MyError("Property does not exist");
+        }
+        return result;
+      } else {
+        throw new MyError("Invalid property data");
+      }
+
       const result = await collection.findOneAndUpdate(
         {
           _id: _id,

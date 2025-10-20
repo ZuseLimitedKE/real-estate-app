@@ -116,7 +116,7 @@ export interface Properties {
         fractions_owned: number;
         purchase_time: Date;
         purchase_transaction_hash: string;
-      };
+      }[];
       tenant?: {
         name: string;
         email: string;
