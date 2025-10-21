@@ -122,12 +122,12 @@ export default function ApartmentUnitsForm() {
             <Input
               id="unit_floor"
               type="number"
-              min="0"
+              min="1"
               {...register(
                 `apartment_property_details.units.${unitNum}.floor`,
                 { valueAsNumber: true },
               )}
-              placeholder="0"
+              placeholder="1"
             />
             {errors.apartment_property_details?.units?.[unitNum]?.floor && (
               <p className="text-sm text-red-500 mt-1">
