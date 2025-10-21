@@ -399,22 +399,19 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         return;
       }
 
-      // Grab values and validate current step
-      const currentStepValues = form.getValues(currentForm.fields);
-      const formValues = Object.fromEntries(
-        currentForm.fields.map((field, index) => {
-          let key: string = field;
-          if (
-            field.startsWith("apartment_property_details") ||
-            field.startsWith("single_property_details")
-          ) {
-            let components = field.split(".").slice(1);
-            key = components.join(".");
-          }
+      const allValues = form.getValues();
+      const formValues = currentForm.fields.reduce((acc, field) => {
+        const value = field.split('.').reduce((obj, key) => obj?.[key], allValues as any);
 
-          return [key, currentStepValues[index] || ""];
-        }),
-      );
+        // Extract the field name without the top-level prefix for validation
+        const key = field.startsWith("apartment_property_details") || field.startsWith("single_property_details")
+          ? field.split('.').slice(1).join(".")
+          : field;
+
+        acc[key] = value ?? "";
+        return acc;
+      }, {} as Record<string, any>);
+
       console.log("Next button field", formValues);
 
       if (currentForm.validationSchema) {
