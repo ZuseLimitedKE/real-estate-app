@@ -4,7 +4,7 @@ import type { PropertyDocuments } from "@/types/agent_dashboard";
 import { Dot, File } from "lucide-react";
 import Link from "next/link";
 
-export default function PropertyDocuments(props: {
+export default function PropertyDocumentsComponent(props: {
   documents: PropertyDocuments[];
 }) {
   const propertyDocuments = props.documents.map((doc, index) => (
