@@ -97,8 +97,10 @@ export default function ApartmentUnitsForm() {
                     <SelectValue placeholder="Select a unit template" />
                   </SelectTrigger>
                   <SelectContent>
-                    {templates.map((t) => (
-                      <SelectItem value={t}>{t}</SelectItem>
+                    {templates.map((t, i) => (
+                      <SelectItem key={i} value={t}>
+                        {t}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
