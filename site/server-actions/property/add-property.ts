@@ -105,7 +105,7 @@ export async function AddProperty(property: CreatePropertyType) {
         time_listed_on_site: Date.now(),
         location: property.apartment_property_details.location,
         agencyId: payload.userId,
-        serviceFeePercent: property.apartment_property_details?.serviceFeePercent,
+        serviceFeePercent: property.apartment_property_details.serviceFeePercent,
         name: property.apartment_property_details.name,
         property_status: "pending",
         createdAt: new Date(),

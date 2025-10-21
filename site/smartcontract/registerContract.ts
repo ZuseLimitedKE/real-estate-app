@@ -1,5 +1,5 @@
 import { Web3 } from 'web3';
-import { AccountId, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenType } from "@hashgraph/sdk";
+import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType } from "@hashgraph/sdk";
 import { MyError } from '@/constants/errors';
 
 export interface RegisterPropertyContract {
@@ -75,15 +75,21 @@ class RealEstateManagerContract {
         }
 
         try {
-            for await (const tokenID of tokens) {
-                const burnTx = new TokenBurnTransaction()
-                    .setTokenId(tokenID)
-                    .freezeWith(client);
+            for (const tokenID of tokens) {
+                const info = await new TokenInfoQuery().setTokenId(tokenID).execute(client);
+                if (info.totalSupply > Long.fromNumber(0)) {
+                    const burnTx = new TokenBurnTransaction()
+                        .setTokenId(tokenID)
+                        .setAmount(info.totalSupply)
+                        .freezeWith(client);
 
-                const signTx = await burnTx.sign(operatorKey);
-                await signTx.execute(client);
+                    const signTx = await burnTx.sign(operatorKey);
+                    await signTx.execute(client);
+                }
+
             }
         } catch (err) {
+            await new Promise((r) => setTimeout(r, Math.min(1000 * (retry + 1), 5000)));
             this.burnTokens(tokens, retry + 1);
         }
     }
