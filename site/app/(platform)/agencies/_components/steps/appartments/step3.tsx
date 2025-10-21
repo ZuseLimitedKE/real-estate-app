@@ -158,6 +158,29 @@ export default function ApartmentUnitTemplatesForm() {
                                             message: error.message
                                         })
                                     }
+
+                                    if (error.path.includes("proposedRentPerMonth")) {
+                                        setError(`apartment_property_details.unit_templates.${unitTemplateNum}.proposedRentPerMonth`, {
+                                            type: "manual",
+                                            message: error.message
+                                        })
+                                    }
+
+                                    if (error.path.includes("images")) {
+                                        setError(`apartment_property_details.unit_templates.${unitTemplateNum}.images`, {
+                                            type: "manual",
+                                            message: error.message
+                                        })
+                                    }
+
+                                    if (error.path.includes("amenities")) {
+                                        // Handle nested amenities errors appropriately
+                                        const path = error.path.join(".");
+                                        setError(`apartment_property_details.unit_templates.${unitTemplateNum}.${path}` as any, {
+                                            type: "manual",
+                                            message: error.message
+                                        })
+                                    }
                                 }
                             }
                         }}
