@@ -20,6 +20,7 @@ export default function ApartmentUnitsForm() {
     control,
     formState: { errors },
     setError,
+    resetField
   } = useFormContext<CreatePropertyType>();
 
   const { append, remove } = useFieldArray({
@@ -145,6 +146,7 @@ export default function ApartmentUnitsForm() {
               const parsed = unitSchema.safeParse(unit);
               if (parsed.success) {
                 append(parsed.data);
+                resetField(`apartment_property_details.units.${unitNum}`)
                 saveFormState(currentStep);
               } else {
                 for (const error of parsed.error.issues) {

@@ -14,7 +14,8 @@ export default function ApartmentUnitTemplatesForm() {
         formState: { errors },
         control,
         watch,
-        setError
+        setError,
+        resetField
     } = useFormContext<CreatePropertyType>();
     const { saveFormState, currentStep } = useCreatePropertyForm();
     const unitTemplates = watch("apartment_property_details.unit_templates");
@@ -133,6 +134,7 @@ export default function ApartmentUnitTemplatesForm() {
                             if (parsed.success) {
                                 console.log("Parse success");
                                 append(parsed.data);
+                                resetField(`apartment_property_details.unit_templates.${unitTemplateNum}`);
                                 saveFormState(currentStep);
                             } else {
                                 console.log("Parse error", parsed.error.issues);
