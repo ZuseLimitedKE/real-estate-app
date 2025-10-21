@@ -11,6 +11,8 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
         control,
     } = useFormContext<CreatePropertyType>();
 
+    const idPrefix = `unit-${unitTemplatesLength}-amenities`;
+
     return (
         <div className="space-y-4">
             <h4>Unit Amenities</h4>
@@ -18,9 +20,9 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
             {/* Countable Amenities */}
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="unit.amenities.bedrooms">Bedrooms</Label>
+                    <Label htmlFor={`${idPrefix}.bedrooms`}>Bedrooms</Label>
                     <Input
-                        id="unit.amenities.bedrooms"
+                        id={`${idPrefix}.bedrooms`}
                         type="number"
                         min="0"
                         {...register(`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.bedrooms`, {
@@ -37,9 +39,9 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="unit.amenities.bathrooms">Bathrooms</Label>
+                    <Label htmlFor={`${idPrefix}.bathrooms`}>Bathrooms</Label>
                     <Input
-                        id="unit.amenities.bathrooms"
+                        id={`${idPrefix}.bathrooms`}
                         type="number"
                         min="0"
                         step="0.5"
@@ -57,9 +59,9 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="unit.amenities.balconies">Balconies/Patios</Label>
+                    <Label htmlFor={`${idPrefix}.balconies`}>Balconies/Patios</Label>
                     <Input
-                        id="unit.amenities.balconies"
+                        id={`${idPrefix}.balconies`}
                         type="number"
                         min="0"
                         {...register(`apartment_property_details.unit_templates.${unitTemplatesLength}.amenities.balconies`, {
@@ -86,13 +88,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.gym"
+                                    id={`${idPrefix}.gym`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.gym" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.gym`} className="text-sm">
                             Gym/Fitness Center
                         </Label>
                     </div>
@@ -103,13 +105,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.air_conditioning"
+                                    id={`${idPrefix}.air_conditioning`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.air_conditioning" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.air_conditioning`} className="text-sm">
                             Air Conditioning
                         </Label>
                     </div>
@@ -120,13 +122,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.heating"
+                                    id={`${idPrefix}.heating`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.heating" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.heating`} className="text-sm">
                             Heating System
                         </Label>
                     </div>
@@ -137,13 +139,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.laundry_in_unit"
+                                    id={`${idPrefix}.laundry_in_unit`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.laundry_in_unit" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.laundry_in_unit`} className="text-sm">
                             In-Unit Laundry
                         </Label>
                     </div>
@@ -154,13 +156,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.furnished"
+                                    id={`${idPrefix}.furnished`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.furnished" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.furnished`} className="text-sm">
                             Furnished
                         </Label>
                     </div>
@@ -171,13 +173,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.dishwasher"
+                                    id={`${idPrefix}.dishwasher`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.dishwasher" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.dishwasher`} className="text-sm">
                             Dishwasher
                         </Label>
                     </div>
@@ -188,13 +190,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.storage_space"
+                                    id={`${idPrefix}.storage_space`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.storage_space" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.storage_space`} className="text-sm">
                             Storage Space
                         </Label>
                     </div>
@@ -205,13 +207,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.pet_friendly"
+                                    id={`${idPrefix}.pet_friendly`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.pet_friendly" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.pet_friendly`} className="text-sm">
                             Pet Friendly
                         </Label>
                     </div>
@@ -222,13 +224,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.security_system"
+                                    id={`${idPrefix}.security_system`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.security_system" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.security_system`} className="text-sm">
                             Security System
                         </Label>
                     </div>
@@ -239,13 +241,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.elevator"
+                                    id={`${idPrefix}.elevator`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.elevator" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.elevator`} className="text-sm">
                             Elevator Access
                         </Label>
                     </div>
@@ -256,13 +258,13 @@ export default function ApartmentUnitTemplateAmenities({unitTemplatesLength} : {
                             control={control}
                             render={({ field }) => (
                                 <Checkbox
-                                    id="unit.amenities.garden_yard"
+                                    id={`${idPrefix}.garden_yard`}
                                     checked={field.value || false}
                                     onCheckedChange={field.onChange}
                                 />
                             )}
                         />
-                        <Label htmlFor="unit.amenities.garden_yard" className="text-sm">
+                        <Label htmlFor={`${idPrefix}.garden_yard`} className="text-sm">
                             Garden/Yard
                         </Label>
                     </div>
