@@ -22,7 +22,7 @@ export default function CreatedApartmentUnits(props: CreatedApartmentUnitsProps)
                     saveFormState(currentStep);
                 }}
             >
-                <Trash className="w-6 h-6 text-red-500"/>
+                <Trash className="w-6 h-6 text-red-500" aria-hidden="true"/>
             </button>
             <div className="flex gap-2 flex-wrap">
                 <p className="font-bold">Unit Name: </p>
