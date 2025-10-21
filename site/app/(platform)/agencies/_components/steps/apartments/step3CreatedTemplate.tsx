@@ -41,7 +41,7 @@ export default function ApartmentCreatedUnitTemplate(props: ApartmentCreatedUnit
                 }}
                 className="absolute top-[5px] right-[5px]"
             >
-                <Trash className="text-red-500 w-6 h-6"/>
+                <Trash className="text-red-500 w-6 h-6" aria-hidden="true"/>
             </div>
 
             <div className="flex gap-2 flex-wrap">
