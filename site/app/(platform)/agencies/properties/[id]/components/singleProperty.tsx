@@ -36,15 +36,15 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                         </div>
                     </div>
 
-                    <Link
-                        href={`/agencies/properties/${props.id}/edit`}
-                        className="flex items-center gap-2"
-                    >
-                        <Button size="lg" className="lg:w-auto w-full">
+                    <Button asChild size="lg" className="lg:w-auto w-full">
+                        <Link
+                            href={`/agencies/properties/${props.id}/edit`}
+                            className="flex items-center gap-2"
+                        >
                             <Edit className="w-4 h-4 mr-2" />
                             Edit Property
-                        </Button>
-                    </Link>
+                        </Link>
+                    </Button>
 
                 </div>
             </header>
