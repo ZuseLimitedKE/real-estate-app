@@ -435,7 +435,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
       if (currentStep === steps.length - 1) {
         // Trigger form submission manually
         const formData = form.getValues();
-        await onSubmit(formData);
+        await form.handleSubmit(onSubmit)();
         return;
       }
 
