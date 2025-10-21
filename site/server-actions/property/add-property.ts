@@ -82,13 +82,12 @@ export async function AddProperty(property: CreatePropertyType) {
           tokenIDs.push(tokenID);
         } catch (err) {
           await realEstateManagerContract.burnTokens(tokenIDs);
-          throw new MyError("Error tokenizing apartment unit");
+          throw new MyError("Error tokenizing apartment unit", {cause: err});
         }
 
         units.push({
           id: unitID,
           templateId: template.id,
-          total_fractions: total_fractions,
           name: unit.name,
           floor: unit.floor,
           token_details: {
@@ -148,7 +147,7 @@ export async function AddProperty(property: CreatePropertyType) {
         tokenIDs.push(tokenID);
       } catch (err) {
         await realEstateManagerContract.burnTokens(tokenIDs);
-        throw new MyError("Error tokenizing single property");
+        throw new MyError("Error tokenizing single property", {cause: err});
       }
 
       await database.AddProperty({
