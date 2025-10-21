@@ -55,8 +55,7 @@ export async function AddProperty(property: CreatePropertyType) {
       for await (const unit of property.apartment_property_details.units) {
         const template = unitTemplates.find((t) => t.name === unit.template_name);
         if (!template) {
-          console.error("Template not found for unit", unit);
-          continue;
+          throw new MyError(`Template "${unit.template_name}" not found for unit "${unit.name}"`);
         }
         const unitID = crypto.randomUUID();
         const total_fractions = template.unitValue === 0 ? 0 : Math.ceil(template.unitValue / INITIAL_FRACTION_PRICE);
