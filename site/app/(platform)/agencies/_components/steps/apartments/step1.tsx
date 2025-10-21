@@ -61,12 +61,11 @@ export default function ApartmentEstateDetailsForm() {
 
         <LocationPicker
           onCoordinatesChange={(coords) => {
-            if (coords) {
-              setValue(
-                "apartment_property_details.location.coordinates",
-                coords,
-              );
-            }
+            setValue(
+              "apartment_property_details.location.coordinates",
+              coords ?? (undefined as any),
+              {shouldValidate: true, shouldDirty: true, shouldTouch: true}
+            );
           }}
           initialCoordinates={watch(
             "apartment_property_details.location.coordinates",

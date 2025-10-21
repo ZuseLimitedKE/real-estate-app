@@ -29,9 +29,11 @@ export const Step2 = () => {
 
       <LocationPicker
         onCoordinatesChange={(coords) => {
-          if (coords) {
-            setValue("single_property_details.location.coordinates", coords);
-          }
+          setValue(
+            "single_property_details.location.coordinates",
+            coords ?? (undefined as any),
+            {shouldDirty: true, shouldTouch: true, shouldValidate: true}
+          );
         }}
         initialCoordinates={watch("single_property_details.location.coordinates")}
       />
