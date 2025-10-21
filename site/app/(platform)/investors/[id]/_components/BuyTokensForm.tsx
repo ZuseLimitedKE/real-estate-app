@@ -26,7 +26,7 @@ import {
 import { toast } from "sonner";
 import { useWriteContract, useAccount, useTransactionReceipt } from "wagmi";
 import marketplaceAbi from "@/smartcontract/abi/MarketPlace.json";
-
+import { createOrder } from "@/server-actions/marketplace/actions";
 const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
 const PROPERTY_TOKEN = process.env.NEXT_PUBLIC_PROPERTY_TOKEN as `0x${string}`;
 
@@ -80,7 +80,8 @@ import {
   getTokenPrice,
   purchaseTokens,
 } from "@/server-actions/tokens/purchase-tokens";
-
+const getNonce = () => new Date().getTime();
+const getExpiry = () => Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // 7 days from now
 export default function BuyTokensForm({
   propertyId,
   propertyName,
@@ -89,7 +90,8 @@ export default function BuyTokensForm({
 }: BuyTokensFormProps) {
   const [tokenAmount, setTokenAmount] = useState<string>("");
   const [pricePerToken, setPricePerToken] = useState<number>(0);
-  const [nonce, setNonce] = useState("");
+  const nonce = getNonce();
+  const expiry = getExpiry();
   const [selectedPayment, setSelectedPayment] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPrice, setIsLoadingPrice] = useState(true);
@@ -107,7 +109,6 @@ export default function BuyTokensForm({
 
   // Calculate total amount
   const totalAmount = tokenAmount ? parseFloat(tokenAmount) * pricePerToken : 0;
-
   // Fetch token price on component mount
   useEffect(() => {
     const fetchPrice = async () => {
@@ -145,13 +146,13 @@ export default function BuyTokensForm({
   useEffect(() => {
     if (isConfirmed && receipt) {
       console.log("Transaction confirmed:", receipt);
-      
+
       if (receipt.status === "success") {
         setTransactionData({
           hash: txHash,
           amount: totalAmount,
         });
-        setNonce("");
+
         setTokenAmount("");
         setShowSuccessModal(true);
         toast.success("Transaction successful!");
@@ -159,7 +160,7 @@ export default function BuyTokensForm({
         console.error("Transaction reverted:", receipt);
         toast.error("Transaction failed!");
       }
-      
+
       setTxHash(undefined);
       setIsLoading(false);
     }
@@ -178,16 +179,19 @@ export default function BuyTokensForm({
 
     setIsLoading(true);
 
-    try {    
+    try {
       const hash = await writeContractAsync({
         address: MARKETPLACE,
         abi: marketplaceAbi.abi,
         functionName: "initBuyOrder",
         args: [BigInt(nonce), PROPERTY_TOKEN, BigInt(tokenAmount)],
       });
-    
+
       console.log("Buy order TX submitted:", hash);
       setTxHash(hash);
+      //TODO: Check on how to do price per share later
+      //TODO: Possibly implement signatures later.
+      await createOrder({ nonce: nonce.toString(), expiry: expiry, propertyToken: PROPERTY_TOKEN, remainingAmount: totalAmount.toString(), orderType: "BUY", pricePerShare: '1' }, address, '0xImplementThisLater');
     } catch (err) {
       console.error("Transaction error:", err);
       toast.error("Transaction rejected or failed to submit.");
@@ -215,17 +219,7 @@ export default function BuyTokensForm({
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-2">
-            {/* Nonce Input */}
-            <div className="space-y-2">
-              <label htmlFor="nonce" className="text-sm font-medium">
-                Nonce
-              </label>
-              <Input
-                placeholder="Nonce (e.g. 1)"
-                value={nonce}
-                onChange={(e) => setNonce(e.target.value)}
-              />
-            </div>
+
             {/* Token Amount Input */}
             <div className="space-y-2">
               <label htmlFor="tokenAmount" className="text-sm font-medium">
@@ -294,24 +288,22 @@ export default function BuyTokensForm({
                 {paymentOptions.map((option) => (
                   <div
                     key={option.id}
-                    className={`relative p-3 rounded-lg border cursor-pointer transition-all ${
-                      selectedPayment === option.id
-                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                        : option.available
+                    className={`relative p-3 rounded-lg border cursor-pointer transition-all ${selectedPayment === option.id
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                      : option.available
                         ? "border-border hover:border-primary/50"
                         : "border-muted bg-muted/50 cursor-not-allowed opacity-50"
-                    }`}
+                      }`}
                     onClick={() =>
                       option.available && setSelectedPayment(option.id)
                     }
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`p-2 rounded-md ${
-                          selectedPayment === option.id
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        }`}
+                        className={`p-2 rounded-md ${selectedPayment === option.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                          }`}
                       >
                         {option.icon}
                       </div>
