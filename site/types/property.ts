@@ -1,5 +1,5 @@
 import { PropertyType } from "@/constants/properties";
-import z from "zod";
+import {z} from "zod";
 import type { Properties } from "@/db/collections";
 
 export enum PaymentStatus {

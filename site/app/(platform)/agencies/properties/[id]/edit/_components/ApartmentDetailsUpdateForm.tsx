@@ -1,28 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray, FormProvider } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Trash2, Plus, User, Home, DollarSign } from "lucide-react";
+import { Home } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import { updateProperty } from "@/server-actions/agent/dashboard/updateProperty";
-
-import { Properties } from "@/db/collections";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { EditPropertyDetails } from "@/types/edit_property";

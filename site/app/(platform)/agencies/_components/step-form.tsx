@@ -2,7 +2,7 @@
 
 import { PropertyType } from "@/constants/properties";
 import React, { createContext, useEffect, useState } from "react";
-import z, { ZodType } from "zod";
+import { z, ZodType } from "zod";
 import { DefaultValues, FormProvider, Path, useForm } from "react-hook-form";
 import {
   appartmentStepSchemas,
