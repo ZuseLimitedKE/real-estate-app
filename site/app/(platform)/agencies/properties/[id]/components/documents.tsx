@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { AgentPropertyDocument } from "@/types/agent_dashboard";
+import type { PropertyDocuments } from "@/types/agent_dashboard";
 import { Dot, File } from "lucide-react";
 import Link from "next/link";
 
-export default function PropertyDocuments(props: {
-  documents: AgentPropertyDocument[];
+export default function PropertyDocumentsComponent(props: {
+  documents: PropertyDocuments[];
 }) {
   const propertyDocuments = props.documents.map((doc, index) => (
     <li

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type AgentPropertyOverview, AMENITIES } from "@/types/agent_dashboard";
+import { type SinglePropertyOverview, AMENITIES } from "@/types/agent_dashboard";
 import {
+  Bed,
   Box,
   Camera,
   Car,
@@ -13,11 +14,14 @@ import {
   Shirt,
   Snowflake,
   LucideDroplet as SoapDispenserDroplet,
+  Sofa,
+  Toilet,
   Waves,
+  Wind,
 } from "lucide-react";
 
 export default function PropertyOverview(props: {
-  overview: AgentPropertyOverview;
+  overview: SinglePropertyOverview;
 }) {
   const amenitiesUI = props.overview.amenities.map((amenity, index) => (
     <div key={index}>{getUIForAmenity(amenity)}</div>
@@ -38,7 +42,7 @@ export default function PropertyOverview(props: {
                 Type
               </span>
               <p className="text-lg font-semibold text-foreground">
-                {props.overview.propertyDetails.type}
+                single
               </p>
             </div>
 
@@ -50,28 +54,6 @@ export default function PropertyOverview(props: {
                 {props.overview.propertyDetails.size} sqft
               </p>
             </div>
-
-            {props.overview.propertyDetails.units && (
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  Units
-                </span>
-                <p className="text-lg font-semibold text-foreground">
-                  {props.overview.propertyDetails.units}
-                </p>
-              </div>
-            )}
-
-            {props.overview.propertyDetails.floors && (
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  Floors
-                </span>
-                <p className="text-lg font-semibold text-foreground">
-                  {props.overview.propertyDetails.floors}
-                </p>
-              </div>
-            )}
 
             {props.overview.propertyDetails.parkingSpace && (
               <div className="space-y-1">
@@ -107,20 +89,10 @@ export default function PropertyOverview(props: {
             <div className="space-y-6">
               <div className="flex items-center justify-between py-3 border-b border-border">
                 <span className="text-muted-foreground font-medium">
-                  Occupied Units
+                  Occupancy status
                 </span>
                 <span className="text-xl font-bold text-foreground">
-                  {props.overview.occupancy.occupied}/
-                  {props.overview.occupancy.totalUnits}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between py-3 border-b border-border">
-                <span className="text-muted-foreground font-medium">
-                  Occupancy Rate
-                </span>
-                <span className="text-xl font-bold text-success">
-                  {props.overview.occupancy.rate}%
+                  {props.overview.occupancy.occupied ? "occupied" : "vacant"}
                 </span>
               </div>
 
@@ -166,7 +138,7 @@ export default function PropertyOverview(props: {
   );
 }
 
-function getUIForAmenity(amenity: AMENITIES) {
+export function getUIForAmenity(amenity: AMENITIES, amount?: number) {
   const baseClasses =
     "flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow-md";
   const iconClasses = "w-5 h-5 text-slate-600 flex-shrink-0";
@@ -262,6 +234,38 @@ function getUIForAmenity(amenity: AMENITIES) {
         <div className={baseClasses}>
           <Flower className={iconClasses} />
           <p className={textClasses}>Garden Yard</p>
+        </div>
+      );
+
+    case AMENITIES.BALCONY:
+      return (
+        <div className={baseClasses}>
+          <Wind className={iconClasses} />
+          <p className={textClasses}>{`${amount ?? ""} Balcony`}</p>
+        </div>
+      );
+
+    case AMENITIES.BATHROOM:
+      return (
+        <div className={baseClasses}>
+          <Toilet className={iconClasses} />
+          <p className={textClasses}>{`${amount ?? ""} Bathroom`}</p>
+        </div>
+      );
+
+    case AMENITIES.BEDROOM:
+      return (
+        <div className={baseClasses}>
+          <Bed className={iconClasses} />
+          <p className={textClasses}>{`${amount ?? ""} Bedroom`}</p>
+        </div>
+      );
+
+    case AMENITIES.FURNISHED:
+      return (
+        <div className={baseClasses}>
+          <Sofa className={iconClasses} />
+          <p className={textClasses}>Furnished</p>
         </div>
       );
     default:

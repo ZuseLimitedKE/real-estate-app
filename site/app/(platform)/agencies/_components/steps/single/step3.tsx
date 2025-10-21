@@ -1,4 +1,4 @@
-import { AddPropertyFormData } from "@/types/property";
+import { AddPropertyFormData, CreatePropertyType } from "@/types/property";
 import { useFormContext, Controller } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,7 @@ export const Step3 = () => {
     register,
     control,
     formState: { errors },
-  } = useFormContext<AddPropertyFormData>();
+  } = useFormContext<CreatePropertyType>();
 
   return (
     <>
@@ -43,12 +43,12 @@ export const Step3 = () => {
           <Label htmlFor="tenant.name">Tenant Name</Label>
           <Input
             id="tenant.name"
-            {...register("tenant.name")}
+            {...register("single_property_details.tenant.name")}
             placeholder="Tenant name"
           />
-          {errors.tenant?.name && (
+          {errors.single_property_details?.tenant?.name && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.tenant.name.message}
+              {errors.single_property_details?.tenant.name.message}
             </p>
           )}
         </div>
@@ -57,12 +57,12 @@ export const Step3 = () => {
           <Label htmlFor="tenant.address">Tenant Address</Label>
           <Input
             id="tenant.address"
-            {...register("tenant.address")}
+            {...register("single_property_details.tenant.address")}
             placeholder="Tenant wallet/contact address"
           />
-          {errors.tenant?.address && (
+          {errors.single_property_details?.tenant?.address && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.tenant.address.message}
+              {errors.single_property_details?.tenant.address.message}
             </p>
           )}
         </div>
@@ -72,12 +72,12 @@ export const Step3 = () => {
           <Input
             id="tenant.email"
             type="email"
-            {...register("tenant.email")}
+            {...register("single_property_details.tenant.email")}
             placeholder="Tenant email"
           />
-          {errors.tenant?.email && (
+          {errors.single_property_details?.tenant?.email && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.tenant.email.message}
+              {errors.single_property_details?.tenant.email.message}
             </p>
           )}
         </div>
@@ -86,12 +86,12 @@ export const Step3 = () => {
           <Label htmlFor="tenant.number">Tenant Phone number</Label>
           <Input
             id="tenant.number"
-            {...register("tenant.number")}
+            {...register("single_property_details.tenant.number")}
             placeholder="0700000000"
           />
-          {errors.tenant?.number && (
+          {errors.single_property_details?.tenant?.number && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.tenant.number.message}
+              {errors.single_property_details?.tenant.number.message}
             </p>
           )}
         </div>
@@ -102,14 +102,14 @@ export const Step3 = () => {
             id="tenant.rentAmount"
             type="number"
             step="0.01"
-            {...register("tenant.rentAmount", {
+            {...register("single_property_details.tenant.rentAmount", {
               valueAsNumber: true,
             })}
             placeholder="0.00"
           />
-          {errors.tenant?.rentAmount && (
+          {errors.single_property_details?.tenant?.rentAmount && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.tenant.rentAmount.message}
+              {errors.single_property_details?.tenant.rentAmount.message}
             </p>
           )}
         </div>
@@ -118,7 +118,7 @@ export const Step3 = () => {
       <div className="space-y-2">
         <Label htmlFor="tenant.rentDate">Monthly Rent Due Date</Label>
         <Controller
-          name="tenant.rentDate"
+          name="single_property_details.tenant.rentDate"
           control={control}
           render={({ field }) => (
             <Select
@@ -138,9 +138,9 @@ export const Step3 = () => {
             </Select>
           )}
         />
-        {errors.tenant?.rentDate && (
+        {errors.single_property_details?.tenant?.rentDate && (
           <p className="text-sm text-red-500 mt-1">
-            {errors.tenant.rentDate.message}
+            {errors.single_property_details?.tenant.rentDate.message}
           </p>
         )}
       </div>
@@ -148,7 +148,7 @@ export const Step3 = () => {
       <div className="space-y-2">
         <Label htmlFor="tenant.joinDate">Tenant Join Date</Label>
         <Controller
-          name="tenant.joinDate"
+          name="single_property_details.tenant.joinDate"
           control={control}
           render={({ field }) => (
             <Popover >
@@ -183,9 +183,9 @@ export const Step3 = () => {
             </Popover>
           )}
         />
-        {errors.tenant?.joinDate && (
+        {errors.single_property_details?.tenant?.joinDate && (
           <p className="text-sm text-red-500 mt-1">
-            {errors.tenant.joinDate.message}
+            {errors.single_property_details?.tenant.joinDate.message}
           </p>
         )}
       </div>

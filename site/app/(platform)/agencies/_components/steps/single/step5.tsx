@@ -1,19 +1,19 @@
-import type { AddPropertyFormData } from "@/types/property";
+import type { CreatePropertyType } from "@/types/property";
 import { useFormContext } from "react-hook-form";
-import { useMultiStepForm } from "@/hooks/use-stepped-form";
+import { useCreatePropertyForm } from "@/hooks/use-stepped-form";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 
 export const Step5 = () => {
   const {
-    getValues,
+    watch,
     setValue,
     formState: { errors },
-  } = useFormContext<AddPropertyFormData>();
-  const { saveFormState, currentStepIndex } = useMultiStepForm();
+  } = useFormContext<CreatePropertyType>();
+  const { saveFormState, currentStep } = useCreatePropertyForm();
 
-  const images = getValues("images") || [];
+  const images = watch("single_property_details.images") || [];
 
   return (
     <>
@@ -51,15 +51,15 @@ export const Step5 = () => {
           onClientUploadComplete={(res) => {
             const newImageUrls =
               res?.map((file) => file.ufsUrl).filter(Boolean) || [];
-            const currentImages = getValues("images") || [];
+            const currentImages = watch("single_property_details.images") || [];
             const updatedImages = Array.from(
               new Set([...currentImages, ...newImageUrls]),
             );
-            setValue("images", updatedImages, {
+            setValue("single_property_details.images", updatedImages, {
               shouldValidate: true,
             });
             setTimeout(() => {
-              saveFormState(currentStepIndex);
+              saveFormState(currentStep);
             }, 200);
             toast.success(
               `${newImageUrls.length > 1 ? "Images" : "Image"} uploaded successfully`,
@@ -74,10 +74,10 @@ export const Step5 = () => {
         />
 
         {/* Image-specific error */}
-        {errors.images && (
+        {errors.single_property_details?.images && (
           <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
             <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-sm text-red-600">{errors.images.message}</p>
+            <p className="text-sm text-red-600">{errors.single_property_details?.images.message}</p>
           </div>
         )}
       </div>
