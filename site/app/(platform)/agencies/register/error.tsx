@@ -41,13 +41,13 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
-          <CardTitle className="text-xl text-red-800  text-center">
+          <CardTitle className="text-xl text-red-800 text-center">
             Unable to Load Apartment Details
           </CardTitle>
 
           <Alert
             variant="destructive"
-            className="border-none  w-full text-center font-semibold"
+            className="border-none w-full text-center font-semibold"
           >
             <AlertDescription className="mx-auto">
               {getErrorMessage()}
