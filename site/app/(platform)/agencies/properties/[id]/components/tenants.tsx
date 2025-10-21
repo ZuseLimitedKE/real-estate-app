@@ -2,37 +2,42 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PropertyTenant } from "@/types/agent_dashboard";
-import {
-  DollarSign,
-  Mouse as House,
-} from "lucide-react";
+import { DollarSign, House } from "lucide-react";
 
-export default function PropertyTenants({ tenant }: { tenant: PropertyTenant | undefined }) {
-  const paymentHistoryItems = tenant ? tenant.paymentHistory.map((payment, i) => (
-    <li
-      className="flex items-center justify-between py-3 border-b border-border last:border-0"
-      key={i}
-    >
-      <p className="text-muted-foreground">
-        {new Date(payment.date).toDateString()}
-      </p>
-      <div className="flex items-center gap-3">
-        <p className="font-semibold text-foreground">
-          Ksh {payment.amount.toLocaleString()}
+export default function PropertyTenants({
+  tenant,
+}: {
+  tenant: PropertyTenant | undefined;
+}) {
+  const paymentHistoryItems = tenant ? (
+    tenant.paymentHistory.map((payment, i) => (
+      <li
+        className="flex items-center justify-between py-3 border-b border-border last:border-0"
+        key={i}
+      >
+        <p className="text-muted-foreground">
+          {new Date(payment.date).toDateString()}
         </p>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${payment.status === "Paid"
-            ? "bg-success/10 text-success"
-            : payment.status === "Pending"
-              ? "bg-warning/10 text-warning"
-              : "bg-destructive/10 text-destructive"
-            }`}
-        >
-          {payment.status}
-        </span>
-      </div>
-    </li>
-  )) : <div></div>;
+        <div className="flex items-center gap-3">
+          <p className="font-semibold text-foreground">
+            Ksh {payment.amount.toLocaleString()}
+          </p>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold ${payment.status === "Paid"
+                ? "bg-success/10 text-success"
+                : payment.status === "Pending"
+                  ? "bg-warning/10 text-warning"
+                  : "bg-destructive/10 text-destructive"
+              }`}
+          >
+            {payment.status}
+          </span>
+        </div>
+      </li>
+    ))
+  ) : (
+    <div></div>
+  );
 
   return (
     <Card className="border-border">
