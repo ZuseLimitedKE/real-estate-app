@@ -257,7 +257,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
     },
   };
 
-  const localStorageKey = "add-property-form";
+  const localStorageKey = `add-property-form-${userID}`;
   const [savedFormState, setSavedFormState] =
     useLocalStorage<SavedFormState | null>({
       key: localStorageKey,
