@@ -36,16 +36,22 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
     <div className="container mx-auto py-6 max-w-2xl">
       <Card className="border-red-200">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <AlertTriangle className="w-6 h-6 text-red-600" />
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
-          <CardTitle className="text-xl text-red-800">
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <CardTitle className="text-xl text-red-800  text-center">
             Unable to Load Apartment Details
           </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert variant="destructive">
-            <AlertDescription>{getErrorMessage()}</AlertDescription>
+
+          <Alert
+            variant="destructive"
+            className="border-none  w-full text-center font-semibold"
+          >
+            <AlertDescription className="mx-auto">
+              {getErrorMessage()}
+            </AlertDescription>
           </Alert>
           {error.digest ? (
             <div className="text-sm text-gray-600 text-center">
