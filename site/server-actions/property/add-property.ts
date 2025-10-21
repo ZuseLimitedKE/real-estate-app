@@ -13,6 +13,7 @@ import realEstateManagerContract from "@/smartcontract/registerContract";
 const INITIAL_FRACTION_PRICE = 100; // KES
 
 export async function AddProperty(property: CreatePropertyType) {
+  const tokenIDs: string[] = [];
   try {
     const payload = await requireAnyRole("admin", "agency");
     if (payload.role === "agency") {
@@ -70,11 +71,19 @@ export async function AddProperty(property: CreatePropertyType) {
           propertySymbol = propertySymbol.padEnd(5, 'X');
         }
 
-        const { tokenID } = await realEstateManagerContract.register({
-          tokenSymbol: propertySymbol,
-          propertyName: `${property.apartment_property_details.name} - ${unit.name}`,
-          numTokens: total_fractions
-        });
+        let tokenID: string | null = null;
+        try {
+          const { tokenID: createdToken } = await realEstateManagerContract.register({
+            tokenSymbol: propertySymbol,
+            propertyName: `${property.apartment_property_details.name} - ${unit.name}`,
+            numTokens: total_fractions
+          });
+          tokenID = createdToken;
+          tokenIDs.push(tokenID);
+        } catch (err) {
+          await realEstateManagerContract.burnTokens(tokenIDs);
+          throw new MyError("Error tokenizing apartment unit");
+        }
 
         units.push({
           id: unitID,
@@ -126,11 +135,21 @@ export async function AddProperty(property: CreatePropertyType) {
       if (propertySymbol.length < 3) {
         propertySymbol = property.single_property_details.name.slice(0, Math.min(3, property.single_property_details.name.length)).toUpperCase().padEnd(3, 'X').replace(/[^A-Z]/g, '');
       }
-      const {tokenID} = await realEstateManagerContract.register({
-        tokenSymbol: propertySymbol,
-        propertyName: property.single_property_details.name,
-        numTokens: totalFractions
-      })
+
+      let tokenID: string | null = null;
+      try {
+        const { tokenID: createdToken } = await realEstateManagerContract.register({
+          tokenSymbol: propertySymbol,
+          propertyName: property.single_property_details.name,
+          numTokens: totalFractions
+        });
+
+        tokenID = createdToken;
+        tokenIDs.push(tokenID);
+      } catch (err) {
+        await realEstateManagerContract.burnTokens(tokenIDs);
+        throw new MyError("Error tokenizing single property");
+      }
 
       await database.AddProperty({
         ...property.single_property_details,
@@ -154,12 +173,20 @@ export async function AddProperty(property: CreatePropertyType) {
       });
     }
   } catch (error) {
+    if (tokenIDs.length > 0) {
+      await realEstateManagerContract.burnTokens(tokenIDs);
+      throw new MyError("Could not tokenize property");
+    }
     if (error instanceof MongoServerError && error.code === 11000) {
       // Duplicate key error from Mongo
       throw new MyError("The property already exists");
     }
     if (error instanceof AuthError) {
       throw new MyError(error.message, { cause: error });
+    }
+
+    if (error instanceof MyError) {
+      throw new MyError(error.message, { cause: error })
     }
     console.error("Error adding property", { cause: error });
     throw new MyError(Errors.NOT_ADD_PROPERTY);

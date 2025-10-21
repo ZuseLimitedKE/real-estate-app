@@ -1,5 +1,6 @@
 import { Web3 } from 'web3';
-import { AccountId, Client, PrivateKey, TokenCreateTransaction, TokenType } from "@hashgraph/sdk";
+import { AccountId, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenType } from "@hashgraph/sdk";
+import { MyError } from '@/constants/errors';
 
 export interface RegisterPropertyContract {
     tokenSymbol: string,
@@ -28,7 +29,7 @@ class RealEstateManagerContract {
 
             const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
             const operatorID = AccountId.fromString(accountID);
-            
+
             // Create token for property
             const client = Client.forName(network).setOperator(operatorID, operatorKey);
             const tokenCreate = await new TokenCreateTransaction()
@@ -52,6 +53,38 @@ class RealEstateManagerContract {
         } catch (err) {
             console.error("Error registering property in contract", err);
             throw new Error(`Error registering contract: ${(err as Error).message}`);
+        }
+    }
+
+    // This function should only be called if register tokens function fails
+    async burnTokens(tokens: string[], retry: number = 0) {
+        console.log(`Round ${retry} of burning tokens`);
+        if (!pkEnv || !accountID) {
+            throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
+        }
+
+        const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
+        const operatorID = AccountId.fromString(accountID);
+
+        // Create token for property
+        const client = Client.forName(network).setOperator(operatorID, operatorKey);
+
+        if (retry > 5) {
+            console.error("Maximum retries for burning tokens has been reached");
+            throw new MyError("Maximum retries reached");
+        }
+
+        try {
+            for await (const tokenID of tokens) {
+                const burnTx = new TokenBurnTransaction()
+                    .setTokenId(tokenID)
+                    .freezeWith(client);
+
+                const signTx = await burnTx.sign(operatorKey);
+                await signTx.execute(client);
+            }
+        } catch (err) {
+            this.burnTokens(tokens, retry + 1);
         }
     }
 }
