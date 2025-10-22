@@ -7,6 +7,7 @@ export class MyError extends Error {
 
 export enum Errors {
   UNAUTHORIZED = "Unauthorized",
+  PROPERTY_NOT_EXIST = "Property does not exist",
   NOT_ADD_PROPERTY = "Could not add property",
   NOT_UPDATE_PROPERTY = "Could not update property",
   NOT_GET_PROPERTIES = "Could not get properties",
