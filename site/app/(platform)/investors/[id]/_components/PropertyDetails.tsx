@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import DepositUSDC from "../../portfolio/_components/DepositUSDC";
+import WhereBuyFrom from "./AskUserWhereBuyFrom";
 
 interface PropertyDetailsClientProps {
   property: PropertyDetailView;
@@ -46,6 +47,7 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
   const [ buyTokensDialog, setBuyTokensDialog ] = useState(false);
   const [ insufficientUSDCAlert, setInsufficientUSDCAlert] = useState(false)
   const [ openDepositUSDCDialog, setOpenDepositUSDCDialog ] = useState(false);
+  const [askWhereBuyTokens, setAskWhereBuyTokens] = useState(false);
   const { address } = useAccount();
 
   const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
@@ -201,12 +203,16 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
                 variant="default"
                 className="w-full"
                 size="lg"
+                // onClick={() => {
+                //   if (formattedBalance === 0){
+                //     setInsufficientUSDCAlert(true)
+                //   } else {
+                //     setBuyTokensDialog(true)
+                //   } 
+                // }}
                 onClick={() => {
-                  if (formattedBalance === 0){
-                    setInsufficientUSDCAlert(true)
-                  } else {
-                    setBuyTokensDialog(true)
-                  } 
+                  console.log("Start the flow here");
+                  setAskWhereBuyTokens(true);
                 }}
               >
                 <DollarSign className="w-4 h-4 mr-2" />
@@ -529,6 +535,12 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Ask where to buy tokens from */}
+      <WhereBuyFrom 
+        isOpen={askWhereBuyTokens}
+        onOpenChange={setAskWhereBuyTokens}
+      />
 
       {/* Buy Tokens Modal */}
       <BuyTokensForm
