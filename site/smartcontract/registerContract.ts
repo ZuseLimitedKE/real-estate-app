@@ -1,5 +1,5 @@
 import { Web3 } from 'web3';
-import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, LocalProvider, Wallet, AccountBalanceQuery } from "@hashgraph/sdk";
+import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, Wallet, AccountBalanceQuery } from "@hashgraph/sdk";
 import { MyError } from '@/constants/errors';
 
 export interface RegisterPropertyContract {
@@ -102,28 +102,32 @@ class RealEstateManagerContract {
             const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
             const operatorID = AccountId.fromString(accountID);
             const client = Client.forName(network).setOperator(operatorID, operatorKey);
-            const provider = LocalProvider.fromClient(client);
-
-            const wallet = new Wallet(
-                operatorID,
-                operatorKey,
-                provider,
-            );
 
             const balance = await new AccountBalanceQuery()
-                .setAccountId(wallet.getAccountId())
-                .executeWithSigner(wallet);
+                .setAccountId(operatorID)
+                .execute(client)
 
-            if (!balance.tokens) {
+            if (!balance.tokens || !balance.tokenDecimals) {
+                console.log("Whoops")
                 // No other tokens owned
                 return 0;
             } else {
-                console.log("Tokens");
-                console.log(balance.tokens);
-                console.log("Token decimals");
-                console.log(balance.tokenDecimals);
+                const rawTokenBalance = balance.tokens.get(property_token_id);
+                const tokenDecimals = balance.tokenDecimals.get(property_token_id);
 
-                return 1;
+                if (!rawTokenBalance || !tokenDecimals) {
+                    console.log("whoops")
+                    return 0;
+                }
+
+                console.log("i am here")
+
+                const tokenBalance = rawTokenBalance as Long;
+
+                console.log(tokenBalance);
+                const numTokens = tokenBalance.toNumber() / Math.pow(10, tokenDecimals as number)
+                console.log(numTokens);
+                return numTokens;
             }
         } catch (err) {
             console.error(`Error getting token balance for ${property_token_id} from contract`, err);

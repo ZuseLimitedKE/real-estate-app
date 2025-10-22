@@ -37,7 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import DepositUSDC from "../../portfolio/_components/DepositUSDC";
-import WhereBuyFrom from "./AskUserWhereBuyFrom";
+import AskUserWhereBuyFrom from "./AskUserWhereBuyFrom";
 
 interface PropertyDetailsClientProps {
   property: PropertyDetailView;
@@ -537,9 +537,10 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
       </Tabs>
 
       {/* Ask where to buy tokens from */}
-      <WhereBuyFrom 
+      <AskUserWhereBuyFrom 
         isOpen={askWhereBuyTokens}
         onOpenChange={setAskWhereBuyTokens}
+        tokenBalanceInAdminAccount={property.tokenBalanceInAdminAccount}
       />
 
       {/* Buy Tokens Modal */}
