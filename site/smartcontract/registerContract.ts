@@ -1,5 +1,5 @@
 import { Web3 } from 'web3';
-import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType } from "@hashgraph/sdk";
+import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, LocalProvider, Wallet, AccountBalanceQuery } from "@hashgraph/sdk";
 import { MyError } from '@/constants/errors';
 
 export interface RegisterPropertyContract {
@@ -91,6 +91,43 @@ class RealEstateManagerContract {
         } catch (err) {
             await new Promise((r) => setTimeout(r, Math.min(1000 * (retry + 1), 5000)));
             this.burnTokens(tokens, retry + 1);
+        }
+    }
+
+    async getPropertyTokensBalanceInAdmin(property_token_id: string): Promise<number> {
+        try {
+            if (!pkEnv || !accountID) {
+                throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
+            }
+            const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
+            const operatorID = AccountId.fromString(accountID);
+            const client = Client.forName(network).setOperator(operatorID, operatorKey);
+            const provider = LocalProvider.fromClient(client);
+
+            const wallet = new Wallet(
+                operatorID,
+                operatorKey,
+                provider,
+            );
+
+            const balance = await new AccountBalanceQuery()
+                .setAccountId(wallet.getAccountId())
+                .executeWithSigner(wallet);
+
+            if (!balance.tokens) {
+                // No other tokens owned
+                return 0;
+            } else {
+                console.log("Tokens");
+                console.log(balance.tokens);
+                console.log("Token decimals");
+                console.log(balance.tokenDecimals);
+
+                return 1;
+            }
+        } catch (err) {
+            console.error(`Error getting token balance for ${property_token_id} from contract`, err);
+            throw new MyError("Could not get token balance");
         }
     }
 }
