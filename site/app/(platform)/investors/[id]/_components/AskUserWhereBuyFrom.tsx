@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -5,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { TokenPurchaseSourceEnum } from "@/types/investor";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 interface WhereBuyFromProps {
@@ -18,6 +22,8 @@ export default function WhereBuyFrom({
     isOpen,
     onOpenChange
 }: WhereBuyFromProps) {
+    const [adminBalance, setAdminBalance] = useState<number | null>(null);
+
     const whereBuyFromForm = z.object({
         tokenSource: z.enum([TokenPurchaseSourceEnum.ADMIN, TokenPurchaseSourceEnum.MARKETPLACE]),
         numTokens: z.number("Enter how many tokens you want to buy").gt(0, "You must buy some tokens2")
@@ -31,7 +37,17 @@ export default function WhereBuyFrom({
     })
 
     const onSubmit = async (data: z.infer<typeof whereBuyFromForm>) => {
-        console.log("Data received", data);
+        try {
+            // If the user wants to buy from admin
+            if (data.tokenSource === TokenPurchaseSourceEnum.ADMIN) {
+                // Check if the admin account has the required number of tokens
+
+                // If it doesn't show the user that the amount is too much
+            }
+        } catch(err) {
+            toast.error("Could not invest in property, contact admin");
+            console.error("Could not invest in property");
+        }
     }
 
     return (
