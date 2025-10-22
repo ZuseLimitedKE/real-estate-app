@@ -115,18 +115,14 @@ class RealEstateManagerContract {
                 const rawTokenBalance = balance.tokens.get(property_token_id);
                 const tokenDecimals = balance.tokenDecimals.get(property_token_id);
 
-                if (!rawTokenBalance || !tokenDecimals) {
-                    console.log("whoops")
+                if (!rawTokenBalance || tokenDecimals === null) {
                     return 0;
                 }
 
                 console.log("i am here")
 
                 const tokenBalance = rawTokenBalance as Long;
-
-                console.log(tokenBalance);
                 const numTokens = tokenBalance.toNumber() / Math.pow(10, tokenDecimals as number)
-                console.log(numTokens);
                 return numTokens;
             }
         } catch (err) {
