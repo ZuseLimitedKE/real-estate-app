@@ -1,4 +1,4 @@
-import { AddPropertyFormData } from "@/types/property";
+import { CreatePropertyType } from "@/types/property";
 import { useFormContext } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ export const Step4 = () => {
   const {
     register,
     formState: { errors },
-  } = useFormContext<AddPropertyFormData>();
+  } = useFormContext<CreatePropertyType>();
 
   return (
     <>
@@ -17,12 +17,12 @@ export const Step4 = () => {
             id="property_value"
             type="number"
             min="0"
-            {...register("property_value", { valueAsNumber: true })}
+            {...register("single_property_details.property_value", { valueAsNumber: true })}
             placeholder="0.00"
           />
-          {errors.property_value && (
+          {errors.single_property_details?.property_value && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.property_value.message}
+              {errors.single_property_details?.property_value.message}
             </p>
           )}
         </div>
@@ -36,14 +36,14 @@ export const Step4 = () => {
             id="proposedRentPerMonth"
             type="number"
             min="0"
-            {...register("proposedRentPerMonth", {
+            {...register("single_property_details.proposedRentPerMonth", {
               valueAsNumber: true,
             })}
             placeholder="0.00"
           />
-          {errors.proposedRentPerMonth && (
+          {errors.single_property_details?.proposedRentPerMonth && (
             <p className="text-sm text-red-500 mt-1">
-              {errors.proposedRentPerMonth.message}
+              {errors.single_property_details?.proposedRentPerMonth.message}
             </p>
           )}
         </div>
@@ -57,12 +57,12 @@ export const Step4 = () => {
           step="0.1"
           min="0"
           max="100"
-          {...register("serviceFeePercent", { valueAsNumber: true })}
+          {...register("single_property_details.serviceFeePercent", { valueAsNumber: true })}
           placeholder="10"
         />
-        {errors.serviceFeePercent && (
+        {errors.single_property_details?.serviceFeePercent && (
           <p className="text-sm text-red-500 mt-1">
-            {errors.serviceFeePercent.message}
+            {errors.single_property_details?.serviceFeePercent.message}
           </p>
         )}
       </div>

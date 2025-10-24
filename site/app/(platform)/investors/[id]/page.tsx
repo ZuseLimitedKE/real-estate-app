@@ -4,8 +4,9 @@ import { PropertyDetails } from "./_components/PropertyDetails";
 import { GetProperty } from "@/server-actions/property/get-property";
 import type { PropertyDetailView } from "@/types/property";
 import { Button } from "@/components/ui/button";
+import realEstateManagerContract from "@/smartcontract/registerContract";
 
-function transformPropertyForView(found: any): PropertyDetailView {
+function transformPropertyForView(found: any, tokenBalanceInAdminAccount: number): PropertyDetailView {
   const totalFractions: number =
     typeof found.totalFractions === "number" ? found.totalFractions : 0;
   const totalOwned: number = Array.isArray(found.property_owners)
@@ -67,6 +68,7 @@ function transformPropertyForView(found: any): PropertyDetailView {
         ? `${found.gross_property_size} sq ft`
         : "",
     yearBuilt: "",
+    tokenBalanceInAdminAccount,
     totalUnits: totalUnits,
     occupancyRate: occupancyRate,
     monthlyRent: `KSh ${new Intl.NumberFormat().format(monthlyRentNumber)}`,
@@ -91,10 +93,12 @@ interface PropertyDetailsPageProps {
 async function getPropertyData(id: string) {
   try {
     const property = await GetProperty(id);
+    
     if (!property) {
       return null;
     }
-    return transformPropertyForView(property);
+    const tokenBalanceInAdminAccount = property.token_address ? await realEstateManagerContract.getPropertyTokensBalanceInAdmin(property.token_address) : 0;
+    return transformPropertyForView(property, tokenBalanceInAdminAccount);
   } catch (error) {
     console.error("Failed to fetch property:", error);
     return null;

@@ -1,10 +1,11 @@
-import { requireAuth } from "@/auth/utils";
-import { AddPropertyForm } from "../_components/property-form";
-export default async function RegisterPropertyPage() {
-  const user = await requireAuth();
-  return (
-    <div className="min-h-screen">
-      <AddPropertyForm userId={user.userId} />
-    </div>
-  );
+import { requireAuth } from "@/auth/utils"
+import MultiStepForm from "../_components/step-form";
+
+export default async function RegisterProperty() {
+    const user = await requireAuth();
+    return (
+        <main className="min-h-screen">
+            <MultiStepForm userID={user.userId} />
+        </main>
+    )
 }

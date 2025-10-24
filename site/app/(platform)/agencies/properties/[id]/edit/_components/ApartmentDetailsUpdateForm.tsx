@@ -1,68 +1,108 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Trash2, Plus, User, Home, DollarSign } from "lucide-react";
+import { Home } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import { updateProperty } from "@/server-actions/agent/dashboard/updateProperty";
-
-import { Properties } from "@/db/collections";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { EditPropertyDetails } from "@/types/edit_property";
+import EditSinglePropertyForm from "./EditSinglePropertyForm";
+import EditApartmentPropertyForm from "./EditApartmentPropertyForm";
+import { PaymentStatus } from "@/types/property";
 
 // Zod schema for apartment details validation
-const apartmentDetailsSchema = z.object({
-  floors: z
+const tenantSchema = z.object({
+  rentDate: z.number().min(1).max(31).int(),
+  name: z.string().trim().min(1, "Tenant name is required"),
+  email: z.email("Valid email is required"),
+  number: z.string().trim().min(1, "Phone number is required"),
+  rentAmount: z.number().gt(0, "Rent must be more than 0"),
+  address: z.string().trim().min(1, "Tenant address is required"),
+  joinDate: z.date()
+});
+
+export const paymentsSchema = z.object({
+  date: z.date(),
+  amount: z.number().gt(0),
+  status: z.enum([PaymentStatus.PAID, PaymentStatus.PENDING, PaymentStatus.OVERDUE, PaymentStatus.PARTIAL]),
+});
+
+const single_property_edit_schema = z.object({
+  tenant: tenantSchema.optional(),
+  payments: z.array(paymentsSchema)
+});
+
+export const apartmentUnitSchema = z.object({
+  id: z.string(),
+  token_details: z.object({
+    address: z.string(),
+    total_fractions: z.number(),
+  }),
+  owner: z.array(z.object({
+    investor_id: z.string(),
+    investor_address: z.string(),
+    fractions_owned: z.number(),
+    purchase_time: z.date(),
+    purchase_transaction_hash: z.string(),
+  })).optional(),
+  secondary_market_listings: z.array(z.object({
+    lister_address: z.string(),
+    amount_listed: z.number()
+  })),
+  name: z.string().trim().min(1, "Unit name is required"),
+  templateID: z.string(),
+  floor: z.number().min(0).max(100),
+  tenant: tenantSchema.optional(),
+  payments: z.array(paymentsSchema)
+})
+
+const apartment_property_edit_schema = z.object({
+  num_floors: z
     .number()
     .min(1, "Must have at least 1 floor")
     .max(100, "Maximum 100 floors"),
-  parkingSpace: z.number().min(0, "Parking spaces cannot be negative"),
-  units: z
-    .array(
-      z.object({
-        name: z.string().min(1, "Unit name is required"),
-        tenant: z
-          .object({
-            name: z.string().min(1, "Tenant name is required"),
-            email: z.email("Valid email is required"),
-            number: z.string().min(1, "Phone number is required"),
-            rent: z.number().min(0, "Rent cannot be negative"),
-            joinDate: z.date(),
-            paymentHistory: z.array(
-              z.object({
-                date: z.date(),
-                amount: z.number().min(0),
-                status: z.enum(["paid", "pending", "overdue", "partial"]),
-              }),
-            ),
-          })
-          .optional(),
-      }),
-    )
-    .min(1, "At least one unit is required"),
+  parking_spaces: z.number().min(0, "Parking spaces cannot be negative"),
+  units: z.array(apartmentUnitSchema),
+  templates: z.array(z.object({
+    id: z.string(),
+    amenities: z.object({
+      bedrooms: z.number().optional(),
+      bathrooms: z.number().optional(),
+      balconies: z.number().optional(),
+      gym: z.boolean().optional(),
+      air_conditioning: z.boolean().optional(),
+      heating: z.boolean().optional(),
+      laundry_in_unit: z.boolean().optional(),
+      dishwasher: z.boolean().optional(),
+      storage_space: z.boolean().optional(),
+      security_system: z.boolean().optional(),
+      elevator: z.boolean().optional(),
+      pet_friendly: z.boolean().optional(),
+      furnished: z.boolean().optional(),
+    }),
+    gross_size: z.number(),
+    proposedRentPerMonth: z.number(),
+    unitValue: z.number(),
+    images: z.array(z.string()),
+    name: z.string(),
+  }))
 });
 
-type ApartmentDetailsForm = z.infer<typeof apartmentDetailsSchema>;
+const edit_property_schema = z.object({
+  single_property_details: single_property_edit_schema.optional(),
+  apartment_details: apartment_property_edit_schema.optional()
+});
+
+export type EditPropertyDetailsForm = z.infer<typeof edit_property_schema>;
 
 interface ApartmentDetailsUpdateFormProps {
   propertyId: string;
-  initialData: Properties["apartmentDetails"] | null;
+  initialData: EditPropertyDetails;
 }
 export default function ApartmentDetailsUpdateForm({
   propertyId,
@@ -71,56 +111,18 @@ export default function ApartmentDetailsUpdateForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<ApartmentDetailsForm>({
-    resolver: zodResolver(apartmentDetailsSchema),
+  const form = useForm({
+    resolver: zodResolver(edit_property_schema),
     defaultValues: initialData
-      ? {
-        floors: initialData.floors || 1,
-        parkingSpace: initialData.parkingSpace || 0,
-        units:
-          initialData.units?.length > 0
-            ? initialData.units.map((unit: any) => ({
-              name: unit.name || "",
-              tenant: unit.tenant
-                ? {
-                  name: unit.tenant.name || "",
-                  email: unit.tenant.email || "",
-                  number: unit.tenant.number || "",
-                  rent: unit.tenant.rent || 0,
-                  joinDate: new Date(unit.tenant.joinDate) || new Date(),
-                  paymentHistory:
-                    unit.tenant.paymentHistory?.map((payment: any) => ({
-                      date: new Date(payment.date),
-                      amount: payment.amount || 0,
-                      status: payment.status || "pending",
-                    })) || [],
-                }
-                : undefined,
-            }))
-            : [{ name: "", tenant: undefined }],
-      }
-      : {
-        floors: 1,
-        parkingSpace: 0,
-        units: [{ name: "", tenant: undefined }],
-      },
   });
 
-  const {
-    fields: unitFields,
-    append: appendUnit,
-    remove: removeUnit,
-  } = useFieldArray({
-    control: form.control,
-    name: "units",
-  });
-
-  const onSubmit = async (data: ApartmentDetailsForm) => {
+  const onSubmit = async (data: EditPropertyDetailsForm) => {
     try {
       setSubmitting(true);
       setError(null);
 
-      await updateProperty(propertyId, { apartmentDetails: data });
+      console.log(data);
+      await updateProperty(propertyId, data);
 
       toast.success("Apartment details updated successfully!");
     } catch (err) {
@@ -131,33 +133,11 @@ export default function ApartmentDetailsUpdateForm({
     }
   };
 
-  const addPaymentHistory = (unitIndex: number) => {
-    const currentPayments =
-      form.getValues(`units.${unitIndex}.tenant.paymentHistory`) || [];
-    form.setValue(`units.${unitIndex}.tenant.paymentHistory`, [
-      ...currentPayments,
-      {
-        date: new Date(),
-        amount: 0,
-        status: "pending" as const,
-      },
-    ]);
-  };
-
-  const removePaymentHistory = (unitIndex: number, paymentIndex: number) => {
-    const currentPayments =
-      form.getValues(`units.${unitIndex}.tenant.paymentHistory`) || [];
-    const updatedPayments = currentPayments.filter(
-      (_, index) => index !== paymentIndex,
-    );
-    form.setValue(`units.${unitIndex}.tenant.paymentHistory`, updatedPayments);
-  };
-
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-3 mb-6">
         <Home className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Update Apartment Details</h1>
+        <h1 className="text-2xl font-bold">Update Property Details</h1>
       </div>
 
       {error && (
@@ -166,301 +146,26 @@ export default function ApartmentDetailsUpdateForm({
         </Alert>
       )}
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Home className="h-5 w-5" />
-              Building Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="floors">Number of Floors</Label>
-              <Input
-                id="floors"
-                type="number"
-                {...form.register("floors", { valueAsNumber: true })}
-                className="mt-1"
-              />
-              {form.formState.errors.floors && (
-                <p className="text-red-500 text-sm mt-1">
-                  {form.formState.errors.floors.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="parkingSpace">Parking Spaces</Label>
-              <Input
-                id="parkingSpace"
-                type="number"
-                {...form.register("parkingSpace", { valueAsNumber: true })}
-                className="mt-1"
-              />
-              {form.formState.errors.parkingSpace && (
-                <p className="text-red-500 text-sm mt-1">
-                  {form.formState.errors.parkingSpace.message}
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          {initialData.single_property_details ? <EditSinglePropertyForm /> : initialData.apartment_details ? <EditApartmentPropertyForm templates={initialData.apartment_details.templates} /> : <div>No form</div>}
 
-        {/* Units Management */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Units Management ({unitFields.length} units)
-            </CardTitle>
-            <Button
-              type="button"
-              onClick={() => appendUnit({ name: "", tenant: undefined })}
-              variant="outline"
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Unit
+          {/* Submit Button */}
+          <div className="flex justify-end gap-4 mt-4">
+            <Button type="button" variant="outline">
+              Cancel
             </Button>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {unitFields.map((field, unitIndex) => (
-              <Card key={field.id} className="border-l-4 border-l-primary">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Home className="h-4 w-4" />
-                      Unit #{unitIndex + 1}
-                    </CardTitle>
-                    {unitFields.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeUnit(unitIndex)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Unit Name */}
-                  <div>
-                    <Label htmlFor={`units.${unitIndex}.name`}>Unit Name</Label>
-                    <Input
-                      {...form.register(`units.${unitIndex}.name`)}
-                      placeholder="e.g., Unit 101, Apartment A"
-                      className="mt-1"
-                    />
-                    {form.formState.errors.units?.[unitIndex]?.name && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {form.formState.errors.units[unitIndex]?.name?.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Tenant Information Tabs */}
-                  <Tabs defaultValue="tenant" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="tenant">Tenant Details</TabsTrigger>
-                      <TabsTrigger value="payments">
-                        Payment History
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="tenant" className="space-y-4 mt-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor={`units.${unitIndex}.tenant.name`}>
-                            Tenant Name
-                          </Label>
-                          <Input
-                            {...form.register(`units.${unitIndex}.tenant.name`)}
-                            placeholder="Full name"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`units.${unitIndex}.tenant.email`}>
-                            Email
-                          </Label>
-                          <Input
-                            {...form.register(
-                              `units.${unitIndex}.tenant.email`,
-                            )}
-                            type="email"
-                            placeholder="email@example.com"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`units.${unitIndex}.tenant.number`}>
-                            Phone Number
-                          </Label>
-                          <Input
-                            {...form.register(
-                              `units.${unitIndex}.tenant.number`,
-                            )}
-                            placeholder="+1234567890"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`units.${unitIndex}.tenant.rent`}>
-                            Monthly Rent
-                          </Label>
-                          <Input
-                            {...form.register(
-                              `units.${unitIndex}.tenant.rent`,
-                              { valueAsNumber: true },
-                            )}
-                            type="number"
-                            placeholder="0"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label htmlFor={`units.${unitIndex}.tenant.joinDate`}>
-                            Join Date
-                          </Label>
-                          <Input
-                            {...form.register(
-                              `units.${unitIndex}.tenant.joinDate`,
-                              {
-                                valueAsDate: true,
-                              },
-                            )}
-                            type="date"
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="payments" className="space-y-4 mt-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium flex items-center gap-2">
-                          <DollarSign className="h-4 w-4" />
-                          Payment History
-                        </h4>
-                        <Button
-                          type="button"
-                          onClick={() => addPaymentHistory(unitIndex)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Payment
-                        </Button>
-                      </div>
-
-                      {form
-                        .watch(`units.${unitIndex}.tenant.paymentHistory`)
-                        ?.map((payment, paymentIndex) => (
-                          <Card key={paymentIndex} className="p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                              <div>
-                                <Label>Date</Label>
-                                <Input
-                                  {...form.register(
-                                    `units.${unitIndex}.tenant.paymentHistory.${paymentIndex}.date`,
-                                    {
-                                      valueAsDate: true,
-                                    },
-                                  )}
-                                  type="date"
-                                  className="mt-1"
-                                />
-                              </div>
-                              <div>
-                                <Label>Amount</Label>
-                                <Input
-                                  {...form.register(
-                                    `units.${unitIndex}.tenant.paymentHistory.${paymentIndex}.amount`,
-                                    {
-                                      valueAsNumber: true,
-                                    },
-                                  )}
-                                  type="number"
-                                  placeholder="0"
-                                  className="mt-1"
-                                />
-                              </div>
-                              <div>
-                                <Label>Status</Label>
-                                <Select
-                                  value={form.watch(
-                                    `units.${unitIndex}.tenant.paymentHistory.${paymentIndex}.status`,
-                                  )}
-                                  onValueChange={(value) =>
-                                    form.setValue(
-                                      `units.${unitIndex}.tenant.paymentHistory.${paymentIndex}.status`,
-                                      value as any,
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger className="mt-1">
-                                    <SelectValue placeholder="Select status" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="paid">Paid</SelectItem>
-                                    <SelectItem value="pending">
-                                      Pending
-                                    </SelectItem>
-                                    <SelectItem value="overdue">
-                                      Overdue
-                                    </SelectItem>
-                                    <SelectItem value="partial">
-                                      Partial
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  removePaymentHistory(unitIndex, paymentIndex)
-                                }
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </Card>
-                        )) || (
-                          <p className="text-gray-500 text-center py-4">
-                            No payment history added yet
-                          </p>
-                        )}
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Separator />
-
-        {/* Submit Button */}
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline">
-            Cancel
-          </Button>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? (
-              <Spinner size="small" className="text-white" />
-            ) : (
-              "Update Apartment Details"
-            )}
-          </Button>
-        </div>
-      </form>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? (
+                <Spinner size="small" className="text-white" />
+              ) : (
+                "Update Property Details"
+              )}
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
     </div>
+
   );
 }

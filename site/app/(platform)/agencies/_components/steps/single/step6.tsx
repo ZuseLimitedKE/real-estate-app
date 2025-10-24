@@ -1,19 +1,19 @@
-import { AddPropertyFormData } from "@/types/property";
+import { CreatePropertyType } from "@/types/property";
 import { useFormContext } from "react-hook-form";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import { useMultiStepForm } from "@/hooks/use-stepped-form";
+import { useCreatePropertyForm} from "@/hooks/use-stepped-form";
 import { AlertCircle } from "lucide-react";
 
 export const Step6 = () => {
   const {
-    getValues,
+    watch,
     setValue,
     formState: { errors, isValid },
-  } = useFormContext<AddPropertyFormData>();
-  const { saveFormState, currentStepIndex } = useMultiStepForm();
+  } = useFormContext<CreatePropertyType>();
+  const { saveFormState, currentStep } = useCreatePropertyForm();
 
-  const documents = getValues("documents") || [];
+  const documents = watch("single_property_details.documents") || [];
 
   // Get all form errors for debugging
   const allErrors = Object.keys(errors).length > 0 ? errors : null;
@@ -67,17 +67,17 @@ export const Step6 = () => {
                         : `${(file.size / 1_073_741_824).toFixed(1)} GB`
                 }))
                 .filter(Boolean) || [];
-            const currentDocuments = getValues("documents") || [];
+            const currentDocuments = watch("single_property_details.documents") || [];
             const byUrl = new Map<string, { url: string; name: string, type: string, size: string }>();
             [...(currentDocuments || []), ...newDocuments].forEach((d) => {
               if (d?.url) byUrl.set(d.url, d);
             });
             const updatedDocuments = Array.from(byUrl.values());
-            setValue("documents", updatedDocuments, {
+            setValue("single_property_details.documents", updatedDocuments, {
               shouldValidate: true,
             });
             setTimeout(() => {
-              saveFormState(currentStepIndex);
+              saveFormState(currentStep);
             }, 200);
             toast.success(
               `${newDocuments.length > 1 ? "Documents" : "Document"} uploaded successfully`,
@@ -92,10 +92,10 @@ export const Step6 = () => {
         />
 
         {/* Document-specific error */}
-        {errors.documents && (
+        {errors.single_property_details?.documents && (
           <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
             <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-sm text-red-600">{errors.documents.message}</p>
+            <p className="text-sm text-red-600">{errors.single_property_details?.documents.message}</p>
           </div>
         )}
       </div>

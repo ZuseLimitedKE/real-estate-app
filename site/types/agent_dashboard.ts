@@ -1,14 +1,32 @@
 export interface DashboardProperties {
-    id: string,
-    image: string,
-    name: string,
-    status: string,
-    location: string,
-    details: {
-        title: string,
-        value: string
-    }[],
-    rent: number,
+    single?: {
+        id: string,
+        image: string | null,
+        name: string,
+        status: string,
+        location: string,
+        details: {
+            title: string,
+            value: string
+        }[],
+        rent: number,
+    },
+    apartment?: {
+        id: string,
+        status: string,
+        location: string,
+        name: string,
+        unit_templates: {
+            image: string | null,
+            name: string,
+            details: {
+                title: string,
+                value: string
+            }[],
+            numUnits: number,
+            rent: number,
+        }[]
+    }
 }
 
 export interface AgentDashboardTenantsData {
@@ -44,40 +62,76 @@ export enum AMENITIES {
     PET_FRIENDLY = 'pet friendly',
     SECURITY = 'security system',
     ELEVATOR = 'elevator',
-    GARDEN = 'garden yard'
+    GARDEN = 'garden yard',
+    BEDROOM = 'bedroom',
+    BATHROOM = 'bathroom',
+    BALCONY = 'balcony',
+    FURNISHED = 'furnished'
 }
 
 export interface AgentProperty {
-    name: string,
-    address: string,
-    status: string,
-    images: string[],
-    overview: AgentPropertyOverview,
-    financials: AgentPropertyFinances,
-    documents: AgentPropertyDocument[],
-    tenants: AgentPropertyTenants[]
+    single_property?: {
+        id: string,
+        name: string,
+        address: string,
+        status: string,
+        images: string[],
+        overview: SinglePropertyOverview,
+        financials: SinglePropertyFinances,
+        documents: PropertyDocuments[],
+        tenant?: PropertyTenant
+    },
+    apartment_property?: {
+        id: string,
+        occupancyRate: number,
+        numTenants: number,
+        name: string,
+        about: string,
+        address: string,
+        status: string,
+        createdAt: Date,
+        documents: PropertyDocuments[],
+        unitTemplates: ApartmentUnitTemplate[]
+    },
 }
 
-export interface AgentPropertyOverview {
-    propertyDetails: {
-        type: string,
+export interface ApartmentUnitTemplate {
+    name: string,
+    images: string[],
+    overview: {
         size: number,
-        units?: number,
-        floors?: number,
+        amenities: AMENITIES[],
+    },
+    units: ApartmentUnit[]
+}
+
+export interface ApartmentUnit {
+    name: string
+    tenant?: PropertyTenant,
+    financials: {
+        unitValue: number,
+        expectedYield: number,
+        monthlyRevenue: number,
+        annualRevenue: number,
+        roi: number,
+    },
+}
+
+export interface SinglePropertyOverview {
+    propertyDetails: {
+        size: number,
         parkingSpace?: number,
         createdAt: Date
     },
     occupancy?: {
         occupied: number,
         monthlyRevenue: number,
-        totalUnits: number,
-        rate: number
     },
     about: string,
     amenities: AMENITIES[],
 }
 
-export interface AgentPropertyFinances {
+export interface SinglePropertyFinances {
     propertyValue: number,
     expectedYield: number,
     monthlyRevenue: number,
@@ -85,16 +139,15 @@ export interface AgentPropertyFinances {
     roi: number,
 }
 
-export interface AgentPropertyDocument {
+export interface PropertyDocuments {
     name: string,
     type: string,
     size: string,
     url: string
 }
 
-export interface AgentPropertyTenants {
+export interface PropertyTenant {
     name: string,
-    unit?: string,
     rent: number,
     joinDate: Date,
     paymentHistory: {

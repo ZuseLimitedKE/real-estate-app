@@ -4,9 +4,10 @@ import { AuthError, requireRole } from "@/auth/utils";
 import { Errors, MyError } from "@/constants/errors";
 import { Properties } from "@/db/collections";
 import { AgencyModel } from "@/db/models/agency";
+import { EditPropertyDetails } from "@/types/edit_property";
 import { ObjectId } from "mongodb";
 
-export async function updateProperty(_id: string, data: Partial<Properties>) {
+export async function updateProperty(_id: string, data: EditPropertyDetails) {
   try {
     const payload = await requireRole("agency");
     if (!ObjectId.isValid(_id)) {
