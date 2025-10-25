@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { DistributePropertyInvestor } from "@/types/property_details";
 import getPropertyInvestors from "@/server-actions/agent/dashboard/getPropertyInvestors";
 import { formatAddress } from "@/lib/utils/formatter";
+import erc20Abi from "@/smartcontract/abi/ERC20.json";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { parseUnits } from "viem";
+import distributeFund from "@/server-actions/agent/dashboard/distributeFunds";
 
 type DistributionState = 'input' | 'fetching-investors' | 'investors-loaded' | 'distributing' | 'complete';
 
@@ -93,6 +97,21 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
     const [investors, setInvestors] = useState<DistributePropertyInvestor[]>([]);
     const [distributionProgress, setDistributionProgress] = useState(0);
     const [openHistoryItems, setOpenHistoryItems] = useState<string[]>([]);
+    const [totalDistributions, setTotalDistributions] = useState<number>(0);
+
+    const { isConnected, address } = useAccount();
+    const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
+    const { data: decimalsData } = useReadContract({
+        address: USDC,
+        abi: erc20Abi.abi,
+        functionName: "decimals",
+        query: { enabled: Boolean(USDC) },
+    });
+
+    const decimals =
+        typeof decimalsData === "bigint"
+            ? Number(decimalsData)
+            : Number(decimalsData ?? 6);
 
     const rentDistributionSchema = z.object({
         amount: z.number("Rent amount should be a number").gt(0, "Rent amount must be greater than zero"),
@@ -110,26 +129,137 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
 
     const rentAmount = watch("amount") || 0;
 
-    function onSubmit(data: z.infer<typeof rentDistributionSchema>) {
-        console.log("Data being submitted", data);
+    const parsedAmount = useMemo(() => {
+        if (!rentAmount || isNaN(Number(rentAmount))) return BigInt(0);
+        try {
+            return parseUnits(rentAmount.toString(), decimals);
+        } catch {
+            return BigInt(0);
+        }
+    }, [rentAmount, decimals]);
 
-        setState('distributing');
-        setDistributionProgress(0);
+    const {
+        writeContract: writeDeposit,
+        data: depositHash,
+        isPending: isDepositPending,
+        reset: resetDeposit,
+        error: depositError,
+    } = useWriteContract();
 
-        // Simulate distribution progress
-        const interval = setInterval(() => {
-            setDistributionProgress(prev => {
-                if (prev >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        setState('complete');
-                        toast.success("Rent has been successfully distributed to all investors");
-                    }, 500);
-                    return 100;
+    const { isLoading: waitingDeposit, isSuccess: deposited } =
+        useWaitForTransactionReceipt({ hash: depositHash });
+    const busy =
+        isDepositPending || waitingDeposit;
+
+    // Handle deposit success
+    useEffect(() => {
+        async function distribute() {
+            if (deposited) {
+                try {
+                    console.log("✅ Deposit successful!");
+                    toast.success("USDC deposited to escrow");
+
+                    // Divide investor funds
+                    for (let i = 0; i < investors.length; i++) {
+                        const transaction = await distributeFund(
+                            investors[i],
+                            rentAmount,
+                            decimals,
+                            USDC
+                        );
+                        setDistributionProgress((i / investors.length) * 100);
+                        console.log("Transaction", transaction);
+                    }
+
+                    toast.success("Rent has been successfully distributed to all investors");
+                    setState('complete');
+                } catch (err) {
+                    console.error("Error distributing funds", err);
+                    toast.error("Could not distribute funds");
+                    setState('input')
                 }
-                return prev + 10;
+            }
+        }
+
+        distribute();
+    }, [deposited, resetDeposit]);
+
+    useEffect(() => {
+        if (depositError) {
+            console.error("❌ Deposit error:", depositError);
+            toast.error(depositError.message || "Deposit failed");
+            setState("input");
+        }
+    }, [depositError]);
+
+    const sendFundsToAdmin = async () => {
+        try {
+            if (!isConnected) {
+                toast.error("Connect your wallet first");
+                return;
+            }
+            if (!USDC) {
+                toast.error("Missing contract addresses");
+                console.error("Missing addresses:", { USDC });
+                return;
+            }
+
+            if (!process.env.NEXT_PUBLIC_ADMIN_ACCOUNT) {
+                toast.error("Missing admin account");
+                console.error("set NEXT_PUBLIC_ADMIN_ACCOUNT in env");
+                return;
+            }
+
+            if (parsedAmount <= BigInt(0)) {
+                toast.error("Invalid distribution amount");
+                return;
+            }
+
+            writeDeposit({
+                address: USDC,
+                abi: erc20Abi.abi,
+                functionName: "transfer",
+                args: [process.env.NEXT_PUBLIC_ADMIN_ACCOUNT, parsedAmount]
             });
-        }, 300);
+        } catch (e: any) {
+            console.error("❌ Approval error:", e);
+            toast.error(e?.message || "Approval failed");
+            setState("input");
+        }
+    };
+
+    async function onSubmit(data: z.infer<typeof rentDistributionSchema>) {
+        try {
+            console.log("Data being submitted", data);
+
+            setState('distributing');
+            setDistributionProgress(0);
+
+            // Send funds to admin
+            await sendFundsToAdmin();
+
+            // Admin will then send funds to each of the investors as progress updates
+            // This is in the useEffect that's handling succesful deposit
+
+            // Simulate distribution progress
+            // const interval = setInterval(() => {
+            //     setDistributionProgress(prev => {
+            //         if (prev >= 100) {
+            //             clearInterval(interval);
+            //             setTimeout(() => {
+            //                 setState('complete');
+            //                 toast.success("Rent has been successfully distributed to all investors");
+            //             }, 500);
+            //             return 100;
+            //         }
+            //         return prev + 10;
+            //     });
+            // }, 300);
+        } catch (err) {
+            console.error("Error distributing");
+            setState('input');
+            toast.error("Could not distribute");
+        }
     }
 
     const toggleHistoryItem = (id: string) => {
@@ -146,6 +276,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
 
             const investors = await getPropertyInvestors(propertyId);
             setInvestors(investors);
+            setTotalDistributions(getTotalDistributions(investors));
             setState('investors-loaded');
         } catch (err) {
             console.error("Error getting investors", err);
@@ -165,6 +296,15 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
     const calculateDistribution = (investor: DistributePropertyInvestor) => {
         return (rentAmount * investor.percentage / 100).toFixed(2);
     };
+
+    function getTotalDistributions(investors: DistributePropertyInvestor[]): number {
+        let total = 0;
+        for (const investor of investors) {
+            total += (rentAmount * (investor.percentage / 100))
+        }
+
+        return total;
+    }
 
     return (
         <section className="space-y-6">
@@ -285,7 +425,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                     <div className="mt-4 pt-4 border-t">
                                         <div className="flex justify-between items-center font-semibold">
                                             <span>Total Distribution:</span>
-                                            <span className="text-primary text-lg">{rentAmount} USDC</span>
+                                            <span className="text-primary text-lg">{totalDistributions.toFixed(2)} USDC</span>
                                         </div>
                                     </div>
                                 </div>
