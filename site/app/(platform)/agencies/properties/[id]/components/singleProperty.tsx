@@ -9,6 +9,7 @@ import PropertyFinancials from "./financials";
 import PropertyDocuments from "./documents";
 import PropertyTenants from "./tenants";
 import Link from "next/link";
+import PaymentsDistribution from "./distribution";
 
 export default function SinglePropertyDetails(props: AgentProperty['single_property']) {
     if (!props) {
@@ -110,6 +111,9 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                         </TabsContent>
                         <TabsContent value="documents" className="mt-0">
                             <PropertyDocuments documents={props.documents} />
+                        </TabsContent>
+                        <TabsContent value="distribution" className="mt-0">
+                            <PaymentsDistribution propertyName={props.name} monthlyRevenue={props.financials.monthlyRevenue}/>
                         </TabsContent>
                         <TabsContent value="tenants" className="mt-0">
                             <PropertyTenants tenant={props.tenant} />
