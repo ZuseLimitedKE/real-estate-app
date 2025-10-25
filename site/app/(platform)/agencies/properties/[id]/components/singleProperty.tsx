@@ -113,7 +113,7 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                             <PropertyDocuments documents={props.documents} />
                         </TabsContent>
                         <TabsContent value="distribution" className="mt-0">
-                            <PaymentsDistribution propertyName={props.name} monthlyRevenue={props.financials.monthlyRevenue}/>
+                            <PaymentsDistribution propertyId={props.id} monthlyRevenue={props.financials.monthlyRevenue}/>
                         </TabsContent>
                         <TabsContent value="tenants" className="mt-0">
                             <PropertyTenants tenant={props.tenant} />

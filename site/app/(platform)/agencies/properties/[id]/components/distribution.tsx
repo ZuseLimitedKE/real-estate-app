@@ -17,24 +17,9 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { DistributePropertyInvestor } from "@/types/property_details";
 
 type DistributionState = 'input' | 'fetching-investors' | 'investors-loaded' | 'distributing' | 'complete';
-
-interface Investor {
-    id: string;
-    name: string;
-    walletAddress: string;
-    shares: number;
-    percentage: number;
-}
-
-// Mock investor data
-const mockInvestors: Investor[] = [
-    { id: "1", name: "Michael Chen", walletAddress: "0x742d...8f3a", shares: 450, percentage: 45 },
-    { id: "2", name: "Sarah Johnson", walletAddress: "0x8a3b...2c1d", shares: 300, percentage: 30 },
-    { id: "3", name: "David Martinez", walletAddress: "0x1f4e...9b7c", shares: 150, percentage: 15 },
-    { id: "4", name: "Emma Williams", walletAddress: "0x5c2a...6d8e", shares: 100, percentage: 10 }
-];
 
 interface DistributionHistory {
     id: string;
@@ -97,13 +82,13 @@ const mockHistory: DistributionHistory[] = [
 ];
 
 interface RentDistributionFlowProps {
-    propertyName: string;
+    propertyId: string;
     monthlyRevenue: number;
 }
 
-export default function PaymentsDistribution({ propertyName, monthlyRevenue }: RentDistributionFlowProps) {
+export default function PaymentsDistribution({ propertyId, monthlyRevenue }: RentDistributionFlowProps) {
     const [state, setState] = useState<DistributionState>('input');
-    const [investors, setInvestors] = useState<Investor[]>([]);
+    const [investors, setInvestors] = useState<DistributePropertyInvestor[]>([]);
     const [distributionProgress, setDistributionProgress] = useState(0);
     const [openHistoryItems, setOpenHistoryItems] = useState<string[]>([]);
 
@@ -158,7 +143,7 @@ export default function PaymentsDistribution({ propertyName, monthlyRevenue }: R
 
         // Simulate API call to fetch investors
         setTimeout(() => {
-            setInvestors(mockInvestors);
+            // setInvestors(mockInvestors);
             setState('investors-loaded');
         }, 2000);
     }
@@ -171,7 +156,7 @@ export default function PaymentsDistribution({ propertyName, monthlyRevenue }: R
         setDistributionProgress(0);
     };
 
-    const calculateDistribution = (investor: Investor) => {
+    const calculateDistribution = (investor: DistributePropertyInvestor) => {
         return (rentAmount * investor.percentage / 100).toFixed(2);
     };
 
@@ -268,13 +253,13 @@ export default function PaymentsDistribution({ propertyName, monthlyRevenue }: R
                                     </p>
 
                                     <div className="space-y-3">
-                                        {investors.map((investor) => (
+                                        {investors.map((investor, index) => (
                                             <div
-                                                key={investor.id}
+                                                key={index}
                                                 className="flex items-center justify-between p-3 bg-background rounded-lg border"
                                             >
                                                 <div className="flex-1">
-                                                    <div className="font-medium">{investor.name}</div>
+                                                    {/* <div className="font-medium">{investor.name}</div> */}
                                                     <div className="text-xs text-muted-foreground font-mono">
                                                         {investor.walletAddress}
                                                     </div>
@@ -334,14 +319,15 @@ export default function PaymentsDistribution({ propertyName, monthlyRevenue }: R
 
                                 <div className="p-4 bg-muted/50 rounded-lg space-y-2">
                                     {investors.map((investor, index) => (
-                                        <div key={investor.id} className="flex items-center gap-3 text-sm">
+                                        <div key={index} className="flex items-center gap-3 text-sm">
                                             {distributionProgress > (index * 25) ? (
                                                 <CheckCircle className="w-4 h-4 text-success" />
                                             ) : (
                                                 <div className="w-4 h-4 border-2 border-muted-foreground/30 rounded-full" />
                                             )}
                                             <span className={distributionProgress > (index * 25) ? "text-success" : "text-muted-foreground"}>
-                                                {investor.name} - {calculateDistribution(investor)} USDC
+                                                {/* {investor.name} - {calculateDistribution(investor)} USDC */}
+                                                some temp text for now
                                             </span>
                                         </div>
                                     ))}
