@@ -133,11 +133,12 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                             sentAmount: (investors[i].percentage / 100) * rentAmount,
                             transaction
                         })
-                        setDistributionProgress((i / investors.length) * 100);
+                        setDistributionProgress((i + 1 / investors.length) * 100);
                         console.log("Transaction", transaction);
                     }
 
-                    await storeDistributionTransactions(fundedInvestors);
+                    const history = await storeDistributionTransactions(fundedInvestors);
+                    setDistributionHistory([...distributionHistory, history]);
                     toast.success("Rent has been successfully distributed to all investors");
                     setState('complete');
                 } catch (err) {
@@ -438,8 +439,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                                 <div className="w-4 h-4 border-2 border-muted-foreground/30 rounded-full" />
                                             )}
                                             <span className={distributionProgress > (index * 25) ? "text-success" : "text-muted-foreground"}>
-                                                {/* {investor.name} - {calculateDistribution(investor)} USDC */}
-                                                some temp text for now
+                                                {formatAddress(investor.walletAddress)} - {calculateDistribution(investor)} USDC
                                             </span>
                                         </div>
                                     ))}
