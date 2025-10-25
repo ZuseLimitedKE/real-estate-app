@@ -97,7 +97,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
     useEffect(() => {
         async function initialDistributionHistory() {
             try {
-                const history = await getDistributionHistory(propertyId);
+                const history = await getDistributionHistory(propertyId, unitID);
                 setDistributionHistory(history);
             } catch(err) {
                 toast.error("Can't get distribution history from database");
@@ -229,7 +229,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
             // Start fetching investors
             setState('fetching-investors');
 
-            const investors = await getPropertyInvestors(propertyId);
+            const investors = await getPropertyInvestors(propertyId, unitID);
             setInvestors(investors);
             setTotalDistributions(getTotalDistributions(investors));
             setState('investors-loaded');

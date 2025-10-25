@@ -114,27 +114,53 @@ export class AgencyModel {
   }
 
   // This implementation is only for single properties
-  static async getPropertyInvestors(single_property_id: string): Promise<DistributePropertyInvestor[]> {
+  static async getPropertyInvestors(single_property_id: string, unitID?: string): Promise<DistributePropertyInvestor[]> {
     try {
       const collection = await this.getPropertiesCollection();
-      const cursor = collection.find({_id: new ObjectId(single_property_id)});
+      const property = await collection.findOne({ _id: new ObjectId(single_property_id) });
       const investors: DistributePropertyInvestor[] = [];
 
-      for await (const prop of cursor) {
-        if (prop.property_owners) {
-          for (const owner of prop.property_owners) {
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+
+      if (property.apartmentDetails) {
+        const unit = property.apartmentDetails.units.find((u) => u.id === unitID);
+        if (!unit) {
+          throw new MyError("Unit does not exist");
+        }
+
+        if (unit.owner) {
+          for (const owner of unit.owner) {
+            investors.push({
+              walletAddress: owner.investor_address,
+              shares: owner.fractions_owned,
+              percentage: unit.token_details.total_fractions ? (owner.fractions_owned / unit.token_details.total_fractions) * 100 : 0,
+            })
+          }
+        }
+      } else {
+        if (property.property_owners) {
+          for (const owner of property.property_owners) {
             investors.push({
               walletAddress: owner.owner_address,
               shares: owner.amount_owned,
-              percentage: prop.totalFractions ? (owner.amount_owned / prop.totalFractions!) * 100 : 0,
+              percentage: property.totalFractions ? (owner.amount_owned / property.totalFractions!) * 100 : 0,
             })
           }
         }
       }
 
+
+
       return investors;
-    } catch(err) {
+    } catch (err) {
       console.error("Could not get property investors from database", err);
+
+      if (err instanceof MyError) {
+        throw err;
+      }
+
       throw new MyError("Could not get property investors from database");
     }
   }
@@ -143,30 +169,32 @@ export class AgencyModel {
   static async appendDistributionHistory(history: DistributionHistory, single_property_id: string) {
     try {
       const collection = await this.getPropertiesCollection();
-      const property = await collection.findOne({_id: new ObjectId(single_property_id)})
+      const property = await collection.findOne({ _id: new ObjectId(single_property_id) })
       if (!property) {
         throw new MyError("Property does not exist");
       }
       const oldHistory = property.distribution_transactions ?? [];
       const newHistory = [...oldHistory, history];
-      
-      await collection.updateOne({_id: new ObjectId(single_property_id)}, {$set: {
-        distribution_transactions: newHistory
-      }});
-    } catch(err) {
+
+      await collection.updateOne({ _id: new ObjectId(single_property_id) }, {
+        $set: {
+          distribution_transactions: newHistory
+        }
+      });
+    } catch (err) {
       console.error("Error appending distribution history", err);
 
       if (err instanceof MyError) {
         throw err;
       }
-      throw new MyError("Could not append distribution history in database", {cause: err});
+      throw new MyError("Could not append distribution history in database", { cause: err });
     }
   }
 
   static async getDistributionHistory(property_id: string, unitID?: string): Promise<DistributionHistory[]> {
     try {
       const collection = await this.getPropertiesCollection();
-      const property = await collection.findOne({_id: new ObjectId(property_id)});
+      const property = await collection.findOne({ _id: new ObjectId(property_id) });
 
       if (!property) {
         throw new MyError("Property does not exist");
@@ -186,14 +214,14 @@ export class AgencyModel {
       }
 
       return property.distribution_transactions ?? [];
-    } catch(err) {
+    } catch (err) {
       console.error("Error getting distribution history for property from db", err);
 
       if (err instanceof MyError) {
         throw err;
       }
 
-      throw new MyError("Error getting distribution history for property in db", {cause: err});
+      throw new MyError("Error getting distribution history for property in db", { cause: err });
     }
   }
 
@@ -510,7 +538,7 @@ export class AgencyModel {
                   });
                 })
               },
-              
+
               updatedAt: new Date(),
             },
           },
