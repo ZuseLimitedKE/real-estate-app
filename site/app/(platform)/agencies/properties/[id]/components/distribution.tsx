@@ -18,6 +18,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DistributePropertyInvestor } from "@/types/property_details";
+import getPropertyInvestors from "@/server-actions/agent/dashboard/getPropertyInvestors";
 
 type DistributionState = 'input' | 'fetching-investors' | 'investors-loaded' | 'distributing' | 'complete';
 
@@ -136,16 +137,20 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
         );
     };
 
-    function getInvestors() {
-        console.log("Getting investors");
-        // Start fetching investors
-        setState('fetching-investors');
+    async function getInvestors() {
+        try {
+            console.log("Getting investors");
+            // Start fetching investors
+            setState('fetching-investors');
 
-        // Simulate API call to fetch investors
-        setTimeout(() => {
-            // setInvestors(mockInvestors);
+            const investors = await getPropertyInvestors(propertyId);
+            setInvestors(investors);
             setState('investors-loaded');
-        }, 2000);
+        } catch (err) {
+            console.error("Error getting investors", err);
+            toast.error("Could not get property investors");
+            setState('input');
+        }
     }
 
     const handleReset = () => {
@@ -284,13 +289,26 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                     </div>
                                 </div>
 
-                                <Button
-                                    className="w-full"
-                                    size="lg"
-                                >
-                                    <Send className="w-4 h-4 mr-2" />
-                                    Distribute Funds to All Investors
-                                </Button>
+                                {investors.length > 0 ? (
+                                    <Button
+                                        className="w-full"
+                                        size="lg"
+                                    >
+                                        <Send className="w-4 h-4 mr-2" />
+                                        Distribute Funds to All Investors
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="destructive"
+                                        type="button"
+                                        onClick={handleReset}
+                                        className="w-full"
+                                        size="lg"
+                                    >
+                                        <Send className="w-4 h-4 mr-2" />
+                                        Stop Distribution
+                                    </Button>
+                                )}
                             </div>
                         )}
 
