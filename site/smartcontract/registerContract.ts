@@ -1,5 +1,5 @@
 import { Web3 } from 'web3';
-import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, TransferTransaction, TokenId } from "@hashgraph/sdk";
+import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, TransferTransaction, TokenId, Status } from "@hashgraph/sdk";
 import { MyError } from '@/constants/errors';
 
 export interface RegisterPropertyContract {
@@ -118,9 +118,17 @@ class RealEstateManagerContract {
             //Sign with the client operator private key and submit to a Hedera network
             const txTransferResponse = await signTxTransfer.execute(client);
 
+            const receiptTransferTx = await txTransferResponse.getReceipt(client);
+            const statusTransferTx = receiptTransferTx.status;
+
             //Get the Transaction ID
             const txTransferId = txTransferResponse.transactionId.toString();
-            return txTransferId
+            
+            if (statusTransferTx === Status.Success) {
+                return txTransferId
+            }   
+            
+            throw new MyError("Transaction not succeeded");
         } catch (err) {
             console.error(`Error sending tokens to investor ${addressToSend}: ${amount}`, err);
             if (err instanceof MyError) {
