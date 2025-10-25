@@ -461,7 +461,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
                                     <div>
                                         <h3 className="font-semibold text-lg mb-2">Distribution Complete!</h3>
                                         <p className="text-muted-foreground">
-                                            Successfully distributed {totalDistributions} USDC to {investors.length} investors
+                                            Successfully distributed {totalDistributions.toFixed(2)} USDC to {investors.length} investors
                                         </p>
                                     </div>
                                 </div>
@@ -469,7 +469,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
                                 <div className="p-4 bg-success/10 border border-success/20 rounded-lg space-y-3">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-muted-foreground">Total Distributed:</span>
-                                        <span className="font-semibold">{totalDistributions} USDC</span>
+                                        <span className="font-semibold">{totalDistributions.toFixed(2)} USDC</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-muted-foreground">Investors Paid:</span>
