@@ -1,5 +1,5 @@
 import { Web3 } from 'web3';
-import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType } from "@hashgraph/sdk";
+import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, TransferTransaction, TokenId } from "@hashgraph/sdk";
 import { MyError } from '@/constants/errors';
 
 export interface RegisterPropertyContract {
@@ -21,7 +21,7 @@ if (!rpcURL || !pkEnv || !contractAddress) {
 const web3 = new Web3(rpcURL);
 
 class RealEstateManagerContract {
-    _getClientDetails(): {client: Client, operatorKey: PrivateKey, operatorID: AccountId} {
+    _getClientDetails(): { client: Client, operatorKey: PrivateKey, operatorID: AccountId } {
         try {
             if (!pkEnv || !accountID) {
                 throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
@@ -32,8 +32,8 @@ class RealEstateManagerContract {
 
             // Create token for property
             const client = Client.forName(network).setOperator(operatorID, operatorKey);
-            return {client, operatorID, operatorKey};
-        } catch(err) {
+            return { client, operatorID, operatorKey };
+        } catch (err) {
             console.error("Could not get client", err);
             throw err;
         }
@@ -41,7 +41,7 @@ class RealEstateManagerContract {
 
     async register(args: RegisterPropertyContract): Promise<{ tokenID: string, txHash: string }> {
         try {
-            const {client, operatorID, operatorKey} = this._getClientDetails();
+            const { client, operatorID, operatorKey } = this._getClientDetails();
             const tokenCreate = await new TokenCreateTransaction()
                 .setTokenName(args.propertyName)
                 .setTokenSymbol(args.tokenSymbol)
@@ -69,8 +69,8 @@ class RealEstateManagerContract {
     // This function should only be called if register tokens function fails
     async burnTokens(tokens: string[], retry: number = 0) {
         console.log(`Round ${retry} of burning tokens`);
-        const {client, operatorID, operatorKey} = this._getClientDetails();
-        
+        const { client, operatorID, operatorKey } = this._getClientDetails();
+
         if (retry > 5) {
             console.error("Maximum retries for burning tokens has been reached");
             throw new MyError("Maximum retries reached");
@@ -96,10 +96,28 @@ class RealEstateManagerContract {
         }
     }
 
-    async distributeFund(addressToSend: string, amount: BigInt) {
+    // Accepts addressToSend and token as evm addresses
+    async distributeFund(addressToSend: string, amount: number, token: string): Promise<string> {
         try {
-            const {client, operatorID, operatorKey} = this._getClientDetails();
+            const tokenID = TokenId.fromEvmAddress(0, 0,token);
 
+            const recepientID = AccountId.fromEvmAddress(0, 0, addressToSend);
+            const { client, operatorID, operatorKey } = this._getClientDetails();
+            //Create the transfer transaction
+            const txTransfer = new TransferTransaction()
+                .addTokenTransfer(tokenID, operatorID, -amount) //Fill in the token ID 
+                .addTokenTransfer(tokenID, recepientID, amount) //Fill in the token ID and receiver account
+                .freezeWith(client);
+
+            //Sign with the sender account private key
+            const signTxTransfer = await txTransfer.sign(operatorKey);
+
+            //Sign with the client operator private key and submit to a Hedera network
+            const txTransferResponse = await signTxTransfer.execute(client);
+
+            //Get the Transaction ID
+            const txTransferId = txTransferResponse.transactionId.toString();
+            return txTransferId
         } catch (err) {
             console.error(`Error sending tokens to investor ${addressToSend}: ${amount}`, err);
             throw new Error("Could not deposit funds");
