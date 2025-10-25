@@ -15,6 +15,7 @@ import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 import { AgencyStatistics } from "@/server-actions/agent/dashboard/getStatistics";
 import { PropertyType } from "@/constants/properties";
 import { EditPropertyDetails } from "@/types/edit_property";
+import { DistributePropertyInvestor } from "@/types/property_details";
 
 const NUM_YEARS_INVESTMENT = 5;
 
@@ -109,6 +110,32 @@ export class AgencyModel {
     } catch (err) {
       console.error(err);
       throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
+    }
+  }
+
+  // This implementation is only for single properties
+  static async getPropertyInvestors(single_property_id: string): Promise<DistributePropertyInvestor[]> {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const cursor = collection.find({_id: new ObjectId(single_property_id)});
+      const investors: DistributePropertyInvestor[] = [];
+
+      for await (const prop of cursor) {
+        if (prop.property_owners) {
+          for (const owner of prop.property_owners) {
+            investors.push({
+              walletAddress: owner.owner_address,
+              shares: owner.amount_owned,
+              percentage: prop.totalFractions ? (owner.amount_owned / prop.totalFractions!) * 100 : 0,
+            })
+          }
+        }
+      }
+
+      return investors;
+    } catch(err) {
+      console.error("Could not get property investors from database", err);
+      throw new MyError("Could not get property investors from database");
     }
   }
 
