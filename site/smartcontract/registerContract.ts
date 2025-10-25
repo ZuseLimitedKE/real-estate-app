@@ -1,6 +1,7 @@
 import { Web3 } from 'web3';
-import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, TransferTransaction, TokenId, Status } from "@hashgraph/sdk";
+import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, TransferTransaction, TokenId, Status, AccountBalanceQuery } from "@hashgraph/sdk";
 import { MyError } from '@/constants/errors';
+import { addressSchema } from '@/types/property_details';
 
 export interface RegisterPropertyContract {
     tokenSymbol: string,
@@ -102,10 +103,30 @@ class RealEstateManagerContract {
             if (!Number.isSafeInteger(amount)) {
                 throw new MyError("Unsafe integer, can't use it in transaction");
             }
-            const tokenID = TokenId.fromEvmAddress(0, 0, token);
+            const tokenIDParsed = addressSchema.safeParse(token);
+            if (!tokenIDParsed.success) {
+                throw new MyError("Invalid token address");
+            }
+            const tokenID = TokenId.fromEvmAddress(0, 0, tokenIDParsed.data);
 
-            const recipientID = AccountId.fromEvmAddress(0, 0, addressToSend);
+            const recepientAddressParsed = addressSchema.safeParse(addressSchema);
+            if (!recepientAddressParsed.success) {
+                throw new MyError("Invalid recepient address");
+            }
+            const recipientID = AccountId.fromEvmAddress(0, 0, recepientAddressParsed.data);
+
             const { client, operatorID, operatorKey } = this._getClientDetails();
+
+            const recepientAccountBalance = await new AccountBalanceQuery()
+                .setAccountId(recipientID)
+                .execute(client);
+
+            const isAssociated = recepientAccountBalance.tokens?.get(tokenID) !== undefined;
+
+            if (!isAssociated) {
+                throw new MyError("User is not associated to USDC");
+            }
+
             //Create the transfer transaction
             const txTransfer = new TransferTransaction()
                 .addTokenTransfer(tokenID, operatorID, -(amount)) //Fill in the token ID 

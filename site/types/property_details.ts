@@ -1,3 +1,5 @@
+import {z} from "zod";
+
 export interface DistributePropertyInvestor {
     walletAddress: string;
     shares: number;
@@ -23,3 +25,5 @@ export interface StoreDistributionTransactionDetails {
     totalDistributed: number, 
     args: { investorAddress: string, sentAmount: number, transaction: string}[]
 }
+
+export const addressSchema = z.string({message: "Address must be a string"}).regex(/^(0x)?[0-9a-fA-F]{40}$/, {message: "Must be a valid ethereum address"});
