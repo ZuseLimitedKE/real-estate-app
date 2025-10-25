@@ -523,8 +523,8 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                     onOpenChange={() => toggleHistoryItem(distribution.id)}
                                 >
                                     <CollapsibleTrigger className="w-full">
-                                        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors">
-                                            <div className="flex items-center gap-4">
+                                        <div className="flex flex-col items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors gap-2">
+                                            <div className="flex justify-between gap-4">
                                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                                                     <Calendar className="w-5 h-5 text-primary" />
                                                 </div>
@@ -544,8 +544,8 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="text-right flex items-center gap-4">
-                                                <div>
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex flex-row gap-2 items-center">
                                                     <div className="font-semibold text-primary">
                                                         {distribution.amount.toLocaleString()} USDC
                                                     </div>
@@ -555,7 +555,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                                 </div>
                                                 <Badge
                                                     variant={distribution.status === 'completed' ? 'default' : 'secondary'}
-                                                    className={distribution.status === 'completed' ? 'bg-success hover:bg-success' : ''}
+                                                    className={distribution.status === 'completed' ? 'bg-primary hover:bg-primary' : ''}
                                                 >
                                                     {distribution.status}
                                                 </Badge>
@@ -570,11 +570,11 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                                     {distribution.distributions.map((dist, index) => (
                                                         <div
                                                             key={index}
-                                                            className="flex items-center justify-between p-3 bg-background rounded border text-sm"
+                                                            className="flex flex-col items-center justify-between p-3 bg-background rounded border text-sm"
                                                         >
                                                             <div>
                                                                 <div className="text-xs text-muted-foreground font-mono">
-                                                                    {dist.walletAddress}
+                                                                    {formatAddress(dist.walletAddress)}
                                                                 </div>
                                                             </div>
                                                             <div className="font-semibold text-primary">
