@@ -25,7 +25,7 @@ interface Property {
   availableShares: number;
   minInvestment: string;
   verified: boolean;
-  listingDate: string;
+  listingDate: Date;
   pricePerToken: string;
   projectedReturn: string;
 }
@@ -47,7 +47,7 @@ export function PropertyListings({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const filteredAndSortedProperties = useMemo(() => {
-    let filtered = initialProperties.filter((property) => {
+    const filtered = initialProperties.filter((property) => {
       const matchesSearch =
         property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         property.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -57,11 +57,11 @@ export function PropertyListings({
         property.location.toLowerCase().includes(locationFilter.toLowerCase());
       const matchesYield =
         yieldRange === "all" ||
-        (yieldRange === "low" && parseFloat(property.yield) < 5) ||
+        (yieldRange === "low" && Number.parseFloat(property.yield) < 5) ||
         (yieldRange === "medium" &&
-          parseFloat(property.yield) >= 5 &&
-          parseFloat(property.yield) < 10) ||
-        (yieldRange === "high" && parseFloat(property.yield) >= 10);
+          Number.parseFloat(property.yield) >= 5 &&
+          Number.parseFloat(property.yield) < 10) ||
+        (yieldRange === "high" && Number.parseFloat(property.yield) >= 10);
 
       return matchesSearch && matchesLocation && matchesYield;
     });
@@ -69,29 +69,29 @@ export function PropertyListings({
     switch (sortBy) {
       case "yield-high":
         filtered.sort((a, b) => {
-          const yieldA = parseFloat(a.yield.replace("%", "")) || 0;
-          const yieldB = parseFloat(b.yield.replace("%", "")) || 0;
+          const yieldA = Number.parseFloat(a.yield.replace("%", "")) || 0;
+          const yieldB = Number.parseFloat(b.yield.replace("%", "")) || 0;
           return yieldB - yieldA;
         });
         break;
       case "yield-low":
         filtered.sort((a, b) => {
-          const yieldA = parseFloat(a.yield.replace("%", "")) || 0;
-          const yieldB = parseFloat(b.yield.replace("%", "")) || 0;
+          const yieldA = Number.parseFloat(a.yield.replace("%", "")) || 0;
+          const yieldB = Number.parseFloat(b.yield.replace("%", "")) || 0;
           return yieldA - yieldB;
         });
         break;
       case "price-high":
         filtered.sort((a, b) => {
-          const valueA = parseInt(a.value.replace(/[^\d]/g, "")) || 0;
-          const valueB = parseInt(b.value.replace(/[^\d]/g, "")) || 0;
+          const valueA = Number.parseInt(a.value.replace(/[^\d]/g, "")) || 0;
+          const valueB = Number.parseInt(b.value.replace(/[^\d]/g, "")) || 0;
           return valueB - valueA;
         });
         break;
       case "price-low":
         filtered.sort((a, b) => {
-          const valueA = parseInt(a.value.replace(/[^\d]/g, "")) || 0;
-          const valueB = parseInt(b.value.replace(/[^\d]/g, "")) || 0;
+          const valueA = Number.parseInt(a.value.replace(/[^\d]/g, "")) || 0;
+          const valueB = Number.parseInt(b.value.replace(/[^\d]/g, "")) || 0;
           return valueA - valueB;
         });
         break;
@@ -102,7 +102,7 @@ export function PropertyListings({
         filtered.sort(
           (a, b) =>
             new Date(b.listingDate).getTime() -
-            new Date(a.listingDate).getTime()
+            new Date(a.listingDate).getTime(),
         );
         break;
       default:
@@ -137,7 +137,7 @@ export function PropertyListings({
         {/* Filters Button */}
         <Button
           variant="outline"
-          className="flex items-center gap-2 h-12 rounded-xl w-12 p-0 justify-center"
+          className="flex items-center gap-2 h-12 rounded-lg w-12 p-0 justify-center bg-transparent"
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
         >
           <SlidersHorizontal className="w-4 h-4" />
@@ -159,12 +159,12 @@ export function PropertyListings({
               placeholder="Search properties..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-12 rounded-3xl w-full"
+              className="pl-10 h-12 rounded-lg w-full"
             />
           </div>
           <Button
             variant="default"
-            className="h-12 px-8 rounded-2xl cursor-pointer"
+            className="h-12 px-8 rounded-lg cursor-pointer"
           >
             <Search className="w-4 h-4 mx-2" />
           </Button>
@@ -172,7 +172,7 @@ export function PropertyListings({
 
         {/* Sort Dropdown */}
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="h-12 rounded-xl w-full md:w-40">
+          <SelectTrigger className=" h-36 rounded-lg w-full md:w-40">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -211,7 +211,9 @@ export function PropertyListings({
 
             {/* Property Type Filter */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Property Type</label>
+              <label className="text-sm font-medium mb-2 block">
+                Property Type
+              </label>
               <Select value={propertyType} onValueChange={setPropertyType}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Types" />
@@ -228,7 +230,9 @@ export function PropertyListings({
 
             {/* Yield Range Filter */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Yield Range</label>
+              <label className="text-sm font-medium mb-2 block">
+                Yield Range
+              </label>
               <Select value={yieldRange} onValueChange={setYieldRange}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Yields" />
@@ -244,7 +248,9 @@ export function PropertyListings({
 
             {/* Price Range Filter */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Price Range</label>
+              <label className="text-sm font-medium mb-2 block">
+                Price Range
+              </label>
               <Select value={priceRange} onValueChange={setPriceRange}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Prices" />
@@ -261,10 +267,10 @@ export function PropertyListings({
 
             {/* Clear Filters Button - Now in the same row */}
             <div className="flex items-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={clearAllFilters}
-                className="w-full h-10"
+                className="w-full h-10 bg-transparent"
               >
                 Clear All Filters
               </Button>
@@ -278,14 +284,20 @@ export function PropertyListings({
         {/* Left: Results Count */}
         <div>
           <h2 className="text-sm font-semibold text-gray-800 dark:text-white">
-            {filteredAndSortedProperties.length} {filteredAndSortedProperties.length === 1 ? 'Property' : 'Properties'} Found
+            {filteredAndSortedProperties.length}{" "}
+            {filteredAndSortedProperties.length === 1
+              ? "Property"
+              : "Properties"}{" "}
+            Found
           </h2>
         </div>
 
         {/* Right: View Toggle */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">View:</span>
-          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">
+            View:
+          </span>
+          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg">
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="sm"
@@ -326,14 +338,10 @@ export function PropertyListings({
         </div>
       ) : (
         <div
-          className={`${
-            viewMode === "grid"
-              ? "grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-              : "space-y-6"
-          } mb-12`}
+          className={`${viewMode === "grid" ? "grid md:grid-cols-2 lg:grid-cols-3 gap-8" : "space-y-6"} mb-12`}
         >
           {filteredAndSortedProperties.map((property, index) => (
-              <PropertyCard key={property.id || index} {...property} />
+            <PropertyCard key={property.id || index} {...property} />
           ))}
         </div>
       )}
@@ -341,7 +349,11 @@ export function PropertyListings({
       {/* Load More */}
       {filteredAndSortedProperties.length > 0 && (
         <div className="text-center">
-          <Button variant="outline" size="lg" className="rounded-xl">
+          <Button
+            variant="outline"
+            size="lg"
+            className="rounded-xl bg-transparent"
+          >
             Load More Properties
           </Button>
         </div>
