@@ -15,7 +15,7 @@ import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { UserRole } from "@/auth/utils";
 import { LogoutButton } from "./logout-button";
-import { Briefcase, Home, User, Activity, Settings } from "lucide-react";
+import { Home, User, Activity } from "lucide-react";
 interface AppNavbarProps {
   role: UserRole;
 }
@@ -34,13 +34,10 @@ export function AppNavbar({ role }: AppNavbarProps) {
         <NavbarLogo />
         <NavItems>
           <NavItem href="/investors" icon={Home}>
-            View Properties
+            Marketplace
           </NavItem>
           {role === "investor" && (
             <>
-              <NavItem href="/investors/marketplace" icon={Briefcase}>
-                Marketplace
-              </NavItem>
               <NavItem href="/investors/portfolio" icon={User}>
                 Portfolio
               </NavItem>
@@ -48,12 +45,9 @@ export function AppNavbar({ role }: AppNavbarProps) {
           )}
           {role === "agency" && (
             <NavItem href="/agencies/dashboard" icon={Activity}>
-              Dashboard
+              Agency Dashboard
             </NavItem>
           )}
-          <NavItem href="#settings" icon={Settings}>
-            Settings
-          </NavItem>
         </NavItems>
 
         <div className="flex items-center gap-4">
@@ -81,7 +75,7 @@ export function AppNavbar({ role }: AppNavbarProps) {
             onClick={handleMobileNavItemClick}
             icon={Home}
           >
-            View Properties
+            Marketplace
           </MobileNavItem>
 
           {role === "agency" && (
@@ -90,18 +84,11 @@ export function AppNavbar({ role }: AppNavbarProps) {
               onClick={handleMobileNavItemClick}
               icon={Activity}
             >
-              Dashboard
+              Agency Dashboard
             </MobileNavItem>
           )}
           {role === "investor" && (
             <>
-              <MobileNavItem
-                href="/investors/marketplace"
-                icon={Briefcase}
-                onClick={handleMobileNavItemClick}
-              >
-                Marketplace
-              </MobileNavItem>
               <NavItem
                 href="/investors/portfolio"
                 icon={User}
@@ -111,13 +98,6 @@ export function AppNavbar({ role }: AppNavbarProps) {
               </NavItem>
             </>
           )}
-          <MobileNavItem
-            href="#settings"
-            onClick={handleMobileNavItemClick}
-            icon={Settings}
-          >
-            Settings
-          </MobileNavItem>
 
           <div className="flex w-full flex-col gap-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
             <ConnectButton accountStatus="avatar" />
