@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import client from "./connection";
 import { PaymentStatus } from "@/types/property";
+import { DistributionHistory } from "@/types/property_details";
 const databaseName = "real-estate-app";
 const propertiesCollection = "properties";
 const database = client.db(databaseName);
@@ -69,6 +70,7 @@ export interface Properties {
     amount_owned: number;
     purchase_time: Date;
   }[];
+  distribution_transactions?: DistributionHistory[],
   secondary_market_listings?: {
     lister_address: string;
     amount_listed: number;

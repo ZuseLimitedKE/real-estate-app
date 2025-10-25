@@ -15,7 +15,7 @@ import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 import { AgencyStatistics } from "@/server-actions/agent/dashboard/getStatistics";
 import { PropertyType } from "@/constants/properties";
 import { EditPropertyDetails } from "@/types/edit_property";
-import { DistributePropertyInvestor } from "@/types/property_details";
+import { DistributePropertyInvestor, DistributionHistory } from "@/types/property_details";
 
 const NUM_YEARS_INVESTMENT = 5;
 
@@ -136,6 +136,26 @@ export class AgencyModel {
     } catch(err) {
       console.error("Could not get property investors from database", err);
       throw new MyError("Could not get property investors from database");
+    }
+  }
+
+  // Append distribution history
+  static async appendDistributionHistory(history: DistributionHistory, single_property_id: string) {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const property = await collection.findOne({_id: new ObjectId(single_property_id)})
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+      const oldHistory = property.distribution_transactions ?? [];
+      const newHistory = [...oldHistory, history];
+      
+      await collection.updateOne({_id: new ObjectId(single_property_id)}, {$set: {
+        distribution_transactions: newHistory
+      }});
+    } catch(err) {
+      console.error("Error appending distribution history", err);
+      throw new MyError("Could not append distribution history in database", {cause: err});
     }
   }
 

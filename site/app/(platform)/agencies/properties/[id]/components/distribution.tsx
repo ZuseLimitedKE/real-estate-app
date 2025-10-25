@@ -17,75 +17,16 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { DistributePropertyInvestor } from "@/types/property_details";
+import { DistributePropertyInvestor, DistributionHistory, StoreDistributionTransactionDetails } from "@/types/property_details";
 import getPropertyInvestors from "@/server-actions/agent/dashboard/getPropertyInvestors";
 import { formatAddress } from "@/lib/utils/formatter";
 import erc20Abi from "@/smartcontract/abi/ERC20.json";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits } from "viem";
 import distributeFund from "@/server-actions/agent/dashboard/distributeFunds";
+import storeDistributionTransactions from "@/server-actions/agent/dashboard/storeDistributionTransactions";
 
 type DistributionState = 'input' | 'fetching-investors' | 'investors-loaded' | 'distributing' | 'complete';
-
-interface DistributionHistory {
-    id: string;
-    date: string;
-    amount: number;
-    investorCount: number;
-    txHash: string;
-    status: 'completed' | 'pending' | 'failed';
-    distributions: Array<{
-        investorName: string;
-        amount: number;
-        walletAddress: string;
-    }>;
-}
-
-// Mock distribution history
-const mockHistory: DistributionHistory[] = [
-    {
-        id: "dist-003",
-        date: "2024-03-15T14:30:00",
-        amount: 85000,
-        investorCount: 4,
-        txHash: "0x8f3a2c1d9b7c6d8e4f5a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
-        status: 'completed',
-        distributions: [
-            { investorName: "Michael Chen", amount: 38250, walletAddress: "0x742d...8f3a" },
-            { investorName: "Sarah Johnson", amount: 25500, walletAddress: "0x8a3b...2c1d" },
-            { investorName: "David Martinez", amount: 12750, walletAddress: "0x1f4e...9b7c" },
-            { investorName: "Emma Williams", amount: 8500, walletAddress: "0x5c2a...6d8e" }
-        ]
-    },
-    {
-        id: "dist-002",
-        date: "2024-02-15T10:15:00",
-        amount: 83000,
-        investorCount: 4,
-        txHash: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2",
-        status: 'completed',
-        distributions: [
-            { investorName: "Michael Chen", amount: 37350, walletAddress: "0x742d...8f3a" },
-            { investorName: "Sarah Johnson", amount: 24900, walletAddress: "0x8a3b...2c1d" },
-            { investorName: "David Martinez", amount: 12450, walletAddress: "0x1f4e...9b7c" },
-            { investorName: "Emma Williams", amount: 8300, walletAddress: "0x5c2a...6d8e" }
-        ]
-    },
-    {
-        id: "dist-001",
-        date: "2024-01-15T16:45:00",
-        amount: 85000,
-        investorCount: 4,
-        txHash: "0x9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b",
-        status: 'completed',
-        distributions: [
-            { investorName: "Michael Chen", amount: 38250, walletAddress: "0x742d...8f3a" },
-            { investorName: "Sarah Johnson", amount: 25500, walletAddress: "0x8a3b...2c1d" },
-            { investorName: "David Martinez", amount: 12750, walletAddress: "0x1f4e...9b7c" },
-            { investorName: "Emma Williams", amount: 8500, walletAddress: "0x5c2a...6d8e" }
-        ]
-    }
-];
 
 interface RentDistributionFlowProps {
     propertyId: string;
@@ -98,6 +39,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
     const [distributionProgress, setDistributionProgress] = useState(0);
     const [openHistoryItems, setOpenHistoryItems] = useState<string[]>([]);
     const [totalDistributions, setTotalDistributions] = useState<number>(0);
+    const [distributionHistory, setDistributionHistory] = useState<DistributionHistory[]>([]);
 
     const { isConnected, address } = useAccount();
     const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
@@ -130,13 +72,13 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
     const rentAmount = watch("amount") || 0;
 
     const parsedAmount = useMemo(() => {
-        if (!rentAmount || isNaN(Number(rentAmount))) return BigInt(0);
+        if (!totalDistributions || isNaN(Number(totalDistributions))) return BigInt(0);
         try {
             return parseUnits(totalDistributions.toString(), decimals);
         } catch {
             return BigInt(0);
         }
-    }, [rentAmount, decimals]);
+    }, [totalDistributions, decimals]);
 
     const {
         writeContract: writeDeposit,
@@ -151,6 +93,15 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
     const busy =
         isDepositPending || waitingDeposit;
 
+    // Get distribution history at the beginning
+    useEffect(() => {
+        async function getDistributionHistory() {
+
+        }
+
+        getDistributionHistory();
+    });
+
     // Handle deposit success
     useEffect(() => {
         async function distribute() {
@@ -160,6 +111,11 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                     toast.success("USDC deposited to escrow");
 
                     // Divide investor funds
+                    const fundedInvestors: StoreDistributionTransactionDetails = {
+                        propertyID: propertyId,
+                        totalDistributed: totalDistributions,
+                        args: []
+                    };
                     for (let i = 0; i < investors.length; i++) {
                         const transaction = await distributeFund(
                             investors[i],
@@ -167,10 +123,17 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                             decimals,
                             USDC
                         );
+
+                        fundedInvestors.args.push({
+                            investorAddress: investors[i].walletAddress,
+                            sentAmount: (investors[i].percentage / 100) * rentAmount,
+                            transaction
+                        })
                         setDistributionProgress((i / investors.length) * 100);
                         console.log("Transaction", transaction);
                     }
 
+                    await storeDistributionTransactions(fundedInvestors);
                     toast.success("Rent has been successfully distributed to all investors");
                     setState('complete');
                 } catch (err) {
@@ -212,6 +175,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
 
             if (parsedAmount <= BigInt(0)) {
                 toast.error("Invalid distribution amount");
+                setState('input');
                 return;
             }
 
