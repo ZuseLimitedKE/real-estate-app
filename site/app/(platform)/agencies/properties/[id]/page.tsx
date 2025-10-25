@@ -1,18 +1,3 @@
-import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit, MapPin } from "lucide-react";
-import Image from "next/image";
-import PropertyOverview from "./components/overview";
-import PropertyFinancials from "./components/financials";
-import PropertyDocuments from "./components/documents";
-import PropertyTenants from "./components/tenants";
 import getPropertyFromID from "@/server-actions/agent/dashboard/getPropertyFromID";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import SinglePropertyDetails from "./components/singleProperty";
@@ -51,9 +36,9 @@ export default async function AgentPropertyPage({
   }
 
   if (property.single_property) {
-    return <SinglePropertyDetails {...property.single_property}/>
+    return <SinglePropertyDetails {...property.single_property} />;
   } else if (property.apartment_property) {
-    return <ApartmentPropertyDetails {...property.apartment_property}/>
+    return <ApartmentPropertyDetails {...property.apartment_property} />;
   } else {
     return (
       <main className="container mx-auto px-4 py-8">
@@ -65,17 +50,13 @@ export default async function AgentPropertyPage({
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p className="text-muted-foreground text-lg">
-              The property that you have selected has either had data entered into it incorrectly
-              or has been corrupted
+              The property that you have selected has either had data entered
+              into it incorrectly or has been corrupted
             </p>
-            <p className="text-muted-foreground">
-              Please contact support
-            </p>
+            <p className="text-muted-foreground">Please contact support</p>
           </CardContent>
         </Card>
       </main>
     );
   }
-
-  
 }
