@@ -155,11 +155,15 @@ export class AgencyModel {
       }});
     } catch(err) {
       console.error("Error appending distribution history", err);
+
+      if (err instanceof MyError) {
+        throw err;
+      }
       throw new MyError("Could not append distribution history in database", {cause: err});
     }
   }
 
-  static async getDistributionHistory(property_id: string): Promise<DistributionHistory[]> {
+  static async getDistributionHistory(property_id: string, unitID?: string): Promise<DistributionHistory[]> {
     try {
       const collection = await this.getPropertiesCollection();
       const property = await collection.findOne({_id: new ObjectId(property_id)});
@@ -168,9 +172,27 @@ export class AgencyModel {
         throw new MyError("Property does not exist");
       }
 
+      if (unitID) {
+        if (!property.apartmentDetails) {
+          throw new MyError("Property is not an apartment");
+        }
+
+        const unit = property.apartmentDetails.units.find((u) => u.id === unitID);
+        if (!unit) {
+          throw new MyError("Unit does not exist");
+        }
+
+        return unit.distribution_transactions ?? [];
+      }
+
       return property.distribution_transactions ?? [];
     } catch(err) {
       console.error("Error getting distribution history for property from db", err);
+
+      if (err instanceof MyError) {
+        throw err;
+      }
+
       throw new MyError("Error getting distribution history for property in db", {cause: err});
     }
   }
@@ -318,6 +340,7 @@ export class AgencyModel {
             const monthlyRevenue = unit.tenant ? unit.tenant.rent_amount : template.proposedRentPerMonth || 0;
             const unitValue = template.unitValue || 0;
             units.push({
+              id: unit.id,
               name: unit.name,
               tenant: unit.tenant && {
                 name: unit.tenant.name,

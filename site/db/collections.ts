@@ -113,11 +113,9 @@ export interface Properties {
         total_fractions: number;
       };
       owner?: {
-        investor_id: string;
         investor_address: string;
         fractions_owned: number;
         purchase_time: Date;
-        purchase_transaction_hash: string;
       }[];
       tenant?: {
         name: string;
@@ -137,6 +135,7 @@ export interface Properties {
         lister_address: string;
         amount_listed: number;
       }[];
+      distribution_transactions?: DistributionHistory[],
     }[];
   }
 }
