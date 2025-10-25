@@ -83,7 +83,7 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                 </div>
 
                 <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 h-12">
+                    <TabsList className="grid w-full md:grid-cols-5 grid-cols-3 h-12">
                         <TabsTrigger value="overview" className="text-sm font-medium">
                             Overview
                         </TabsTrigger>
@@ -92,6 +92,9 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                         </TabsTrigger>
                         <TabsTrigger value="documents" className="text-sm font-medium">
                             Documents
+                        </TabsTrigger>
+                        <TabsTrigger value="distribution" className="text-sm font-medium">
+                            Distribution
                         </TabsTrigger>
                         <TabsTrigger value="tenants" className="text-sm font-medium">
                             Tenants
