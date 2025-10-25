@@ -15,7 +15,7 @@ export default async function AgentDashboardTenants(props: { page: number }) {
 
   return (
     <article>
-      <header className="flex flex-row justify-between my-4">
+      <header className="flex flex-row justify-between my-4 px-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">My tenants</h1>
           <p className="text-muted-foreground text-sm mt-1">
