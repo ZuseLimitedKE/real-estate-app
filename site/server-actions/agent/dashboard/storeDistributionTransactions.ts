@@ -22,7 +22,7 @@ export default async function storeDistributionTransactions(data: StoreDistribut
             })
         };
 
-        await AgencyModel.appendDistributionHistory(history, data.propertyID);
+        await AgencyModel.appendDistributionHistory(history, data.propertyID, data.unitID);
         return history;
     } catch(err) {
         console.error("Error storing distribution transactions", err);

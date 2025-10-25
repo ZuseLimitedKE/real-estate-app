@@ -166,21 +166,50 @@ export class AgencyModel {
   }
 
   // Append distribution history
-  static async appendDistributionHistory(history: DistributionHistory, single_property_id: string) {
+  static async appendDistributionHistory(history: DistributionHistory, propertyID: string, unitID?: string) {
     try {
       const collection = await this.getPropertiesCollection();
-      const property = await collection.findOne({ _id: new ObjectId(single_property_id) })
+      const property = await collection.findOne({ _id: new ObjectId(propertyID) })
       if (!property) {
         throw new MyError("Property does not exist");
       }
-      const oldHistory = property.distribution_transactions ?? [];
-      const newHistory = [...oldHistory, history];
 
-      await collection.updateOne({ _id: new ObjectId(single_property_id) }, {
-        $set: {
-          distribution_transactions: newHistory
+      if (unitID) {
+        if (!property.apartmentDetails) {
+          throw new MyError("Property is not an apartment");
         }
-      });
+
+        const unit = property.apartmentDetails.units.find((u) => u.id === unitID);
+        if (!unit) {
+          throw new MyError("Unit does not exist");
+        }
+
+        const oldHistory = unit.distribution_transactions ?? [];
+        const newHistory = [...oldHistory, history];
+        unit.distribution_transactions = newHistory;
+        const newAppartmentDetails = {...property.apartmentDetails};
+        newAppartmentDetails.units.forEach((u) => {
+          if (u.id === unit.id) {
+            u = unit;
+          }
+        });
+        await collection.updateOne({_id: new ObjectId(propertyID)}, {
+          $set: {
+            apartmentDetails: newAppartmentDetails
+          }
+        });
+      } else {
+        const oldHistory = property.distribution_transactions ?? [];
+        const newHistory = [...oldHistory, history];
+
+        await collection.updateOne({ _id: new ObjectId(propertyID) }, {
+          $set: {
+            distribution_transactions: newHistory
+          }
+        });
+      }
+
+
     } catch (err) {
       console.error("Error appending distribution history", err);
 

@@ -19,6 +19,7 @@ export interface DistributionHistory {
 
 export interface StoreDistributionTransactionDetails {
     propertyID: string, 
+    unitID?: string,
     totalDistributed: number, 
     args: { investorAddress: string, sentAmount: number, transaction: string}[]
 }
