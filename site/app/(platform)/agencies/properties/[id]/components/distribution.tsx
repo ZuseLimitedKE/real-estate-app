@@ -32,9 +32,10 @@ type DistributionState = 'input' | 'fetching-investors' | 'investors-loaded' | '
 interface RentDistributionFlowProps {
     propertyId: string;
     monthlyRevenue: number;
+    unitID?: string
 }
 
-export default function PaymentsDistribution({ propertyId, monthlyRevenue }: RentDistributionFlowProps) {
+export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitID }: RentDistributionFlowProps) {
     const [state, setState] = useState<DistributionState>('input');
     const [investors, setInvestors] = useState<DistributePropertyInvestor[]>([]);
     const [distributionProgress, setDistributionProgress] = useState(0);

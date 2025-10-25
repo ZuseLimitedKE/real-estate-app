@@ -7,8 +7,9 @@ import { ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
 import PropertyFinancials from "../../properties/[id]/components/financials";
 import PropertyTenants from "../../properties/[id]/components/tenants";
+import PaymentsDistribution from "../../properties/[id]/components/distribution";
 
-export default function ApartmentPropertyTemplateUnitView({ unit }: { unit: ApartmentUnit }) {
+export default function ApartmentPropertyTemplateUnitView({ unit, propertyid }: { unit: ApartmentUnit, propertyid: string }) {
     const [open, setOpen] = useState<boolean>(false);
 
     const finances: SinglePropertyFinances = {
@@ -38,12 +39,15 @@ export default function ApartmentPropertyTemplateUnitView({ unit }: { unit: Apar
 
             <CollapsibleContent className="space-y-4 p-2">
                 <Tabs defaultValue="financials" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 h-12">
+                    <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 h-12">
                         <TabsTrigger value="financials" className="text-sm font-medium">
                             Financials
                         </TabsTrigger>
                         <TabsTrigger value="tenant" className="text-sm font-medium">
                             Tenant
+                        </TabsTrigger>
+                        <TabsTrigger value="distribute" className="text-sm font-medium">
+                            Distribute
                         </TabsTrigger>
                     </TabsList>
 
@@ -56,6 +60,10 @@ export default function ApartmentPropertyTemplateUnitView({ unit }: { unit: Apar
 
                         <TabsContent value="tenant" className="mt-0">
                             <PropertyTenants tenant={unit.tenant}/>
+                        </TabsContent>
+
+                        <TabsContent value="distribute" className="mt-0">
+                            <PaymentsDistribution propertyId={propertyid} monthlyRevenue={finances.monthlyRevenue} unitID={unit.id}/>
                         </TabsContent>
                     </div>
                 </Tabs>
