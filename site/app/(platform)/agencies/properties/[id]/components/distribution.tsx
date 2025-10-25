@@ -14,6 +14,9 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type DistributionState = 'input' | 'fetching-investors' | 'investors-loaded' | 'distributing' | 'complete';
 
@@ -100,35 +103,29 @@ interface RentDistributionFlowProps {
 
 export default function PaymentsDistribution({ propertyName, monthlyRevenue }: RentDistributionFlowProps) {
     const [state, setState] = useState<DistributionState>('input');
-    const [rentAmount, setRentAmount] = useState("");
-    const [depositAddress, setDepositAddress] = useState("");
     const [investors, setInvestors] = useState<Investor[]>([]);
     const [distributionProgress, setDistributionProgress] = useState(0);
     const [openHistoryItems, setOpenHistoryItems] = useState<string[]>([]);
 
-    const toggleHistoryItem = (id: string) => {
-        setOpenHistoryItems(prev =>
-            prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]
-        );
-    };
+    const rentDistributionSchema = z.object({
+        amount: z.number("Rent amount should be a number").gt(0, "Rent amount must be greater than zero"),
+    });
 
-    const handleDepositRent = () => {
-        if (!rentAmount || parseFloat(rentAmount) <= 0) {
-            toast.warning("Please enter a valid rent amount");
-            return;
-        }
+    const {
+        register,
+        handleSubmit,
+        watch,
+        reset,
+        formState: { errors }
+    } = useForm({
+        resolver: zodResolver(rentDistributionSchema)
+    });
 
-        // Start fetching investors
-        setState('fetching-investors');
+    const rentAmount = watch("amount") || 0;
 
-        // Simulate API call to fetch investors
-        setTimeout(() => {
-            setInvestors(mockInvestors);
-            setState('investors-loaded');
-        }, 2000);
-    };
+    function onSubmit(data: z.infer<typeof rentDistributionSchema>) {
+        console.log("Data being submitted", data);
 
-    const handleDistributeFunds = () => {
         setState('distributing');
         setDistributionProgress(0);
 
@@ -146,19 +143,36 @@ export default function PaymentsDistribution({ propertyName, monthlyRevenue }: R
                 return prev + 10;
             });
         }, 300);
+    }
+
+    const toggleHistoryItem = (id: string) => {
+        setOpenHistoryItems(prev =>
+            prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]
+        );
     };
 
+    function getInvestors() {
+        console.log("Getting investors");
+        // Start fetching investors
+        setState('fetching-investors');
+
+        // Simulate API call to fetch investors
+        setTimeout(() => {
+            setInvestors(mockInvestors);
+            setState('investors-loaded');
+        }, 2000);
+    }
+
     const handleReset = () => {
+        console.log("Resetting form")
         setState('input');
-        setRentAmount("");
-        setDepositAddress("");
+        reset();
         setInvestors([]);
         setDistributionProgress(0);
     };
 
     const calculateDistribution = (investor: Investor) => {
-        const amount = parseFloat(rentAmount || "0");
-        return (amount * investor.percentage / 100).toFixed(2);
+        return (rentAmount * investor.percentage / 100).toFixed(2);
     };
 
     return (
@@ -183,212 +197,206 @@ export default function PaymentsDistribution({ propertyName, monthlyRevenue }: R
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {/* Step 1: Input Rent Amount */}
-                    {state === 'input' && (
-                        <div className="space-y-6">
-                            <div className="p-4 bg-muted/50 rounded-lg border border-border">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Wallet className="w-5 h-5 text-primary" />
-                                    <h3 className="font-semibold">Deposit Rent Collection</h3>
-                                </div>
-                                <div className="space-y-4">
-                                    <div>
-                                        <Label htmlFor="rent-amount">Rent Amount (USDC)</Label>
-                                        <Input
-                                            id="rent-amount"
-                                            type="number"
-                                            placeholder={`Suggested: ${monthlyRevenue.toLocaleString()}`}
-                                            value={rentAmount}
-                                            onChange={(e) => setRentAmount(e.target.value)}
-                                            className="mt-1.5"
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1.5">
-                                            Expected monthly revenue: {monthlyRevenue.toLocaleString()} USDC
-                                        </p>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        {/* Step 1: Input Rent Amount */}
+                        {state === 'input' && (
+                            <div className="space-y-6">
+                                <div className="p-2 bg-muted/50 rounded-lg border border-border">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Wallet className="w-5 h-5 text-primary" />
+                                        <h3 className="font-semibold">Deposit Rent Collection</h3>
                                     </div>
-                                    <div>
-                                        <Label htmlFor="deposit-address">Deposit to Contract Address</Label>
-                                        <Input
-                                            id="deposit-address"
-                                            placeholder="0x..."
-                                            value={depositAddress}
-                                            onChange={(e) => setDepositAddress(e.target.value)}
-                                            className="mt-1.5 font-mono text-sm"
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1.5">
-                                            Smart contract address for {propertyName}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Button
-                                onClick={handleDepositRent}
-                                className="w-full"
-                                size="lg"
-                            >
-                                <Send className="w-4 h-4 mr-2" />
-                                Deposit Rent & Fetch Investors
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* Step 2: Fetching Investors */}
-                    {state === 'fetching-investors' && (
-                        <div className="text-center py-12 space-y-4">
-                            <div className="flex justify-center">
-                                <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-lg mb-2">Fetching Investors</h3>
-                                <p className="text-muted-foreground">
-                                    Retrieving list of property investors and their stakes...
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 3: Investors Loaded */}
-                    {state === 'investors-loaded' && (
-                        <div className="space-y-6">
-                            <div className="p-4 bg-success/10 border border-success/20 rounded-lg">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Users className="w-5 h-5 text-success" />
-                                    <h3 className="font-semibold">Investors Retrieved</h3>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-4">
-                                    Found {investors.length} investors. Review the distribution breakdown below:
-                                </p>
-
-                                <div className="space-y-3">
-                                    {investors.map((investor) => (
-                                        <div
-                                            key={investor.id}
-                                            className="flex items-center justify-between p-3 bg-background rounded-lg border"
-                                        >
-                                            <div className="flex-1">
-                                                <div className="font-medium">{investor.name}</div>
-                                                <div className="text-xs text-muted-foreground font-mono">
-                                                    {investor.walletAddress}
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="font-semibold text-primary">
-                                                    {calculateDistribution(investor)} USDC
-                                                </div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {investor.shares} shares ({investor.percentage}%)
-                                                </div>
-                                            </div>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="rent-amount">Rent Amount (USDC)</Label>
+                                            <Input
+                                                id="rent-amount"
+                                                type="number"
+                                                placeholder={`Suggested: ${monthlyRevenue.toLocaleString()}`}
+                                                {...register("amount", { valueAsNumber: true })}
+                                            />
+                                            {errors.amount ? (
+                                                <p className="text-sm text-red-500 mt-1">
+                                                    {errors.amount.message}
+                                                </p>
+                                            ) : (
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    Expected monthly revenue: {monthlyRevenue.toLocaleString()} USDC
+                                                </p>
+                                            )}
                                         </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-4 pt-4 border-t">
-                                    <div className="flex justify-between items-center font-semibold">
-                                        <span>Total Distribution:</span>
-                                        <span className="text-primary text-lg">{rentAmount} USDC</span>
                                     </div>
                                 </div>
+
+                                <Button
+                                    type="button"
+                                    onClick={getInvestors}
+                                    className="w-full"
+                                    size="lg"
+                                >
+                                    <Send className="w-4 h-4 mr-2" />
+                                    Fetch Investors
+                                </Button>
                             </div>
+                        )}
 
-                            <Button
-                                onClick={handleDistributeFunds}
-                                className="w-full"
-                                size="lg"
-                            >
-                                <Send className="w-4 h-4 mr-2" />
-                                Distribute Funds to All Investors
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* Step 4: Distributing */}
-                    {state === 'distributing' && (
-                        <div className="space-y-6 py-6">
-                            <div className="text-center space-y-4">
+                        {/* Step 2: Fetching Investors */}
+                        {state === 'fetching-investors' && (
+                            <div className="text-center py-12 space-y-4">
                                 <div className="flex justify-center">
                                     <Loader2 className="w-12 h-12 text-primary animate-spin" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-lg mb-2">Distributing Funds</h3>
+                                    <h3 className="font-semibold text-lg mb-2">Fetching Investors</h3>
                                     <p className="text-muted-foreground">
-                                        Processing {investors.length} transactions on the blockchain...
+                                        Retrieving list of property investors and their stakes...
                                     </p>
                                 </div>
                             </div>
+                        )}
 
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Distribution Progress</span>
-                                    <span className="font-semibold">{distributionProgress}%</span>
-                                </div>
-                                <Progress value={distributionProgress} className="h-3" />
-                            </div>
-
-                            <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                                {investors.map((investor, index) => (
-                                    <div key={investor.id} className="flex items-center gap-3 text-sm">
-                                        {distributionProgress > (index * 25) ? (
-                                            <CheckCircle className="w-4 h-4 text-success" />
-                                        ) : (
-                                            <div className="w-4 h-4 border-2 border-muted-foreground/30 rounded-full" />
-                                        )}
-                                        <span className={distributionProgress > (index * 25) ? "text-success" : "text-muted-foreground"}>
-                                            {investor.name} - {calculateDistribution(investor)} USDC
-                                        </span>
+                        {/* Step 3: Investors Loaded */}
+                        {state === 'investors-loaded' && (
+                            <div className="space-y-6">
+                                <div className="p-4 bg-success/10 border border-success/20 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Users className="w-5 h-5 text-success" />
+                                        <h3 className="font-semibold">Investors Retrieved</h3>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 5: Complete */}
-                    {state === 'complete' && (
-                        <div className="space-y-6 py-6">
-                            <div className="text-center space-y-4">
-                                <div className="flex justify-center">
-                                    <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center">
-                                        <CheckCircle className="w-10 h-10 text-success" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-lg mb-2">Distribution Complete!</h3>
-                                    <p className="text-muted-foreground">
-                                        Successfully distributed {rentAmount} USDC to {investors.length} investors
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        Found {investors.length} investors. Review the distribution breakdown below:
                                     </p>
+
+                                    <div className="space-y-3">
+                                        {investors.map((investor) => (
+                                            <div
+                                                key={investor.id}
+                                                className="flex items-center justify-between p-3 bg-background rounded-lg border"
+                                            >
+                                                <div className="flex-1">
+                                                    <div className="font-medium">{investor.name}</div>
+                                                    <div className="text-xs text-muted-foreground font-mono">
+                                                        {investor.walletAddress}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="font-semibold text-primary">
+                                                        {calculateDistribution(investor)} USDC
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {investor.shares} shares ({investor.percentage}%)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t">
+                                        <div className="flex justify-between items-center font-semibold">
+                                            <span>Total Distribution:</span>
+                                            <span className="text-primary text-lg">{rentAmount} USDC</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <Button
+                                    className="w-full"
+                                    size="lg"
+                                >
+                                    <Send className="w-4 h-4 mr-2" />
+                                    Distribute Funds to All Investors
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Step 4: Distributing */}
+                        {state === 'distributing' && (
+                            <div className="space-y-6 py-6">
+                                <div className="text-center space-y-4">
+                                    <div className="flex justify-center">
+                                        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg mb-2">Distributing Funds</h3>
+                                        <p className="text-muted-foreground">
+                                            Processing {investors.length} transactions on the blockchain...
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Distribution Progress</span>
+                                        <span className="font-semibold">{distributionProgress}%</span>
+                                    </div>
+                                    <Progress value={distributionProgress} className="h-3" />
+                                </div>
+
+                                <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                                    {investors.map((investor, index) => (
+                                        <div key={investor.id} className="flex items-center gap-3 text-sm">
+                                            {distributionProgress > (index * 25) ? (
+                                                <CheckCircle className="w-4 h-4 text-success" />
+                                            ) : (
+                                                <div className="w-4 h-4 border-2 border-muted-foreground/30 rounded-full" />
+                                            )}
+                                            <span className={distributionProgress > (index * 25) ? "text-success" : "text-muted-foreground"}>
+                                                {investor.name} - {calculateDistribution(investor)} USDC
+                                            </span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
+                        )}
 
-                            <div className="p-4 bg-success/10 border border-success/20 rounded-lg space-y-3">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Total Distributed:</span>
-                                    <span className="font-semibold">{rentAmount} USDC</span>
+                        {/* Step 5: Complete */}
+                        {state === 'complete' && (
+                            <div className="space-y-6 py-6">
+                                <div className="text-center space-y-4">
+                                    <div className="flex justify-center">
+                                        <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center">
+                                            <CheckCircle className="w-10 h-10 text-success" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg mb-2">Distribution Complete!</h3>
+                                        <p className="text-muted-foreground">
+                                            Successfully distributed {rentAmount} USDC to {investors.length} investors
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Investors Paid:</span>
-                                    <span className="font-semibold">{investors.length}</span>
+
+                                <div className="p-4 bg-success/10 border border-success/20 rounded-lg space-y-3">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">Total Distributed:</span>
+                                        <span className="font-semibold">{rentAmount} USDC</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">Investors Paid:</span>
+                                        <span className="font-semibold">{investors.length}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">Transaction Status:</span>
+                                        <Badge variant="default" className="bg-primary hover:bg-primary">Confirmed</Badge>
+                                    </div>
                                 </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Transaction Status:</span>
-                                    <Badge variant="default" className="bg-success hover:bg-success">Confirmed</Badge>
-                                </div>
+
+                                <p className="text-xs text-center text-muted-foreground">
+                                    All transaction records have been stored and are available in the financial history
+                                </p>
+
+                                <Button
+                                    type="button"
+                                    onClick={handleReset}
+                                    variant="outline"
+                                    className="w-full"
+                                    size="lg"
+                                >
+                                    Start New Distribution
+                                </Button>
                             </div>
-
-                            <p className="text-xs text-center text-muted-foreground">
-                                All transaction records have been stored and are available in the financial history
-                            </p>
-
-                            <Button
-                                onClick={handleReset}
-                                variant="outline"
-                                className="w-full"
-                                size="lg"
-                            >
-                                Start New Distribution
-                            </Button>
-                        </div>
-                    )}
+                        )}
+                    </form>
                 </CardContent>
             </Card>
 
