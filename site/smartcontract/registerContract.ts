@@ -21,7 +21,7 @@ if (!rpcURL || !pkEnv || !contractAddress) {
 const web3 = new Web3(rpcURL);
 
 class RealEstateManagerContract {
-    async register(args: RegisterPropertyContract): Promise<{ tokenID: string, txHash: string }> {
+    _getClientDetails(): {client: Client, operatorKey: PrivateKey, operatorID: AccountId} {
         try {
             if (!pkEnv || !accountID) {
                 throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
@@ -32,6 +32,16 @@ class RealEstateManagerContract {
 
             // Create token for property
             const client = Client.forName(network).setOperator(operatorID, operatorKey);
+            return {client, operatorID, operatorKey};
+        } catch(err) {
+            console.error("Could not get client", err);
+            throw err;
+        }
+    }
+
+    async register(args: RegisterPropertyContract): Promise<{ tokenID: string, txHash: string }> {
+        try {
+            const {client, operatorID, operatorKey} = this._getClientDetails();
             const tokenCreate = await new TokenCreateTransaction()
                 .setTokenName(args.propertyName)
                 .setTokenSymbol(args.tokenSymbol)
@@ -59,16 +69,8 @@ class RealEstateManagerContract {
     // This function should only be called if register tokens function fails
     async burnTokens(tokens: string[], retry: number = 0) {
         console.log(`Round ${retry} of burning tokens`);
-        if (!pkEnv || !accountID) {
-            throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
-        }
-
-        const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
-        const operatorID = AccountId.fromString(accountID);
-
-        // Create token for property
-        const client = Client.forName(network).setOperator(operatorID, operatorKey);
-
+        const {client, operatorID, operatorKey} = this._getClientDetails();
+        
         if (retry > 5) {
             console.error("Maximum retries for burning tokens has been reached");
             throw new MyError("Maximum retries reached");
@@ -91,6 +93,16 @@ class RealEstateManagerContract {
         } catch (err) {
             await new Promise((r) => setTimeout(r, Math.min(1000 * (retry + 1), 5000)));
             this.burnTokens(tokens, retry + 1);
+        }
+    }
+
+    async distributeFund(addressToSend: string, amount: BigInt) {
+        try {
+            const {client, operatorID, operatorKey} = this._getClientDetails();
+
+        } catch (err) {
+            console.error(`Error sending tokens to investor ${addressToSend}: ${amount}`, err);
+            throw new Error("Could not deposit funds");
         }
     }
 }
