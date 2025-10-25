@@ -140,7 +140,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
                     }
 
                     const history = await storeDistributionTransactions(fundedInvestors);
-                    setDistributionHistory([...distributionHistory, history]);
+                    setDistributionHistory(prev => [...prev, history]);
                     toast.success("Rent has been successfully distributed to all investors");
                     setState('complete');
                 } catch (err) {
