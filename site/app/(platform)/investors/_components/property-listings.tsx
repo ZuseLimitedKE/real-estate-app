@@ -172,7 +172,7 @@ export function PropertyListings({
 
         {/* Sort Dropdown */}
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className=" h-36 rounded-lg w-full md:w-40">
+          <SelectTrigger className="h-10 rounded-lg w-full md:w-40">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
