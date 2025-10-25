@@ -99,14 +99,17 @@ class RealEstateManagerContract {
     // Accepts addressToSend and token as evm addresses
     async distributeFund(addressToSend: string, amount: number, token: string): Promise<string> {
         try {
-            const tokenID = TokenId.fromEvmAddress(0, 0,token);
+            if (!Number.isSafeInteger(amount)) {
+                throw new MyError("Unsafe integer, can't use it in transaction");
+            }
+            const tokenID = TokenId.fromEvmAddress(0, 0, token);
 
-            const recepientID = AccountId.fromEvmAddress(0, 0, addressToSend);
+            const recipientID = AccountId.fromEvmAddress(0, 0, addressToSend);
             const { client, operatorID, operatorKey } = this._getClientDetails();
             //Create the transfer transaction
             const txTransfer = new TransferTransaction()
-                .addTokenTransfer(tokenID, operatorID, -amount) //Fill in the token ID 
-                .addTokenTransfer(tokenID, recepientID, amount) //Fill in the token ID and receiver account
+                .addTokenTransfer(tokenID, operatorID, -(amount)) //Fill in the token ID 
+                .addTokenTransfer(tokenID, recipientID, amount) //Fill in the token ID and receiver account
                 .freezeWith(client);
 
             //Sign with the sender account private key
@@ -120,6 +123,9 @@ class RealEstateManagerContract {
             return txTransferId
         } catch (err) {
             console.error(`Error sending tokens to investor ${addressToSend}: ${amount}`, err);
+            if (err instanceof MyError) {
+                throw err;
+            }
             throw new Error("Could not deposit funds");
         }
     }

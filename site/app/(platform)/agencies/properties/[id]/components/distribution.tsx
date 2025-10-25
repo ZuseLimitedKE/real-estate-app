@@ -135,7 +135,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
                             sentAmount: (investors[i].percentage / 100) * rentAmount,
                             transaction
                         })
-                        setDistributionProgress((i + 1 / investors.length) * 100);
+                        setDistributionProgress(Math.round(((i + 1) / investors.length) * 100));
                         console.log("Transaction", transaction);
                     }
 

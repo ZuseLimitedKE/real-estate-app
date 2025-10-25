@@ -12,7 +12,7 @@ export default async function distributeFund(investor: DistributePropertyInvesto
         // Parse details to send to registerContract
         const transactionID = await realEstateManagerContract.distributeFund(
             investor.walletAddress,
-            (investor.percentage / 100) * totalAmount * (10**decimals),
+            Math.floor((investor.percentage / 100) * totalAmount * (10**decimals)),
             tokenAddress
         );
 
