@@ -132,7 +132,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
     const parsedAmount = useMemo(() => {
         if (!rentAmount || isNaN(Number(rentAmount))) return BigInt(0);
         try {
-            return parseUnits(rentAmount.toString(), decimals);
+            return parseUnits(totalDistributions.toString(), decimals);
         } catch {
             return BigInt(0);
         }
@@ -240,21 +240,6 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
 
             // Admin will then send funds to each of the investors as progress updates
             // This is in the useEffect that's handling succesful deposit
-
-            // Simulate distribution progress
-            // const interval = setInterval(() => {
-            //     setDistributionProgress(prev => {
-            //         if (prev >= 100) {
-            //             clearInterval(interval);
-            //             setTimeout(() => {
-            //                 setState('complete');
-            //                 toast.success("Rent has been successfully distributed to all investors");
-            //             }, 500);
-            //             return 100;
-            //         }
-            //         return prev + 10;
-            //     });
-            // }, 300);
         } catch (err) {
             console.error("Error distributing");
             setState('input');
