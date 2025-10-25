@@ -1,6 +1,7 @@
 import { Web3 } from 'web3';
-import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType } from "@hashgraph/sdk";
+import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, TransferTransaction, TokenId, Status, AccountBalanceQuery } from "@hashgraph/sdk";
 import { MyError } from '@/constants/errors';
+import { addressSchema } from '@/types/property_details';
 
 export interface RegisterPropertyContract {
     tokenSymbol: string,
@@ -21,7 +22,7 @@ if (!rpcURL || !pkEnv || !contractAddress) {
 const web3 = new Web3(rpcURL);
 
 class RealEstateManagerContract {
-    async register(args: RegisterPropertyContract): Promise<{ tokenID: string, txHash: string }> {
+    _getClientDetails(): { client: Client, operatorKey: PrivateKey, operatorID: AccountId } {
         try {
             if (!pkEnv || !accountID) {
                 throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
@@ -32,6 +33,16 @@ class RealEstateManagerContract {
 
             // Create token for property
             const client = Client.forName(network).setOperator(operatorID, operatorKey);
+            return { client, operatorID, operatorKey };
+        } catch (err) {
+            console.error("Could not get client", err);
+            throw err;
+        }
+    }
+
+    async register(args: RegisterPropertyContract): Promise<{ tokenID: string, txHash: string }> {
+        try {
+            const { client, operatorID, operatorKey } = this._getClientDetails();
             const tokenCreate = await new TokenCreateTransaction()
                 .setTokenName(args.propertyName)
                 .setTokenSymbol(args.tokenSymbol)
@@ -59,15 +70,7 @@ class RealEstateManagerContract {
     // This function should only be called if register tokens function fails
     async burnTokens(tokens: string[], retry: number = 0) {
         console.log(`Round ${retry} of burning tokens`);
-        if (!pkEnv || !accountID) {
-            throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
-        }
-
-        const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
-        const operatorID = AccountId.fromString(accountID);
-
-        // Create token for property
-        const client = Client.forName(network).setOperator(operatorID, operatorKey);
+        const { client, operatorID, operatorKey } = this._getClientDetails();
 
         if (retry > 5) {
             console.error("Maximum retries for burning tokens has been reached");
@@ -91,6 +94,68 @@ class RealEstateManagerContract {
         } catch (err) {
             await new Promise((r) => setTimeout(r, Math.min(1000 * (retry + 1), 5000)));
             this.burnTokens(tokens, retry + 1);
+        }
+    }
+
+    // Accepts addressToSend and token as evm addresses
+    async distributeFund(addressToSend: string, amount: number, token: string): Promise<string> {
+        try {
+            if (!Number.isSafeInteger(amount)) {
+                throw new MyError("Unsafe integer, can't use it in transaction");
+            }
+            const tokenIDParsed = addressSchema.safeParse(token);
+            if (!tokenIDParsed.success) {
+                throw new MyError("Invalid token address");
+            }
+            const tokenID = TokenId.fromEvmAddress(0, 0, tokenIDParsed.data);
+
+            const recipientAddressParsed = addressSchema.safeParse(addressToSend);
+            if (!recipientAddressParsed.success) {
+                throw new MyError("Invalid recepient address");
+            }
+            const recipientID = AccountId.fromEvmAddress(0, 0, recipientAddressParsed.data);
+
+            const { client, operatorID, operatorKey } = this._getClientDetails();
+
+            const recepientAccountBalance = await new AccountBalanceQuery()
+                .setAccountId(recipientID)
+                .execute(client);
+
+            const isAssociated = recepientAccountBalance.tokens?.get(tokenID) !== undefined;
+
+            if (!isAssociated) {
+                throw new MyError("User is not associated to USDC");
+            }
+
+            //Create the transfer transaction
+            const txTransfer = new TransferTransaction()
+                .addTokenTransfer(tokenID, operatorID, -(amount)) //Fill in the token ID 
+                .addTokenTransfer(tokenID, recipientID, amount) //Fill in the token ID and receiver account
+                .freezeWith(client);
+
+            //Sign with the sender account private key
+            const signTxTransfer = await txTransfer.sign(operatorKey);
+
+            //Sign with the client operator private key and submit to a Hedera network
+            const txTransferResponse = await signTxTransfer.execute(client);
+
+            const receiptTransferTx = await txTransferResponse.getReceipt(client);
+            const statusTransferTx = receiptTransferTx.status;
+
+            //Get the Transaction ID
+            const txTransferId = txTransferResponse.transactionId.toString();
+            
+            if (statusTransferTx === Status.Success) {
+                return txTransferId
+            }   
+            
+            throw new MyError("Transaction not succeeded");
+        } catch (err) {
+            console.error(`Error sending tokens to investor ${addressToSend}: ${amount}`, err);
+            if (err instanceof MyError) {
+                throw err;
+            }
+            throw new Error("Could not deposit funds");
         }
     }
 }

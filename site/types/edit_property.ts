@@ -38,11 +38,9 @@ export interface EditPropertyDetails {
                 total_fractions: number;
             };
             owner?: {
-                investor_id: string;
                 investor_address: string;
                 fractions_owned: number;
                 purchase_time: Date;
-                purchase_transaction_hash: string;
             }[],
             secondary_market_listings: {
                 lister_address: string;

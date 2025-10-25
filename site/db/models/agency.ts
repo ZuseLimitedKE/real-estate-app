@@ -15,6 +15,7 @@ import { RESULT_PAGE_SIZE } from "@/constants/pagination";
 import { AgencyStatistics } from "@/server-actions/agent/dashboard/getStatistics";
 import { PropertyType } from "@/constants/properties";
 import { EditPropertyDetails } from "@/types/edit_property";
+import { DistributePropertyInvestor, DistributionHistory } from "@/types/property_details";
 
 const NUM_YEARS_INVESTMENT = 5;
 
@@ -109,6 +110,147 @@ export class AgencyModel {
     } catch (err) {
       console.error(err);
       throw new MyError(Errors.NOT_GET_PROPERTY, { cause: err });
+    }
+  }
+
+  // This implementation is only for single properties
+  static async getPropertyInvestors(single_property_id: string, unitID?: string): Promise<DistributePropertyInvestor[]> {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const property = await collection.findOne({ _id: new ObjectId(single_property_id) });
+      const investors: DistributePropertyInvestor[] = [];
+
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+
+      if (property.apartmentDetails) {
+        const unit = property.apartmentDetails.units.find((u) => u.id === unitID);
+        if (!unit) {
+          throw new MyError("Unit does not exist");
+        }
+
+        if (unit.owner) {
+          for (const owner of unit.owner) {
+            investors.push({
+              walletAddress: owner.investor_address,
+              shares: owner.fractions_owned,
+              percentage: unit.token_details.total_fractions ? (owner.fractions_owned / unit.token_details.total_fractions) * 100 : 0,
+            })
+          }
+        }
+      } else {
+        if (property.property_owners) {
+          for (const owner of property.property_owners) {
+            investors.push({
+              walletAddress: owner.owner_address,
+              shares: owner.amount_owned,
+              percentage: property.totalFractions ? (owner.amount_owned / property.totalFractions!) * 100 : 0,
+            })
+          }
+        }
+      }
+
+
+
+      return investors;
+    } catch (err) {
+      console.error("Could not get property investors from database", err);
+
+      if (err instanceof MyError) {
+        throw err;
+      }
+
+      throw new MyError("Could not get property investors from database");
+    }
+  }
+
+  // Append distribution history
+  static async appendDistributionHistory(history: DistributionHistory, propertyID: string, unitID?: string) {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const property = await collection.findOne({ _id: new ObjectId(propertyID) })
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+
+      if (unitID) {
+        if (!property.apartmentDetails) {
+          throw new MyError("Property is not an apartment");
+        }
+
+        const unit = property.apartmentDetails.units.find((u) => u.id === unitID);
+        if (!unit) {
+          throw new MyError("Unit does not exist");
+        }
+
+        const oldHistory = unit.distribution_transactions ?? [];
+        const newHistory = [...oldHistory, history];
+        unit.distribution_transactions = newHistory;
+        const newAppartmentDetails = {...property.apartmentDetails};
+        newAppartmentDetails.units.forEach((u) => {
+          if (u.id === unit.id) {
+            u = unit;
+          }
+        });
+        await collection.updateOne({_id: new ObjectId(propertyID)}, {
+          $set: {
+            apartmentDetails: newAppartmentDetails
+          }
+        });
+      } else {
+        const oldHistory = property.distribution_transactions ?? [];
+        const newHistory = [...oldHistory, history];
+
+        await collection.updateOne({ _id: new ObjectId(propertyID) }, {
+          $set: {
+            distribution_transactions: newHistory
+          }
+        });
+      }
+
+
+    } catch (err) {
+      console.error("Error appending distribution history", err);
+
+      if (err instanceof MyError) {
+        throw err;
+      }
+      throw new MyError("Could not append distribution history in database", { cause: err });
+    }
+  }
+
+  static async getDistributionHistory(property_id: string, unitID?: string): Promise<DistributionHistory[]> {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const property = await collection.findOne({ _id: new ObjectId(property_id) });
+
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+
+      if (unitID) {
+        if (!property.apartmentDetails) {
+          throw new MyError("Property is not an apartment");
+        }
+
+        const unit = property.apartmentDetails.units.find((u) => u.id === unitID);
+        if (!unit) {
+          throw new MyError("Unit does not exist");
+        }
+
+        return unit.distribution_transactions ?? [];
+      }
+
+      return property.distribution_transactions ?? [];
+    } catch (err) {
+      console.error("Error getting distribution history for property from db", err);
+
+      if (err instanceof MyError) {
+        throw err;
+      }
+
+      throw new MyError("Error getting distribution history for property in db", { cause: err });
     }
   }
 
@@ -255,6 +397,7 @@ export class AgencyModel {
             const monthlyRevenue = unit.tenant ? unit.tenant.rent_amount : template.proposedRentPerMonth || 0;
             const unitValue = template.unitValue || 0;
             units.push({
+              id: unit.id,
               name: unit.name,
               tenant: unit.tenant && {
                 name: unit.tenant.name,
@@ -424,7 +567,7 @@ export class AgencyModel {
                   });
                 })
               },
-              
+
               updatedAt: new Date(),
             },
           },
