@@ -109,11 +109,11 @@ class RealEstateManagerContract {
             }
             const tokenID = TokenId.fromEvmAddress(0, 0, tokenIDParsed.data);
 
-            const recepientAddressParsed = addressSchema.safeParse(addressToSend);
-            if (!recepientAddressParsed.success) {
+            const recipientAddressParsed = addressSchema.safeParse(addressToSend);
+            if (!recipientAddressParsed.success) {
                 throw new MyError("Invalid recepient address");
             }
-            const recipientID = AccountId.fromEvmAddress(0, 0, recepientAddressParsed.data);
+            const recipientID = AccountId.fromEvmAddress(0, 0, recipientAddressParsed.data);
 
             const { client, operatorID, operatorKey } = this._getClientDetails();
 

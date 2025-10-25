@@ -105,7 +105,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
         }
 
         initialDistributionHistory();
-    }, []);
+    }, [propertyId, unitID]);
 
     // Handle deposit success
     useEffect(() => {
@@ -152,7 +152,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
         }
 
         distribute();
-    }, [deposited, resetDeposit]);
+    }, [deposited, resetDeposit, rentAmount, decimals, USDC, propertyId, unitID, distributionHistory]);
 
     useEffect(() => {
         if (depositError) {
@@ -435,12 +435,12 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
                                 <div className="p-4 bg-muted/50 rounded-lg space-y-2">
                                     {investors.map((investor, index) => (
                                         <div key={index} className="flex items-center gap-3 text-sm">
-                                            {distributionProgress > (index * 25) ? (
+                                            {distributionProgress >= ((index + 1) / investors.length) * 100 ? (
                                                 <CheckCircle className="w-4 h-4 text-success" />
                                             ) : (
                                                 <div className="w-4 h-4 border-2 border-muted-foreground/30 rounded-full" />
                                             )}
-                                            <span className={distributionProgress > (index * 25) ? "text-success" : "text-muted-foreground"}>
+                                            <span className={distributionProgress >= ((index + 1) / investors.length) * 100 ? "text-success" : "text-muted-foreground"}>
                                                 {formatAddress(investor.walletAddress)} - {calculateDistribution(investor)} USDC
                                             </span>
                                         </div>
