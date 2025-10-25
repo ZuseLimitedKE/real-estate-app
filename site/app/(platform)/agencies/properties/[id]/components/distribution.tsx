@@ -25,6 +25,7 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { parseUnits } from "viem";
 import distributeFund from "@/server-actions/agent/dashboard/distributeFunds";
 import storeDistributionTransactions from "@/server-actions/agent/dashboard/storeDistributionTransactions";
+import getDistributionHistory from "@/server-actions/agent/dashboard/getDistributionHistory";
 
 type DistributionState = 'input' | 'fetching-investors' | 'investors-loaded' | 'distributing' | 'complete';
 
@@ -90,17 +91,20 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
 
     const { isLoading: waitingDeposit, isSuccess: deposited } =
         useWaitForTransactionReceipt({ hash: depositHash });
-    const busy =
-        isDepositPending || waitingDeposit;
 
     // Get distribution history at the beginning
     useEffect(() => {
-        async function getDistributionHistory() {
-
+        async function initialDistributionHistory() {
+            try {
+                const history = await getDistributionHistory(propertyId);
+                setDistributionHistory(history);
+            } catch(err) {
+                toast.error("Can't get distribution history from database");
+            }
         }
 
-        getDistributionHistory();
-    });
+        initialDistributionHistory();
+    }, []);
 
     // Handle deposit success
     useEffect(() => {
@@ -506,13 +510,13 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {mockHistory.length === 0 ? (
+                    {distributionHistory.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">
                             No distribution history yet
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {mockHistory.map((distribution) => (
+                            {distributionHistory.map((distribution) => (
                                 <Collapsible
                                     key={distribution.id}
                                     open={openHistoryItems.includes(distribution.id)}
@@ -560,11 +564,6 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                     </CollapsibleTrigger>
                                     <CollapsibleContent>
                                         <div className="mt-2 p-4 bg-muted/30 rounded-lg space-y-4">
-                                            <div className="pb-3 border-b">
-                                                <div className="text-xs text-muted-foreground mb-1">Transaction Hash</div>
-                                                <div className="font-mono text-sm break-all">{distribution.txHash}</div>
-                                            </div>
-
                                             <div>
                                                 <h4 className="font-semibold mb-3 text-sm">Distribution Breakdown</h4>
                                                 <div className="space-y-2">
@@ -574,7 +573,6 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                                             className="flex items-center justify-between p-3 bg-background rounded border text-sm"
                                                         >
                                                             <div>
-                                                                <div className="font-medium">{dist.investorName}</div>
                                                                 <div className="text-xs text-muted-foreground font-mono">
                                                                     {dist.walletAddress}
                                                                 </div>

@@ -159,6 +159,22 @@ export class AgencyModel {
     }
   }
 
+  static async getDistributionHistory(property_id: string): Promise<DistributionHistory[]> {
+    try {
+      const collection = await this.getPropertiesCollection();
+      const property = await collection.findOne({_id: new ObjectId(property_id)});
+
+      if (!property) {
+        throw new MyError("Property does not exist");
+      }
+
+      return property.distribution_transactions ?? [];
+    } catch(err) {
+      console.error("Error getting distribution history for property from db", err);
+      throw new MyError("Error getting distribution history for property in db", {cause: err});
+    }
+  }
+
   static async getEditPropertyDetails(_id: ObjectId, agencyID: string): Promise<EditPropertyDetails> {
     try {
       const collection = await this.getPropertiesCollection();
