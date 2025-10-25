@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DistributePropertyInvestor } from "@/types/property_details";
 import getPropertyInvestors from "@/server-actions/agent/dashboard/getPropertyInvestors";
+import { formatAddress } from "@/lib/utils/formatter";
 
 type DistributionState = 'input' | 'fetching-investors' | 'investors-loaded' | 'distributing' | 'complete';
 
@@ -265,8 +266,8 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                             >
                                                 <div className="flex-1">
                                                     {/* <div className="font-medium">{investor.name}</div> */}
-                                                    <div className="text-xs text-muted-foreground font-mono">
-                                                        {investor.walletAddress}
+                                                    <div className="text-muted-foreground font-mono">
+                                                        {formatAddress(investor.walletAddress)}
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
@@ -274,7 +275,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue }: Ren
                                                         {calculateDistribution(investor)} USDC
                                                     </div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        {investor.shares} shares ({investor.percentage}%)
+                                                        {investor.shares} shares ({investor.percentage.toFixed(2)}%)
                                                     </div>
                                                 </div>
                                             </div>
