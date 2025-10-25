@@ -1,3 +1,7 @@
+"use client";
+
+import type React from "react";
+
 import {
   Card,
   CardContent,
@@ -6,9 +10,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, TrendingUp, Users, Verified, Heart, Clock, DollarSign } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { MapPin, TrendingUp, Clock, DollarSign } from "lucide-react";
 import Link from "next/link";
-import Image, { StaticImageData } from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import { useState } from "react";
 
 interface PropertyCardProps {
@@ -22,13 +32,26 @@ interface PropertyCardProps {
   availableShares: number;
   minInvestment: string;
   verified?: boolean;
-  listingDate: string;
+  listingDate: Date;
   pricePerToken: string;
   projectedReturn: string;
   onAddToWishlist?: (propertyId: string) => void;
   isInWishlist?: boolean;
+  propertyType?: "single" | "apartment";
+  amenities?: {
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    parking_spaces?: number | null;
+  };
+  unitTemplates?: Array<{
+    id: string;
+    name: string;
+    image: string;
+    bedrooms?: number;
+    bathrooms?: number;
+    proposedRentPerMonth: number;
+  }>;
 }
-
 
 const PropertyCard = ({
   id,
@@ -46,6 +69,9 @@ const PropertyCard = ({
   projectedReturn,
   onAddToWishlist,
   isInWishlist = false,
+  propertyType = "single",
+  amenities,
+  unitTemplates,
 }: PropertyCardProps) => {
   const [isWishlisted, setIsWishlisted] = useState(isInWishlist);
 
@@ -56,8 +82,7 @@ const PropertyCard = ({
     onAddToWishlist?.(id);
   };
 
-  const getTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
+  const getTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
@@ -70,28 +95,23 @@ const PropertyCard = ({
   };
 
   return (
-    <Link href={`/investors/${id}`}>
-      <Card className="group overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-border/60 cursor-pointer bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 rounded-2xl">
-      <CardHeader className="relative">
+    <Card className="group overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-border/60 cursor-pointer bg-gradient-to-br from-white py-0 to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 rounded-2xl h-full flex flex-col">
+      <CardHeader className="relative p-0 ">
         <div className="relative overflow-hidden">
           <Image
-            src={image}
+            src={image || "/placeholder.svg"}
             alt={title}
             width={400}
-            height={280}
-            className="w-full h-50 object-cover group-hover:scale-105 transition-transform duration-500"
+            height={200}
+            className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-500"
           />
-          
-          {/* Overlay badges */}
-          {/* <div className="absolute top-3 left-3 flex flex-col gap-2">
-            <Badge className="bg-green-500 text-white text-[16px] border-0 shadow-lg">
-              {projectedReturn}
-            </Badge>
-          </div> */}
 
-          {/* Listing date */}
+          {/* Listing date badge */}
           <div className="absolute bottom-3 left-3">
-            <Badge variant="secondary" className="bg-accent-foreground/90 text-white border-0 backdrop-blur-sm">
+            <Badge
+              variant="secondary"
+              className="bg-accent-foreground/90 text-white border-0 backdrop-blur-sm text-xs"
+            >
               <Clock className="w-3 h-3 mr-1" />
               Listed {getTimeAgo(listingDate)}
             </Badge>
@@ -99,31 +119,31 @@ const PropertyCard = ({
         </div>
       </CardHeader>
 
-      <CardContent className="px-5">
-        <div className="space-y-4">
+      <CardContent className="px-5 py-4 flex-1 flex flex-col">
+        <div className="space-y-3 flex-1">
           {/* Property title and location */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-1 group-hover:text-blue-600 transition-colors">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white line-clamp-1 group-hover:text-blue-600 transition-colors">
               {title}
             </h3>
-            <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-1">
-              <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+            <div className="flex items-center text-gray-600 dark:text-gray-400 text-xs mt-1">
+              <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
               <span className="line-clamp-1">{location}</span>
             </div>
           </div>
 
-          {/* Key metrics grid */}
-          <div className="grid grid-cols-3 gap-3 text-sm">
+          {/* Key metrics - condensed */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="space-y-1">
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">
-                Total Value
+              <p className="text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
+                Value
               </p>
               <p className="font-bold text-gray-900 dark:text-white text-sm">
                 {value}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">
+              <p className="text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
                 Price/Token
               </p>
               <p className="font-bold text-gray-900 dark:text-white text-sm">
@@ -131,8 +151,8 @@ const PropertyCard = ({
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">
-                Projected Return
+              <p className="text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
+                Return
               </p>
               <p className="font-bold text-green-600 text-sm">
                 {projectedReturn}
@@ -140,38 +160,104 @@ const PropertyCard = ({
             </div>
           </div>
 
-          {/* Investment info */}
-          {/* <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Min. Investment</p>
-                <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {minInvestment}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-gray-600 dark:text-gray-400">Rental Yield</p>
-                <p className="font-semibold text-green-600 text-sm">
-                  {propertyYield}
-                </p>
+          {propertyType === "single" && amenities && (
+            <div className="bg-slate-50 dark:bg-slate-900/20 rounded-lg p-3 space-y-2">
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {amenities.bedrooms !== null &&
+                  amenities.bedrooms !== undefined && (
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs font-medium">
+                        BEDROOMS
+                      </p>
+                      <p className="font-bold text-gray-900 dark:text-white">
+                        {amenities.bedrooms}
+                      </p>
+                    </div>
+                  )}
+                {amenities.bathrooms !== null &&
+                  amenities.bathrooms !== undefined && (
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs font-medium">
+                        BATHROOMS
+                      </p>
+                      <p className="font-bold text-gray-900 dark:text-white">
+                        {amenities.bathrooms}
+                      </p>
+                    </div>
+                  )}
+                {amenities.parking_spaces !== null &&
+                  amenities.parking_spaces !== undefined && (
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs font-medium">
+                        PARKING
+                      </p>
+                      <p className="font-bold text-gray-900 dark:text-white">
+                        {amenities.parking_spaces}
+                      </p>
+                    </div>
+                  )}
               </div>
             </div>
-          </div> */}
+          )}
+
+          {propertyType === "apartment" &&
+            unitTemplates &&
+            unitTemplates.length > 0 && (
+              <div onClick={(e) => e.stopPropagation()} className="w-full">
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="units" className="border-0">
+                    <AccordionTrigger className="py-2 px-0 hover:no-underline text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <span className="flex items-center gap-2">
+                        Unit Types ({unitTemplates.length})
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-2 pb-0">
+                      <div className="space-y-2">
+                        {unitTemplates.map((unit) => (
+                          <div
+                            key={unit.id}
+                            className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                          >
+                            <Image
+                              src={unit.image || "/placeholder.svg"}
+                              alt={unit.name}
+                              width={40}
+                              height={40}
+                              className="w-10 h-10 rounded object-cover flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                                {unit.name}
+                              </p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
+                                KSh{" "}
+                                {new Intl.NumberFormat().format(
+                                  unit.proposedRentPerMonth,
+                                )}
+                                /mo
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            )}
         </div>
       </CardContent>
 
-        <CardFooter className="px-5 pt-0">
+      <CardFooter className="px-5 pt-0 pb-4">
         <Link href={`/investors/${id}`} className="w-full">
-          <Button className="w-full bg-accent-foreground text-white shadow-lg hover:shadow-xl transition-all duration-300 group/btn rounded-2xl">
+          <Button className="w-full bg-accent-foreground text-white shadow-lg hover:shadow-xl transition-all duration-300 group/btn rounded-lg h-10">
             <DollarSign className="w-4 h-4 mr-2 group-hover/btn:scale-110 transition-transform" />
             Invest Now
             <TrendingUp className="w-4 h-4 ml-2 opacity-0 group-hover/btn:opacity-100 transition-all duration-300" />
           </Button>
         </Link>
       </CardFooter>
-
-      </Card>
-    </Link>
+    </Card>
   );
 };
 

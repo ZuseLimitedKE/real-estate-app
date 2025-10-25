@@ -35,20 +35,31 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import DepositUSDC from "../../portfolio/_components/DepositUSDC";
 
 interface PropertyDetailsClientProps {
   property: PropertyDetailView;
 }
 const PropertyMap = dynamic(() => import("./PropertyMap"), { ssr: false });
+
+function isApartment(property: PropertyDetailView): boolean {
+  return (
+    (property.original?.apartmentDetails?.units &&
+      Array.isArray(property.original.apartmentDetails.units) &&
+      property.original.apartmentDetails.units.length > 0) ??
+    false
+  );
+}
+
 export function PropertyDetails({ property }: PropertyDetailsClientProps) {
-  const [ buyTokensDialog, setBuyTokensDialog ] = useState(false);
-  const [ insufficientUSDCAlert, setInsufficientUSDCAlert] = useState(false)
-  const [ openDepositUSDCDialog, setOpenDepositUSDCDialog ] = useState(false);
+  const [buyTokensDialog, setBuyTokensDialog] = useState(false);
+  const [insufficientUSDCAlert, setInsufficientUSDCAlert] = useState(false);
+  const [openDepositUSDCDialog, setOpenDepositUSDCDialog] = useState(false);
   const { address } = useAccount();
 
-  const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
+  const MARKETPLACE = process.env
+    .NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
   const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
 
   const { data: escrowBalance, isLoading: isEscrowLoading } = useReadContract({
@@ -56,7 +67,7 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
     abi: marketPlaceAbi.abi,
     functionName: "getEscrowBalance",
     args: [USDC, address ?? "0x0000000000000000000000000000000000000000"],
-    query: { enabled: !!address }, // only runs if wallet is connected
+    query: { enabled: !!address },
   });
 
   const { data: decimals } = useReadContract({
@@ -72,12 +83,17 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
 
   const handleDepositUSDCClick = () => {
     setOpenDepositUSDCDialog(true);
-  }
+  };
+
+  const isApt = isApartment(property);
 
   return (
     <>
       <Link href="/investors">
-        <Button variant="outline" className="mb-6 flex items-center gap-2">
+        <Button
+          variant="outline"
+          className="mb-6 flex items-center gap-2 bg-transparent"
+        >
           <ArrowLeft className="w-4 h-4" />
           Back to Properties
         </Button>
@@ -88,7 +104,7 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
         <div className="lg:col-span-2">
           <div className="relative rounded-lg overflow-hidden mb-6">
             <Image
-              src={property.image}
+              src={property.image || "/placeholder.svg"}
               alt={property.title}
               width={1200}
               height={600}
@@ -118,7 +134,7 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
             {property.gallery.map((img: string, index: number) => (
               <Image
                 key={index}
-                src={img}
+                src={img || "/placeholder.svg"}
                 alt={`${property.title} ${index + 1}`}
                 width={400}
                 height={200}
@@ -202,18 +218,18 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
                 className="w-full"
                 size="lg"
                 onClick={() => {
-                  if (formattedBalance === 0){
-                    setInsufficientUSDCAlert(true)
+                  if (formattedBalance === 0) {
+                    setInsufficientUSDCAlert(true);
                   } else {
-                    setBuyTokensDialog(true)
-                  } 
+                    setBuyTokensDialog(true);
+                  }
                 }}
               >
                 <DollarSign className="w-4 h-4 mr-2" />
                 Invest Now
               </Button>
 
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full bg-transparent">
                 Download Prospectus
               </Button>
             </CardContent>
@@ -231,110 +247,298 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-8">
-          {/* Description */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Home className="w-5 h-5" />
-                Property Description
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                {property.description}
-              </p>
+          {isApt ? (
+            // APARTMENT-SPECIFIC OVERVIEW
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="w-5 h-5" />
+                    Apartment Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground leading-relaxed mb-6">
+                    {property.description}
+                  </p>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-foreground">
-                    Property Details
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Property Type
-                      </span>
-                      <span className="text-foreground capitalize">
-                        {property.propertyType}
-                      </span>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-foreground">
+                        Property Details
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Property Type
+                          </span>
+                          <span className="text-foreground capitalize">
+                            {property.propertyType}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Area</span>
+                          <span className="text-foreground">
+                            {property.area}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Year Built
+                          </span>
+                          <span className="text-foreground">
+                            {property.yearBuilt || "N/A"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Bedrooms</span>
-                      <span className="text-foreground">
-                        {property.bedrooms}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Bathrooms</span>
-                      <span className="text-foreground">
-                        {property.bathrooms}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Area</span>
-                      <span className="text-foreground">{property.area}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Year Built</span>
-                      <span className="text-foreground">
-                        {property.yearBuilt}
-                      </span>
+
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-foreground">
+                        Occupancy & Units
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Total Units
+                          </span>
+                          <span className="text-foreground">
+                            {property.totalUnits}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Occupancy Rate
+                          </span>
+                          <span className="text-success font-semibold">
+                            {property.occupancyRate}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Monthly Rent (Total)
+                          </span>
+                          <span className="text-foreground">
+                            {property.monthlyRent}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
 
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-foreground">
-                    Investment Metrics
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total Units</span>
-                      <span className="text-foreground">
-                        {property.totalUnits}
-                      </span>
+              {/* Unit Templates */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Home className="w-5 h-5" />
+                    Unit Types
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {property.original?.apartmentDetails?.units?.map(
+                      (unit: any, index: number) => (
+                        <div
+                          key={index}
+                          className="border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50"
+                        >
+                          {/* Unit Image */}
+                          {unit.images && unit.images[0] && (
+                            <div className="relative h-40 overflow-hidden bg-gray-200 dark:bg-gray-700">
+                              <Image
+                                src={unit.images[0] || "/placeholder.svg"}
+                                alt={unit.name}
+                                width={400}
+                                height={200}
+                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                              />
+                              {/* Occupancy Badge */}
+                              <div className="absolute top-3 right-3">
+                                <Badge
+                                  className={`${unit.tenant
+                                      ? "bg-success text-success-foreground"
+                                      : "bg-amber-500 text-white"
+                                    } border-0`}
+                                >
+                                  {unit.tenant ? "Occupied" : "Vacant"}
+                                </Badge>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Unit Details */}
+                          <div className="p-4 space-y-4">
+                            <div>
+                              <h5 className="font-bold text-lg text-foreground mb-1">
+                                {unit.name}
+                              </h5>
+                              <p className="text-sm text-muted-foreground">
+                                {unit.description || "Unit details"}
+                              </p>
+                            </div>
+
+                            {/* Specs Grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-slate-50 dark:bg-slate-900/20 rounded-lg p-3">
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                                  Bedrooms
+                                </p>
+                                <p className="text-lg font-bold text-foreground">
+                                  {unit.bedrooms || "N/A"}
+                                </p>
+                              </div>
+                              <div className="bg-slate-50 dark:bg-slate-900/20 rounded-lg p-3">
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                                  Bathrooms
+                                </p>
+                                <p className="text-lg font-bold text-foreground">
+                                  {unit.bathrooms || "N/A"}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Rent Section */}
+                            <div className="border-t border-border pt-3">
+                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">
+                                Monthly Rent
+                              </p>
+                              <p className="text-2xl font-bold text-success">
+                                KSh{" "}
+                                {new Intl.NumberFormat().format(
+                                  unit.proposedRentPerMonth || 0,
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            // SINGLE PROPERTY OVERVIEW
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Home className="w-5 h-5" />
+                    Property Description
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground leading-relaxed mb-6">
+                    {property.description}
+                  </p>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-foreground">
+                        Property Details
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Property Type
+                          </span>
+                          <span className="text-foreground capitalize">
+                            {property.propertyType}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Bedrooms
+                          </span>
+                          <span className="text-foreground">
+                            {property.bedrooms}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Bathrooms
+                          </span>
+                          <span className="text-foreground">
+                            {property.bathrooms}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Area</span>
+                          <span className="text-foreground">
+                            {property.area}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Year Built
+                          </span>
+                          <span className="text-foreground">
+                            {property.yearBuilt}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Occupancy Rate
-                      </span>
-                      <span className="text-success">
-                        {property.occupancyRate}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Monthly Rent
-                      </span>
-                      <span className="text-foreground">
-                        {property.monthlyRent}
-                      </span>
+
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-foreground">
+                        Investment Metrics
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Total Units
+                          </span>
+                          <span className="text-foreground">
+                            {property.totalUnits}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Occupancy Rate
+                          </span>
+                          <span className="text-success">
+                            {property.occupancyRate}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Monthly Rent
+                          </span>
+                          <span className="text-foreground">
+                            {property.monthlyRent}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          {/* Amenities */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5" />
-                Amenities & Features
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-4">
-                {property.amenities.map((amenity: string, index: number) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-success" />
-                    <span className="text-foreground">{amenity}</span>
+              {/* Amenities */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Amenities & Features
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {property.amenities.map(
+                      (amenity: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-success" />
+                          <span className="text-foreground">{amenity}</span>
+                        </div>
+                      ),
+                    )}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="financials" className="space-y-8">
@@ -368,7 +572,7 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
                   <span className="text-lg font-semibold text-success">
                     +
                     {(
-                      parseFloat(property.yield.replace("%", "")) + 12.5
+                      Number.parseFloat(property.yield.replace("%", "")) + 12.5
                     ).toFixed(1)}
                     %
                   </span>
@@ -487,13 +691,14 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {property?.original?.documents && property?.original?.documents?.length > 0 ? (
+              {property?.original?.documents &&
+                property?.original?.documents?.length > 0 ? (
                 <div className="space-y-3">
                   {property.original.documents?.map((doc, index) => (
                     <Button
                       key={index}
                       variant="outline"
-                      className="w-full justify-between"
+                      className="w-full justify-between bg-transparent"
                       asChild
                     >
                       <a
@@ -537,21 +742,27 @@ export function PropertyDetails({ property }: PropertyDetailsClientProps) {
         isOpen={buyTokensDialog}
         onClose={() => setBuyTokensDialog(false)}
       />
-      <AlertDialog open={insufficientUSDCAlert} onOpenChange={setInsufficientUSDCAlert}>
+      <AlertDialog
+        open={insufficientUSDCAlert}
+        onOpenChange={setInsufficientUSDCAlert}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Insufficient Funds</AlertDialogTitle>
             <AlertDialogDescription>
-              Please deposit some USDC to escrow before investing in this property
+              Please deposit some USDC to escrow before investing in this
+              property
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDepositUSDCClick}>Deposit</AlertDialogAction>
+            <AlertDialogAction onClick={handleDepositUSDCClick}>
+              Deposit
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       <DepositUSDC
         open={openDepositUSDCDialog}
         setOpen={setOpenDepositUSDCDialog}
