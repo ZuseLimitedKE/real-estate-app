@@ -44,11 +44,9 @@ export const apartmentUnitSchema = z.object({
     total_fractions: z.number(),
   }),
   owner: z.array(z.object({
-    investor_id: z.string(),
     investor_address: z.string(),
     fractions_owned: z.number(),
     purchase_time: z.date(),
-    purchase_transaction_hash: z.string(),
   })).optional(),
   secondary_market_listings: z.array(z.object({
     lister_address: z.string(),

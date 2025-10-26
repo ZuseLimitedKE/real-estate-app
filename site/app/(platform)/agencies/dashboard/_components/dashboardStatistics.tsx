@@ -10,7 +10,7 @@ export default async function AgentDashboardStatistics() {
       <AgentDashboardStatisticsItem
         title="Total Earnings"
         icon={<TrendingUp className="w-4 h-4" />}
-        value={`$${statistics.totalEarnings.toLocaleString()}`}
+        value={`Ksh ${statistics.totalEarnings.toLocaleString()}`}
       />
       <AgentDashboardStatisticsItem
         title="Occupancy Rate"

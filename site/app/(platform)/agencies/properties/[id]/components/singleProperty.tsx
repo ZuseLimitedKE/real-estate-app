@@ -9,6 +9,7 @@ import PropertyFinancials from "./financials";
 import PropertyDocuments from "./documents";
 import PropertyTenants from "./tenants";
 import Link from "next/link";
+import PaymentsDistribution from "./distribution";
 
 export default function SinglePropertyDetails(props: AgentProperty['single_property']) {
     if (!props) {
@@ -83,7 +84,7 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                 </div>
 
                 <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 h-12">
+                    <TabsList className="grid w-full md:grid-cols-5 grid-cols-3 h-12">
                         <TabsTrigger value="overview" className="text-sm font-medium">
                             Overview
                         </TabsTrigger>
@@ -92,6 +93,9 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                         </TabsTrigger>
                         <TabsTrigger value="documents" className="text-sm font-medium">
                             Documents
+                        </TabsTrigger>
+                        <TabsTrigger value="distribution" className="text-sm font-medium">
+                            Distribution
                         </TabsTrigger>
                         <TabsTrigger value="tenants" className="text-sm font-medium">
                             Tenants
@@ -107,6 +111,9 @@ export default function SinglePropertyDetails(props: AgentProperty['single_prope
                         </TabsContent>
                         <TabsContent value="documents" className="mt-0">
                             <PropertyDocuments documents={props.documents} />
+                        </TabsContent>
+                        <TabsContent value="distribution" className="mt-0">
+                            <PaymentsDistribution propertyId={props.id} monthlyRevenue={props.financials.monthlyRevenue}/>
                         </TabsContent>
                         <TabsContent value="tenants" className="mt-0">
                             <PropertyTenants tenant={props.tenant} />

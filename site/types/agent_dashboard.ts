@@ -106,6 +106,7 @@ export interface ApartmentUnitTemplate {
 }
 
 export interface ApartmentUnit {
+    id: string,
     name: string
     tenant?: PropertyTenant,
     financials: {

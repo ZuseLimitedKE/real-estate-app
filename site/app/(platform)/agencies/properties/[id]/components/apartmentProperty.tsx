@@ -127,7 +127,7 @@ export default function ApartmentPropertyDetails(props: AgentProperty['apartment
                         <ul className="space-y-3">
                             {props.unitTemplates.map((template, index) => (
                                 <li key={index}>
-                                    <ApartmentTemplateView template={template} />
+                                    <ApartmentTemplateView template={template} propertyid={props.id}/>
                                 </li>
                             ))}
                         </ul>

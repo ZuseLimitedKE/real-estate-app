@@ -8,11 +8,10 @@ import { Collapsible } from "@/components/ui/collapsible";
 import { CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { ChevronsUpDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUIForAmenity } from "./overview";
 import ApartmentPropertyTemplateUnitView from "../../../dashboard/_components/apartmentPropertyTemplateUnit";
 
-export default function ApartmentTemplateView({ template }: { template: ApartmentUnitTemplate }) {
+export default function ApartmentTemplateView({ template, propertyid }: { template: ApartmentUnitTemplate, propertyid: string }) {
     const hasMultipleImages = template.images.length > 1;
     const [open, setOpen] = useState<boolean>(false);
 
@@ -120,7 +119,7 @@ export default function ApartmentTemplateView({ template }: { template: Apartmen
                                 </header>
 
                                 <section className="space-y-3 mt-4">
-                                    {template.units.map((t, index) => <ApartmentPropertyTemplateUnitView unit={t} key={index}/>)}
+                                    {template.units.map((t, index) => <ApartmentPropertyTemplateUnitView unit={t} key={index} propertyid={propertyid}/>)}
                                 </section>
                             </section>
                         </TabsContent>
