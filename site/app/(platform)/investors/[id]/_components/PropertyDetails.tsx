@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import BuyTokensForm from "./BuyTokensForm";
 import InvestmentForm from "./InvestmentForm";
 import type { PropertyDetailView } from "@/types/property";
 import { useAccount, useReadContract } from "wagmi";
@@ -551,13 +550,6 @@ console.log("💰 Formatted Escrow Balance:", formattedBalance);
         setOpenDepositUSDCDialog={setOpenDepositUSDCDialog}
       />
 
-      {/* Buy Tokens Modal - kept for legacy support */}
-      <BuyTokensForm
-        propertyId={property.id}
-        propertyName={property.title}
-        isOpen={buyTokensDialog}
-        onClose={() => setBuyTokensDialog(false)}
-      />
       <AlertDialog open={insufficientUSDCAlert} onOpenChange={setInsufficientUSDCAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>

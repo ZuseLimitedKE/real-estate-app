@@ -135,14 +135,14 @@ class RealEstateManagerContract {
     }
     async transferTokensFromAdminToUser(address: string, tokenId: string, amount: number): Promise<string> {
         try {
-             if (!pkEnv || !accountID) {
+            if (!pkEnv || !accountID) {
                 throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
             }
             let accountId;
-            if(address.startsWith("0x")){
-                accountId = AccountId.fromEvmAddress(0,0,address).toString();
+            if (address.startsWith("0x")) {
+                accountId = AccountId.fromEvmAddress(0, 0, address).toString();
             }
-            else{
+            else {
                 accountId = address
             }
             const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
@@ -176,8 +176,11 @@ class RealEstateManagerContract {
         }
 
     }
-     async getAssociatedTokens(accountId: string): Promise<string[]> {
+    async getAssociatedTokens(accountId: string): Promise<string[]> {
         const NETWORK = process.env.ENVIRONMENT!
+        if (!NETWORK) {
+            throw new MyError("ENVIRONMENT variable is not set");
+        }
         let MIRROR_NODE_URL: string;
         if (NETWORK == "localnet") {
             MIRROR_NODE_URL = "http://127.0.0.1:5551"
@@ -194,13 +197,22 @@ class RealEstateManagerContract {
         let tokens: string[] = [];
         let nextLink: string | null = `/api/v1/accounts/${accountId}/tokens?limit=100`;
 
-        while (nextLink) {
-            const response = await fetch(`${MIRROR_NODE_URL}${nextLink}`);
-            const data: { tokens: { token_id: string }[], links: { next: string | null } } = await response.json() as { tokens: { token_id: string }[], links: { next: string | null } };
-            tokens.push(...data.tokens.map(token => token.token_id));
-            nextLink = data.links.next;
+        try {
+            while (nextLink) {
+                const response = await fetch(`${MIRROR_NODE_URL}${nextLink}`);
+                if (!response.ok) {
+                    throw new Error(`Mirror node API returned ${response.status}: ${response.statusText}`);
+                }
+                const data: { tokens: { token_id: string }[], links: { next: string | null } } = await response.json() as { tokens: { token_id: string }[], links: { next: string | null } };
+                tokens.push(...data.tokens.map(token => token.token_id));
+                nextLink = data.links.next;
+            }
+            return tokens;
+        } catch (error) {
+            console.error(`Error fetching associated tokens for ${accountId}:`, error);
+            throw new MyError("Could not fetch associated tokens from mirror node");
         }
-        return tokens;
+    }
     // Accepts addressToSend and token as evm addresses
     async distributeFund(addressToSend: string, amount: number, token: string): Promise<string> {
         try {
@@ -248,11 +260,11 @@ class RealEstateManagerContract {
 
             //Get the Transaction ID
             const txTransferId = txTransferResponse.transactionId.toString();
-            
+
             if (statusTransferTx === Status.Success) {
                 return txTransferId
-            }   
-            
+            }
+
             throw new MyError("Transaction not succeeded");
         } catch (err) {
             console.error(`Error sending tokens to investor ${addressToSend}: ${amount}`, err);

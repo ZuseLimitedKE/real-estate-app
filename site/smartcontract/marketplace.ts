@@ -31,6 +31,9 @@ export class MarketPlaceContract {
     }
     async getClient(): Promise<Client> {
         try {
+            if (!process.env.DEPLOYER_ACCOUNT_ID || !process.env.DEPLOYER_PRIVATE_KEY) {
+                throw new Error("Missing DEPLOYER_ACCOUNT_ID or DEPLOYER_PRIVATE_KEY");
+            }
             const client = Client.forTestnet()
             client.setOperator(
                 AccountId.fromString(process.env.DEPLOYER_ACCOUNT_ID!),
@@ -44,7 +47,7 @@ export class MarketPlaceContract {
     }
     async settleTrade(args: SettleOrder): Promise<SuccessResponse | ErrorResponse> {
         try {
-          
+
             const parsed = SettleOrderSchema.safeParse(args);
             if (!parsed.success) {
                 return { status: "INVALID_DATA", message: "Invalid order data", statusCode: 400, success: false } as ErrorResponse;
@@ -206,17 +209,17 @@ export class MarketPlaceContract {
                 throw new Error('MARKETPLACE_CONTRACT env variable is not set');
             }
             const txTokenAssociate = await new ContractExecuteTransaction()
-            .setContractId(contractAddress)
-            .setGas(4_000_000)
-            .setFunction("tokenAssociate", new ContractFunctionParameters().addAddress(tokenId))
-            .setMaxTransactionFee(new Hbar(5))
-            .freezeWith(client);
+                .setContractId(contractAddress)
+                .setGas(4_000_000)
+                .setFunction("tokenAssociate", new ContractFunctionParameters().addAddress(tokenId))
+                .setMaxTransactionFee(new Hbar(5))
+                .freezeWith(client);
 
-        //Sign and execute the property token transaction
-        const signTxTokenAssociate = await txTokenAssociate.sign(PrivateKey.fromStringECDSA(process.env.DEPLOYER_PRIVATE_KEY!));
-        const txTokenAssociateResponse = await signTxTokenAssociate.execute(client);
-        const receipt = await txTokenAssociateResponse.getReceipt(client);
-        const status = receipt.status;
+            //Sign and execute the property token transaction
+            const signTxTokenAssociate = await txTokenAssociate.sign(PrivateKey.fromStringECDSA(process.env.DEPLOYER_PRIVATE_KEY!));
+            const txTokenAssociateResponse = await signTxTokenAssociate.execute(client);
+            const receipt = await txTokenAssociateResponse.getReceipt(client);
+            const status = receipt.status;
             return { status: "SUCCESS", message: "Trade settled successfully", data: receipt, success: true } as SuccessResponse;
         } catch (error) {
             console.error("Error associating token to contract", error);
