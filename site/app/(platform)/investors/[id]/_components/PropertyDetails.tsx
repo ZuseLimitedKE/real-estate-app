@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import BuyTokensForm from "./BuyTokensForm";
+import InvestmentForm from "./InvestmentForm";
 import type { PropertyDetailView } from "@/types/property";
 import { useAccount, useReadContract } from "wagmi";
 import erc20Abi from "@/smartcontract/abi/ERC20.json";
@@ -38,18 +39,19 @@ import {
 } from "@/components/ui/alert-dialog"
 import DepositUSDC from "../../portfolio/_components/DepositUSDC";
 import AskUserWhereBuyFrom from "./AskUserWhereBuyFrom";
-
+import { purchaseTokensFromAdmin } from "@/server-actions/tokens/purchase-tokens";
 interface PropertyDetailsClientProps {
   property: PropertyDetailView;
 }
 const PropertyMap = dynamic(() => import("./PropertyMap"), { ssr: false });
 export function PropertyDetails({ property }: PropertyDetailsClientProps) {
   const [ buyTokensDialog, setBuyTokensDialog ] = useState(false);
+  const [ investmentFormDialog, setInvestmentFormDialog ] = useState(false);
   const [ insufficientUSDCAlert, setInsufficientUSDCAlert] = useState(false)
   const [ openDepositUSDCDialog, setOpenDepositUSDCDialog ] = useState(false);
-  const [askWhereBuyTokens, setAskWhereBuyTokens] = useState(false);
-  const { address } = useAccount();
 
+  const { address } = useAccount();
+console.log("Property =>", property)
   const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
   const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
 
@@ -203,17 +205,14 @@ console.log("💰 Formatted Escrow Balance:", formattedBalance);
                 variant="default"
                 className="w-full"
                 size="lg"
-                // onClick={() => {
-                //   if (formattedBalance === 0){
-                //     setInsufficientUSDCAlert(true)
-                //   } else {
-                //     setBuyTokensDialog(true)
-                //   } 
-                // }}
                 onClick={() => {
-                  console.log("Start the flow here");
-                  setAskWhereBuyTokens(true);
+                  if (false){
+                    setInsufficientUSDCAlert(true)
+                  } else {
+                    setInvestmentFormDialog(true)
+                  } 
                 }}
+                
               >
                 <DollarSign className="w-4 h-4 mr-2" />
                 Invest Now
@@ -537,13 +536,23 @@ console.log("💰 Formatted Escrow Balance:", formattedBalance);
       </Tabs>
 
       {/* Ask where to buy tokens from */}
-      <AskUserWhereBuyFrom 
+      {/* <AskUserWhereBuyFrom 
         isOpen={askWhereBuyTokens}
         onOpenChange={setAskWhereBuyTokens}
         tokenBalanceInAdminAccount={property.tokenBalanceInAdminAccount}
+      /> */}
+  console.log("Token address", property.original.token_address);
+      {/* Investment Form - collects amount and price per token */}
+      <InvestmentForm
+        propertyId={property.id}
+        propertyName={property.title}
+        tokenAddress={property.original.token_address!}
+        isOpen={investmentFormDialog}
+        onClose={() => setInvestmentFormDialog(false)}
+        setOpenDepositUSDCDialog={setOpenDepositUSDCDialog}
       />
 
-      {/* Buy Tokens Modal */}
+      {/* Buy Tokens Modal - kept for legacy support */}
       <BuyTokensForm
         propertyId={property.id}
         propertyName={property.title}

@@ -78,7 +78,7 @@ const paymentOptions: PaymentOption[] = [
 
 import {
   getTokenPrice,
-  purchaseTokens,
+  purchaseTokensFromAdmin,
 } from "@/server-actions/tokens/purchase-tokens";
 const getNonce = () => new Date().getTime();
 const getExpiry = () => Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // 7 days from now
@@ -180,21 +180,60 @@ export default function BuyTokensForm({
     setIsLoading(true);
 
     try {
-      const hash = await writeContractAsync({
-        address: MARKETPLACE,
-        abi: marketplaceAbi.abi,
-        functionName: "initBuyOrder",
-        args: [BigInt(nonce), PROPERTY_TOKEN, BigInt(tokenAmount)],
-      });
+      // Check if total amount is less than price per token
+      // If yes, create marketplace order for matching
+      // If no, purchase directly from admin
+      if (totalAmount < pricePerToken) {
+        console.log("💱 Amount less than price per token - creating marketplace order");
 
-      console.log("Buy order TX submitted:", hash);
-      setTxHash(hash);
-      //TODO: Check on how to do price per share later
-      //TODO: Possibly implement signatures later.
-      await createOrder({ nonce: nonce.toString(), expiry: expiry, propertyToken: PROPERTY_TOKEN, remainingAmount: totalAmount.toString(), orderType: "BUY", pricePerShare: '1' }, address, '0xImplementThisLater');
-    } catch (err) {
+        // Create marketplace buy order for matching
+        const hash = await writeContractAsync({
+          address: MARKETPLACE,
+          abi: marketplaceAbi.abi,
+          functionName: "initBuyOrder",
+          args: [BigInt(nonce), PROPERTY_TOKEN, BigInt(tokenAmount)],
+        });
+
+        console.log("Buy order TX submitted:", hash);
+        setTxHash(hash);
+
+        // Store order in database for matching
+        await createOrder({
+          nonce: nonce.toString(),
+          expiry: expiry,
+          propertyToken: PROPERTY_TOKEN,
+          remainingAmount: tokenAmount,
+          orderType: "BUY",
+          pricePerShare: pricePerToken.toString()
+        }, address, '0xImplementThisLater');
+
+        toast.success("Buy order created for marketplace matching");
+      } else {
+        console.log("💰 Amount >= price per token - purchasing directly from admin");
+
+        // Purchase directly from admin
+        const result = await purchaseTokensFromAdmin(
+          propertyId,
+          parseInt(tokenAmount),
+          address
+        );
+
+        if (result) {
+          setTransactionData({
+            hash: result,
+            amount: totalAmount,
+          });
+          setTokenAmount("");
+          setShowSuccessModal(true);
+          toast.success("Tokens purchased successfully from admin!");
+          setIsLoading(false);
+        } else {
+          throw new Error("Purchase failed");
+        }
+      }
+    } catch (err: any) {
       console.error("Transaction error:", err);
-      toast.error("Transaction rejected or failed to submit.");
+      toast.error(err?.message || "Transaction rejected or failed to submit.");
       setIsLoading(false);
     }
   };

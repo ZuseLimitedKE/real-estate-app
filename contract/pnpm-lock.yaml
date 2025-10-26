@@ -49,7 +49,7 @@ importers:
         specifier: ^5.1.2
         version: 5.3.1
       ethers:
-        specifier: ^6.14.0
+        specifier: ^6.15.0
         version: 6.15.0
       forge-std:
         specifier: github:foundry-rs/forge-std#v1.9.4

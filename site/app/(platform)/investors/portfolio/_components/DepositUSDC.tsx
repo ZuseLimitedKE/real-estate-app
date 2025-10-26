@@ -21,8 +21,6 @@ import {
 import marketPlaceAbi from "@/smartcontract/abi/MarketPlace.json";
 import erc20Abi from "@/smartcontract/abi/ERC20.json";
 import { formatUnits, parseUnits, BaseError, ContractFunctionRevertedError } from "viem";
-import { associateTokentoContract } from "@/server-actions/marketplace/actions";
-
 interface DepositUSDCProps {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -35,12 +33,7 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
   const [loading, setLoading] = useState(false);
   const publicClient = usePublicClient();
   const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
-  const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
-  console.log("🔍 Deposit Debug Info:", {
-    MARKETPLACE,
-    USDC,
-  }
-  );
+  const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;;
   if (!MARKETPLACE || !USDC) {
     console.error("Missing contract addresses:", { MARKETPLACE, USDC });
     toast.error("Page setup error");
@@ -97,20 +90,6 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
   } = useWaitForTransactionReceipt({ hash: depositHash });
   const busy =
     isApprovePending || isDepositPending || waitingApprove || waitingDeposit;
-
-  // Handle approval success -> trigger deposit
-  // useEffect(() => {
-  //   if (approved && !depositHash && !isDepositPending && !waitingDeposit) {
-  //     console.log("✅ Approval successful, calling depositToken");
-  //     depositAsync({
-  //       address: MARKETPLACE,
-  //       abi: marketPlaceAbi.abi,
-  //       functionName: "depositToken",
-  //       args: [USDC, parsedAmount],
-  //     });
-  //     console.log("📝 Deposit tx sent:", depositHash);
-  //   }
-  // }, [approved, depositHash, isDepositPending, waitingDeposit, writeDeposit, MARKETPLACE, USDC, parsedAmount]);
 
   // Handle deposit success
   useEffect(() => {
@@ -184,7 +163,7 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
       //   toast.error("Failed to associate USDC token to contract");
       //   return;
       // }
-      console.log("🔍 Deposit Debug Info:", {
+      console.log("🔍 Deposit Debug Info Deposit USDC:", {
         isConnected,
         MARKETPLACE,
         USDC,
@@ -208,7 +187,7 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
         toast.error("Enter a valid amount");
         return;
       }
-
+     
       setLoading(true);
       try {
         await publicClient.simulateContract({
