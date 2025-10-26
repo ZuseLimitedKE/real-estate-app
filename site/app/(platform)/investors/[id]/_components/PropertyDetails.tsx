@@ -38,8 +38,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import DepositUSDC from "../../portfolio/_components/DepositUSDC";
-import AskUserWhereBuyFrom from "./AskUserWhereBuyFrom";
-import { purchaseTokensFromAdmin } from "@/server-actions/tokens/purchase-tokens";
+
 interface PropertyDetailsClientProps {
   property: PropertyDetailView;
 }
