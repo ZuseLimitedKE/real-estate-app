@@ -70,11 +70,23 @@ export default function InvestmentForm({
         type?: "instant" | "marketplace";
     }>({});
     const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+    
+    // Marketplace order flow states
+    const [currentStep, setCurrentStep] = useState<"form" | "approve" | "deposit" | "init-order" | "complete">("form");
+    const [approveHash, setApproveHash] = useState<`0x${string}` | undefined>();
+    const [depositHash, setDepositHash] = useState<`0x${string}` | undefined>();
+    
     const publicClient = usePublicClient();
     const { address } = useAccount();
     const { writeContractAsync } = useWriteContract();
     const { data: receipt, isSuccess: isConfirmed } = useTransactionReceipt({
         hash: txHash,
+    });
+    const { data: approveReceipt, isSuccess: approveConfirmed } = useTransactionReceipt({
+        hash: approveHash,
+    });
+    const { data: depositReceipt, isSuccess: depositConfirmed } = useTransactionReceipt({
+        hash: depositHash,
     });
 
     const nonce = getNonce();
@@ -88,33 +100,23 @@ export default function InvestmentForm({
     // Determine if this is instant purchase or marketplace order
     const isInstantPurchase = parsedPricePerToken >= actualPricePerToken && parsedPricePerToken > 0;
     const isMarketplaceOrder = parsedPricePerToken < actualPricePerToken && parsedPricePerToken > 0;
+    
+    // For instant purchase - token transfer and association
     const {
-        writeContract: transfer,
         writeContractAsync: transferAsync,
         data: transferHash,
-        isPending: isApprovePending,
-        reset: resetApprove,
-        error: transferError,
     } = useWriteContract();
     const {
-        data: approveReceipt,
-        isLoading: waitingApprove,
-        isSuccess: approved,
-        isError: approveTxError,
+        data: transferReceipt,
+        isSuccess: transferConfirmed,
     } = useWaitForTransactionReceipt({ hash: transferHash });
     const {
-        writeContract: associate,
         writeContractAsync: associateAsync,
         data: associateHash,
-        isPending: isAssociatePending,
-        reset: resetAssociate,
-        error: associateError,
     } = useWriteContract();
     const {
         data: associateReceipt,
-        isLoading: waitingAssociate,
         isSuccess: associated,
-        isError: associateTxError,
     } = useWaitForTransactionReceipt({ hash: associateHash });
     // Reset form when modal closes
     useEffect(() => {
@@ -123,34 +125,230 @@ export default function InvestmentForm({
             setPricePerToken("");
             setShowSuccessModal(false);
             setTransactionData({});
+            setCurrentStep("form");
+            setApproveHash(undefined);
+            setDepositHash(undefined);
+            setTxHash(undefined);
         }
     }, [isOpen]);
 
-    // Handle transaction confirmation
+    // Handle marketplace flow: Step 1 - Approve USDC confirmed
     useEffect(() => {
-        if (isConfirmed && receipt) {
-            console.log("Transaction confirmed:", receipt);
+        if (approveConfirmed && approveReceipt && currentStep === "approve") {
+            console.log("✅ USDC approval confirmed, proceeding to deposit");
+            if (approveReceipt.status === "success") {
+                setCurrentStep("deposit");
+                handleDepositUSDC();
+            } else {
+                console.error("❌ Approve reverted:", approveReceipt);
+                toast.error("USDC approval failed");
+                setIsLoading(false);
+                setCurrentStep("form");
+            }
+        }
+    }, [approveConfirmed, approveReceipt, currentStep]);
 
+    // Handle marketplace flow: Step 2 - Deposit USDC confirmed
+    useEffect(() => {
+        if (depositConfirmed && depositReceipt && currentStep === "deposit") {
+            console.log("✅ USDC deposit confirmed, proceeding to init buy order");
+            if (depositReceipt.status === "success") {
+                setCurrentStep("init-order");
+                handleInitBuyOrder();
+            } else {
+                console.error("❌ Deposit reverted:", depositReceipt);
+                toast.error("USDC deposit failed");
+                setIsLoading(false);
+                setCurrentStep("form");
+            }
+        }
+    }, [depositConfirmed, depositReceipt, currentStep]);
+
+    // Handle marketplace flow: Step 3 - Init buy order confirmed
+    useEffect(() => {
+        if (isConfirmed && receipt && currentStep === "init-order") {
+            console.log("✅ Buy order initialized");
             if (receipt.status === "success") {
+                setCurrentStep("complete");
                 setTransactionData({
                     hash: txHash,
                     amount: totalAmount,
                     type: "marketplace",
                 });
-
                 setTokenAmount("");
                 setPricePerToken("");
                 setShowSuccessModal(true);
                 toast.success("Marketplace order created successfully!");
+                setIsLoading(false);
+                setCurrentStep("form");
             } else {
-                console.error("Transaction reverted:", receipt);
-                toast.error("Transaction failed!");
+                console.error("❌ Buy order reverted:", receipt);
+                toast.error("Buy order initialization failed");
+                setIsLoading(false);
+                setCurrentStep("form");
+            }
+        }
+    }, [isConfirmed, receipt, currentStep, txHash, totalAmount]);
+
+    // Step 1: Approve USDC spending by marketplace
+    const handleApproveUSDC = async () => {
+        try {
+            const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 0); // USDC has 6 decimals
+            
+            console.log("📝 Step 1: Approving USDC...", {
+                amount: totalAmount,
+                parsedAmount: PARSED_AMOUNT.toString(),
+            });
+
+            // Simulate approval
+            try {
+                await publicClient!.simulateContract({
+                    account: address!,
+                    address: USDC,
+                    abi: erc20Abi.abi,
+                    functionName: "approve",
+                    args: [MARKETPLACE, PARSED_AMOUNT],
+                });
+            } catch (e: any) {
+                const msg = decodeViemError(e);
+                console.error("❌ Approve simulation failed:", e, msg);
+                toast.error(msg || "Approval simulation failed");
+                setIsLoading(false);
+                setCurrentStep("form");
+                return;
             }
 
-            setTxHash(undefined);
+            const hash = await writeContractAsync({
+                address: USDC,
+                abi: erc20Abi.abi,
+                functionName: "approve",
+                args: [MARKETPLACE, PARSED_AMOUNT],
+            });
+
+            console.log("✅ Approve TX submitted:", hash);
+            setApproveHash(hash);
+            toast.info("Step 1/3: Approving USDC...");
+        } catch (err: any) {
+            console.error("❌ Approve error:", err);
+            const msg = decodeViemError(err);
+            toast.error(msg || "Failed to approve USDC");
             setIsLoading(false);
+            setCurrentStep("form");
         }
-    }, [isConfirmed, receipt, txHash, totalAmount]);
+    };
+
+    // Step 2: Deposit USDC to marketplace escrow
+    const handleDepositUSDC = async () => {
+        try {
+            const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 0); // USDC has 6 decimals
+            
+            console.log("📝 Step 2: Depositing USDC to escrow...", {
+                amount: totalAmount,
+                parsedAmount: PARSED_AMOUNT.toString(),
+            });
+
+            // Simulate deposit
+            try {
+                await publicClient!.simulateContract({
+                    account: address!,
+                    address: MARKETPLACE,
+                    abi: marketplaceAbi.abi,
+                    functionName: "depositToken",
+                    args: [USDC, PARSED_AMOUNT],
+                });
+            } catch (e: any) {
+                const msg = decodeViemError(e);
+                console.error("❌ Deposit simulation failed:", e, msg);
+                toast.error(msg || "Deposit simulation failed");
+                setIsLoading(false);
+                setCurrentStep("form");
+                return;
+            }
+
+            const hash = await writeContractAsync({
+                address: MARKETPLACE,
+                abi: marketplaceAbi.abi,
+                functionName: "depositToken",
+                args: [USDC, PARSED_AMOUNT],
+            });
+
+            console.log("✅ Deposit TX submitted:", hash);
+            setDepositHash(hash);
+            toast.info("Step 2/3: Depositing USDC to escrow...");
+        } catch (err: any) {
+            console.error("❌ Deposit error:", err);
+            const msg = decodeViemError(err);
+            toast.error(msg || "Failed to deposit USDC");
+            setIsLoading(false);
+            setCurrentStep("form");
+        }
+    };
+
+    // Step 3: Initialize buy order
+    const handleInitBuyOrder = async () => {
+        try {
+            console.log("📝 Step 3: Initializing buy order...", {
+                nonce,
+                tokenAddress,
+                tokenAmount: parsedTokenAmount,
+            });
+
+            const evmToken = TokenId.fromString(tokenAddress).toEvmAddress() as `0x${string}`;
+            if (!evmToken) {
+                toast.error("Failed to get token EVM address");
+                setIsLoading(false);
+                setCurrentStep("form");
+                return;
+            }
+
+            // Simulate init buy order
+            try {
+                await publicClient!.simulateContract({
+                    account: address!,
+                    address: MARKETPLACE,
+                    abi: marketplaceAbi.abi,
+                    functionName: "initBuyOrder",
+                    args: [BigInt(nonce), `0x${evmToken}`, BigInt(parsedTokenAmount)],
+                });
+            } catch (e: any) {
+                const msg = decodeViemError(e);
+                console.error("❌ Init buy order simulation failed:", e, msg);
+                toast.error(msg || "Buy order simulation failed");
+                setIsLoading(false);
+                setCurrentStep("form");
+                return;
+            }
+
+            const hash = await writeContractAsync({
+                address: MARKETPLACE,
+                abi: marketplaceAbi.abi,
+                functionName: "initBuyOrder",
+                args: [BigInt(nonce), `0x${evmToken}`, BigInt(parsedTokenAmount)],
+            });
+
+            console.log("✅ Buy order TX submitted:", hash);
+            setTxHash(hash);
+            toast.info("Step 3/3: Creating buy order...");
+
+            // Store order in database for matching
+            await createOrder({
+                nonce: nonce.toString(),
+                expiry: expiry,
+                propertyToken: `0x${evmToken}`,
+                remainingAmount: parsedTokenAmount.toString(),
+                orderType: "BUY",
+                pricePerShare: parsedPricePerToken.toString()
+            }, address!, '0xDD1184EeC78eD419d948887B8793E64a62f13895');
+
+        } catch (err: any) {
+            console.error("❌ Init buy order error:", err);
+            const msg = decodeViemError(err);
+            toast.error(msg || "Failed to initialize buy order");
+            setIsLoading(false);
+            setCurrentStep("form");
+        }
+    };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -174,7 +372,7 @@ export default function InvestmentForm({
             if (isInstantPurchase) {
                 // Instant purchase from admin (price >= actual price)
                 console.log("💰 Instant purchase from admin - price per token:", parsedPricePerToken, ">=", actualPricePerToken);
-                //Check id useer is associated to token
+                //Check if user is associated to token
                 try {
                     const tokens = await getAssociatedTokens(address);
                     console.log("Tokens", tokens);
@@ -216,8 +414,8 @@ export default function InvestmentForm({
                     });
                 } catch (e: any) {
                     const msg = decodeViemError(e);
-                    console.error("❌ Approve simulation failed:", e, msg);
-                    toast.error(msg || "Approval simulation failed");
+                    console.error("❌ Transfer simulation failed:", e, msg);
+                    toast.error(msg || "Transfer simulation failed");
                     setIsLoading(false)
                     return;
                 }
@@ -255,11 +453,15 @@ export default function InvestmentForm({
                     throw new Error("Purchase failed, contact admin");
                 }
             } else if (isMarketplaceOrder) {
-                // Marketplace order (price < actual price)
+                // Marketplace order (price < actual price) - Start 3-step flow
                 console.log("💱 Creating marketplace order - price per token:", parsedPricePerToken, "<", actualPricePerToken);
-
-                setOpenDepositUSDCDialog(true)
-                toast.success("Order submitted to marketplace for matching");
+                console.log("🔄 Starting 3-step marketplace flow:");
+                console.log("  1. Approve USDC spending");
+                console.log("  2. Deposit USDC to escrow");
+                console.log("  3. Initialize buy order");
+                
+                setCurrentStep("approve");
+                await handleApproveUSDC();
             } else {
                 toast.error("Please enter a price per token");
                 setIsLoading(false);
@@ -268,6 +470,7 @@ export default function InvestmentForm({
             console.error("Transaction error:", err);
             toast.error(err?.message || "Transaction rejected or failed to submit.");
             setIsLoading(false);
+            setCurrentStep("form");
         }
     };
 
@@ -441,6 +644,63 @@ export default function InvestmentForm({
                                 </p>
                             </div>
                         </div>
+
+                        {/* Marketplace Order Progress - Only show when processing */}
+                        {isMarketplaceOrder && isLoading && currentStep !== "form" && (
+                            <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                                <CardContent className="p-4">
+                                    <div className="space-y-3">
+                                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                                            Processing Marketplace Order
+                                        </p>
+                                        <div className="space-y-2">
+                                            {/* Step 1: Approve */}
+                                            <div className="flex items-center gap-2">
+                                                {currentStep === "approve" ? (
+                                                    <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                                                ) : ["deposit", "init-order", "complete"].includes(currentStep) ? (
+                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                ) : (
+                                                    <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                                                )}
+                                                <span className="text-xs text-muted-foreground">
+                                                    Step 1: Approve USDC
+                                                </span>
+                                            </div>
+                                            {/* Step 2: Deposit */}
+                                            <div className="flex items-center gap-2">
+                                                {currentStep === "deposit" ? (
+                                                    <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                                                ) : ["init-order", "complete"].includes(currentStep) ? (
+                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                ) : (
+                                                    <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                                                )}
+                                                <span className="text-xs text-muted-foreground">
+                                                    Step 2: Deposit to Escrow
+                                                </span>
+                                            </div>
+                                            {/* Step 3: Init Order */}
+                                            <div className="flex items-center gap-2">
+                                                {currentStep === "init-order" ? (
+                                                    <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                                                ) : currentStep === "complete" ? (
+                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                ) : (
+                                                    <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                                                )}
+                                                <span className="text-xs text-muted-foreground">
+                                                    Step 3: Initialize Buy Order
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                                            Please confirm each transaction in your wallet
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
                     </form>
 
                     {/* Action Buttons - Sticky at bottom */}
@@ -469,12 +729,18 @@ export default function InvestmentForm({
                             {isLoading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                                    Processing...
+                                    {isMarketplaceOrder && currentStep !== "form" 
+                                        ? `Processing (Step ${
+                                            currentStep === "approve" ? "1" : 
+                                            currentStep === "deposit" ? "2" : 
+                                            currentStep === "init-order" ? "3" : "1"
+                                          }/3)...`
+                                        : "Processing..."}
                                 </>
                             ) : (
                                 <>
                                     <Calculator className="w-4 h-4 mr-2" />
-                                    {isInstantPurchase ? "Buy Instantly" : "Create Order"}
+                                    {isInstantPurchase ? "Buy Instantly" : isMarketplaceOrder ? "Create Order (3 steps)" : "Create Order"}
                                 </>
                             )}
                         </Button>
