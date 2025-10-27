@@ -61,7 +61,7 @@ export default function InvestmentForm({
 }: InvestmentFormProps) {
     const [tokenAmount, setTokenAmount] = useState<string>("");
     const [pricePerToken, setPricePerToken] = useState<string>("");
-    const [actualPricePerToken, setActualPricePerToken] = useState<number>(20);
+    const [actualPricePerToken, setActualPricePerToken] = useState<number>(1);
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [transactionData, setTransactionData] = useState<{
