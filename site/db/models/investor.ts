@@ -19,6 +19,35 @@ export class InvestorModel {
         return this.propertiesCollection;
     }
 
+    static async updatePropertyOwnership(investorID: string, investor_address: string, propertyID: string, amount: number) {
+        try {
+            const collection = await this.getPropertiesCollection();
+            const property = await collection.findOne({ _id: new ObjectId(propertyID) });
+
+            if (!property) {
+                throw new MyError(Errors.PROPERTY_NOT_EXIST);
+            }
+
+            const oldPropertyOwners = property.property_owners ?? [];
+            const newPropertyOwners = [...oldPropertyOwners, {
+                owner_id: new ObjectId(investorID),
+                owner_address: investor_address,
+                amount_owned: amount,
+                purchase_time: new Date()
+            }];
+
+            await collection.updateOne({_id: new ObjectId(propertyID)}, {$set: {
+                property_owners: newPropertyOwners
+            }});
+        } catch (err) {
+            console.error("Error updating property ownership in DB", err);
+            if (err instanceof MyError) {
+                throw err;
+            }
+            throw new MyError("Could not update property ownership", { cause: err });
+        }
+    }
+
     static async getPropertiesOwned(investorID: string): Promise<InvestorProperties[]> {
         try {
             const collection = await this.getPropertiesCollection();
