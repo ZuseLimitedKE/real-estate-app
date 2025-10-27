@@ -1,5 +1,5 @@
 import { Web3 } from 'web3';
-import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, TransferTransaction, TokenId, Status, AccountBalanceQuery } from "@hashgraph/sdk";
+import { AccountId, Long, Client, PrivateKey, TokenBurnTransaction, TokenCreateTransaction, TokenInfoQuery, TokenType, TransferTransaction, TokenId, Status, AccountBalanceQuery, Wallet } from "@hashgraph/sdk";
 import { MyError } from '@/constants/errors';
 import { addressSchema } from '@/types/property_details';
 
@@ -97,6 +97,122 @@ class RealEstateManagerContract {
         }
     }
 
+    async getPropertyTokensBalanceInAdmin(property_token_id: string): Promise<number> {
+        try {
+            if (!pkEnv || !accountID) {
+                throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
+            }
+            const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
+            const operatorID = AccountId.fromString(accountID);
+            const client = Client.forName(network).setOperator(operatorID, operatorKey);
+
+            const balance = await new AccountBalanceQuery()
+                .setAccountId(operatorID)
+                .execute(client)
+
+            if (!balance.tokens || !balance.tokenDecimals) {
+                console.log("Whoops")
+                // No other tokens owned
+                return 0;
+            } else {
+                const rawTokenBalance = balance.tokens.get(property_token_id);
+                const tokenDecimals = balance.tokenDecimals.get(property_token_id);
+
+                if (!rawTokenBalance || tokenDecimals === null) {
+                    return 0;
+                }
+
+                console.log("i am here")
+
+                const tokenBalance = rawTokenBalance as Long;
+                const numTokens = tokenBalance.toNumber() / Math.pow(10, tokenDecimals as number)
+                return numTokens;
+            }
+        } catch (err) {
+            console.error(`Error getting token balance for ${property_token_id} from contract`, err);
+            throw new MyError("Could not get token balance");
+        }
+    }
+    async transferTokensFromAdminToUser(address: string, tokenId: string, amount: number): Promise<string> {
+        try {
+            if (!pkEnv || !accountID) {
+                throw new Error("Invalid env setup, HEDERA_ACCOUNT or HEDERA_ACCOUNT_ID is not set");
+            }
+            let accountId;
+            if (address.startsWith("0x")) {
+                accountId = AccountId.fromEvmAddress(0, 0, address).toString();
+            }
+            else {
+                accountId = address
+            }
+            const operatorKey = PrivateKey.fromStringECDSA(pkEnv);
+            const operatorID = AccountId.fromString(accountID);
+            const client = Client.forName(network).setOperator(operatorID, operatorKey);
+            const associatedTokens = await this.getAssociatedTokens(accountId);
+
+            if (!associatedTokens.includes(tokenId)) {
+                throw new MyError("User does not have the token associated");
+            }
+
+            const transferTx = await new TransferTransaction()
+                .addTokenTransfer(tokenId, operatorID, -amount)
+                .addTokenTransfer(tokenId, accountId, amount)
+                .freezeWith(client);
+
+            const signTx = await transferTx.sign(operatorKey);
+            const txResponse = await signTx.execute(client);
+            const receipt = await txResponse.getReceipt(client);
+
+            if (receipt.status.toString() !== "SUCCESS") {
+                throw new Error(`Failed to transfer tokens: ${receipt.status.toString()}`);
+            }
+
+            return txResponse.transactionId.toString();
+
+        }
+        catch (error) {
+            console.error(`Error transferring tokens from admin to user: ${error}`);
+            throw new MyError("Could not transfer tokens from admin to user");
+        }
+
+    }
+    async getAssociatedTokens(accountId: string): Promise<string[]> {
+        const NETWORK = process.env.ENVIRONMENT!
+        if (!NETWORK) {
+            throw new MyError("ENVIRONMENT variable is not set");
+        }
+        let MIRROR_NODE_URL: string;
+        if (NETWORK == "localnet") {
+            MIRROR_NODE_URL = "http://127.0.0.1:5551"
+        }
+        else if (NETWORK == "testnet") {
+            MIRROR_NODE_URL = "https://testnet.mirrornode.hedera.com"
+        }
+        else if (NETWORK == "mainnet") {
+            MIRROR_NODE_URL = "https://api.mainnet.mirrornode.hedera.com"
+        }
+        else {
+            throw new Error("Unsupported network. Use 'testnet' or 'mainnet'.");
+        }
+        let tokens: string[] = [];
+        let nextLink: string | null = `/api/v1/accounts/${accountId}/tokens?limit=100`;
+
+        try {
+            while (nextLink) {
+                const response = await fetch(`${MIRROR_NODE_URL}${nextLink}`);
+                if (!response.ok) {
+                    throw new Error(`Mirror node API returned ${response.status}: ${response.statusText}`);
+                }
+                const data: { tokens: { token_id: string }[], links: { next: string | null } } = await response.json() as { tokens: { token_id: string }[], links: { next: string | null } };
+                tokens.push(...data.tokens.map(token => token.token_id));
+                nextLink = data.links.next;
+            }
+            return tokens;
+        } catch (error) {
+            console.error(`Error fetching associated tokens for ${accountId}:`, error);
+            throw new MyError("Could not fetch associated tokens from mirror node");
+        }
+    }
     // Accepts addressToSend and token as evm addresses
     async distributeFund(addressToSend: string, amount: number, token: string): Promise<string> {
         try {
@@ -144,11 +260,11 @@ class RealEstateManagerContract {
 
             //Get the Transaction ID
             const txTransferId = txTransferResponse.transactionId.toString();
-            
+
             if (statusTransferTx === Status.Success) {
                 return txTransferId
-            }   
-            
+            }
+
             throw new MyError("Transaction not succeeded");
         } catch (err) {
             console.error(`Error sending tokens to investor ${addressToSend}: ${amount}`, err);

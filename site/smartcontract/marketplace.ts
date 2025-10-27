@@ -1,7 +1,7 @@
 import { Order, ErrorResponse, SettleOrderSchema, type SettleOrder, SuccessResponse } from "@/types/marketplace";
 import Web3, { Web3Account } from "web3";
 import MarketPlaceABI from "@/marketPlaceContractABI.json";
-import { AccountId, PrivateKey, Client, TokenAssociateTransaction, Status, ContractExecuteTransaction, ContractFunctionParameters } from "@hashgraph/sdk"
+import { AccountId, PrivateKey, Client, TokenAssociateTransaction, Status, ContractExecuteTransaction, ContractFunctionParameters, Hbar } from "@hashgraph/sdk"
 export class MarketPlaceContract {
     async getWeb3(): Promise<Web3> {
         try {
@@ -17,6 +17,7 @@ export class MarketPlaceContract {
     }
     async getAccount(): Promise<Web3Account> {
         try {
+            console.log("Env:", process.env.DEPLOYER_PRIVATE_KEY);
             if (!process.env.DEPLOYER_PRIVATE_KEY) {
                 throw new Error("Invalid env setup. Set DEPLOYER_PRIVATE_KEY in env");
             }
@@ -28,8 +29,25 @@ export class MarketPlaceContract {
             throw new Error("Error getting account");
         }
     }
+    async getClient(): Promise<Client> {
+        try {
+            if (!process.env.DEPLOYER_ACCOUNT_ID || !process.env.DEPLOYER_PRIVATE_KEY) {
+                throw new Error("Missing DEPLOYER_ACCOUNT_ID or DEPLOYER_PRIVATE_KEY");
+            }
+            const client = Client.forTestnet()
+            client.setOperator(
+                AccountId.fromString(process.env.DEPLOYER_ACCOUNT_ID!),
+                PrivateKey.fromStringECDSA(process.env.DEPLOYER_PRIVATE_KEY!)
+            );
+            return client;
+        } catch (err) {
+            console.error("Error getting client", err);
+            throw new Error("Error getting client");
+        }
+    }
     async settleTrade(args: SettleOrder): Promise<SuccessResponse | ErrorResponse> {
         try {
+
             const parsed = SettleOrderSchema.safeParse(args);
             if (!parsed.success) {
                 return { status: "INVALID_DATA", message: "Invalid order data", statusCode: 400, success: false } as ErrorResponse;
@@ -179,33 +197,29 @@ export class MarketPlaceContract {
             return undefined;
         }
     }
-    static async associateTokentoContract(tokenId: string) {
+    static async associateTokentoContract(tokenId: `0x${string}`) {
         try {
             if (!tokenId) {
                 throw new Error("Token ID is required for association");
             }
             const mp = new MarketPlaceContract();
-            const web3 = await mp.getWeb3();
-            const contractAddress = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT;
+            const client = await mp.getClient();
+            const contractAddress = process.env.MARKETPLACE_HEDERA_ACCOUNTID!;
             if (!contractAddress) {
                 throw new Error('MARKETPLACE_CONTRACT env variable is not set');
             }
-            const contract = new web3.eth.Contract(MarketPlaceABI.abi, contractAddress);
-            const account = await mp.getAccount();
-            const block = await web3.eth.getBlock();
-            const tx = contract.methods.tokenAssociate(tokenId);
-            console.log("Token Associate Tx:", tx);
-            const txData = {
-                from: account.address,
-                to: contractAddress as string,
-                data: tx.encodeABI(),
-                maxFeePerGas: block.baseFeePerGas! * BigInt(2),
-                maxPriorityFeePerGas: 100000,
-            };
-            console.log("Tx Data:", txData);
-            const signedTx = await web3.eth.accounts.signTransaction(txData, account.privateKey);
-            console.log("Signed Tx:", signedTx);
-            const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction as string);
+            const txTokenAssociate = await new ContractExecuteTransaction()
+                .setContractId(contractAddress)
+                .setGas(4_000_000)
+                .setFunction("tokenAssociate", new ContractFunctionParameters().addAddress(tokenId))
+                .setMaxTransactionFee(new Hbar(5))
+                .freezeWith(client);
+
+            //Sign and execute the property token transaction
+            const signTxTokenAssociate = await txTokenAssociate.sign(PrivateKey.fromStringECDSA(process.env.DEPLOYER_PRIVATE_KEY!));
+            const txTokenAssociateResponse = await signTxTokenAssociate.execute(client);
+            const receipt = await txTokenAssociateResponse.getReceipt(client);
+            const status = receipt.status;
             return { status: "SUCCESS", message: "Trade settled successfully", data: receipt, success: true } as SuccessResponse;
         } catch (error) {
             console.error("Error associating token to contract", error);

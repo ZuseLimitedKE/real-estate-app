@@ -1,7 +1,8 @@
 "use server";
 
 import { MyError, Errors } from "@/constants/errors";
-
+import realEstateManagerContract from "@/smartcontract/registerContract";
+import { AccountId } from "@hashgraph/sdk";
 export type TokenPurchaseResult = {
   success: boolean;
   message: string;
@@ -46,94 +47,94 @@ export async function getTokenPrice(
   }
 }
 
-// Simulated function to purchase tokens
-export async function purchaseTokens(data: {
-  propertyId: string;
-  tokenAmount: number;
-  paymentMethod: string;
-  totalAmount: number;
-  userWalletAddress?: string;
-}): Promise<TokenPurchaseResult> {
-  try {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+// // Simulated function to purchase tokens
+// export async function purchaseTokens(data: {
+//   propertyId: string;
+//   tokenAmount: number;
+//   paymentMethod: string;
+//   totalAmount: number;
+//   userWalletAddress?: string;
+// }): Promise<TokenPurchaseResult> {
+//   try {
+//     // Simulate API call delay
+//     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Validate input
-    if (data.tokenAmount <= 0) {
-      throw new MyError("Invalid token amount");
-    }
+//     // Validate input
+//     if (data.tokenAmount <= 0) {
+//       throw new MyError("Invalid token amount");
+//     }
 
-    if (data.totalAmount <= 0) {
-      throw new MyError("Invalid total amount");
-    }
+//     if (data.totalAmount <= 0) {
+//       throw new MyError("Invalid total amount");
+//     }
 
-    // Simulate different payment method handling
-    switch (data.paymentMethod) {
-      case "wallet":
-        // Simulate Web3 wallet transaction
-        if (!data.userWalletAddress) {
-          throw new MyError("Wallet address is required for wallet payments");
-        }
-        break;
-      case "stripe":
-        // Simulate Stripe payment processing
-        break;
-      case "full":
-        // Simulate full payment processing
-        break;
-      case "partial":
-        // Simulate partial payment processing (not implemented yet)
-        throw new MyError("Partial payments are not yet available");
-      default:
-        throw new MyError("Invalid payment method");
-    }
+//     // Simulate different payment method handling
+//     switch (data.paymentMethod) {
+//       case "wallet":
+//         // Simulate Web3 wallet transaction
+//         if (!data.userWalletAddress) {
+//           throw new MyError("Wallet address is required for wallet payments");
+//         }
+//         break;
+//       case "stripe":
+//         // Simulate Stripe payment processing
+//         break;
+//       case "full":
+//         // Simulate full payment processing
+//         break;
+//       case "partial":
+//         // Simulate partial payment processing (not implemented yet)
+//         throw new MyError("Partial payments are not yet available");
+//       default:
+//         throw new MyError("Invalid payment method");
+//     }
 
-    // Simulate success/failure (90% success rate)
-    const success = Math.random() > 0.1;
+//     // Simulate success/failure (90% success rate)
+//     const success = Math.random() > 0.1;
 
-    if (!success) {
-      // Simulate different failure scenarios
-      const failureReasons = [
-        "Insufficient funds",
-        "Transaction timeout",
-        "Network congestion",
-        "Payment method declined",
-      ];
-      const randomReason =
-        failureReasons[Math.floor(Math.random() * failureReasons.length)];
+//     if (!success) {
+//       // Simulate different failure scenarios
+//       const failureReasons = [
+//         "Insufficient funds",
+//         "Transaction timeout",
+//         "Network congestion",
+//         "Payment method declined",
+//       ];
+//       const randomReason =
+//         failureReasons[Math.floor(Math.random() * failureReasons.length)];
 
-      return {
-        success: false,
-        message: `Transaction failed: ${randomReason}`,
-      };
-    }
+//       return {
+//         success: false,
+//         message: `Transaction failed: ${randomReason}`,
+//       };
+//     }
 
-    // Generate mock transaction hash
-    const transactionHash = `0x${Math.random().toString(16).substr(2, 64)}`;
+//     // Generate mock transaction hash
+//     const transactionHash = `0x${Math.random().toString(16).substr(2, 64)}`;
 
-    return {
-      success: true,
-      message: "Tokens purchased successfully!",
-      transactionHash,
-      tokensPurchased: data.tokenAmount,
-      totalAmount: data.totalAmount,
-    };
-  } catch (error) {
-    console.error("Token purchase error:", error);
+//     return {
+//       success: true,
+//       message: "Tokens purchased successfully!",
+//       transactionHash,
+//       tokensPurchased: data.tokenAmount,
+//       totalAmount: data.totalAmount,
+//     };
+//   } catch (error) {
+//     console.error("Token purchase error:", error);
 
-    if (error instanceof MyError) {
-      return {
-        success: false,
-        message: error.message,
-      };
-    }
+//     if (error instanceof MyError) {
+//       return {
+//         success: false,
+//         message: error.message,
+//       };
+//     }
 
-    return {
-      success: false,
-      message: "An unexpected error occurred. Please try again.",
-    };
-  }
-}
+//     return {
+//       success: false,
+//       message: "An unexpected error occurred. Please try again.",
+//     };
+//   }
+// }
 
 // Simulated function to get user's token balance for a property
 export async function getUserTokenBalance(
@@ -191,5 +192,44 @@ export async function getPropertyTokenStats(propertyId: string): Promise<{
       success: false,
       message: "Failed to fetch token statistics",
     };
+  }
+}
+export async function purchaseTokensFromAdmin(tokenId: string, amount: number, accountId: string): Promise<string> {
+  try {
+    if (amount <= 0) {
+      throw new MyError("Invalid token amount");
+    }
+    if (!accountId || accountId.trim() === "") {
+      throw new MyError("Invalid account ID");
+    }
+    if (!tokenId || tokenId.trim() === "") {
+      throw new MyError("Invalid token ID");
+    }
+    let nativeHederaAccountId;
+    if(accountId.includes("0x")) {
+      // Convert EVM address to Hedera account ID
+      nativeHederaAccountId = await AccountId.fromEvmAddress(0,0,accountId).toString();
+    }
+    else{
+      nativeHederaAccountId = accountId;
+    }
+    //TODO: User Payment handling logic here
+    const txHash = await realEstateManagerContract.transferTokensFromAdminToUser(nativeHederaAccountId, tokenId, amount);
+    return txHash;
+  }
+  catch (error) {
+    console.error("Error purchasing tokens:", error);
+    throw new MyError("Failed to purchase tokens");
+  }
+
+}
+export async function getAssociatedTokens(accountId: string): Promise<Array<string>> {
+  try {
+    const tokens = await realEstateManagerContract.getAssociatedTokens(accountId);
+    return tokens;
+  }
+  catch (error) {
+    console.error("Error getting associated tokens:", error);
+    throw new MyError("Failed to get associated tokens");
   }
 }

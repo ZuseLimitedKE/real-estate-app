@@ -228,6 +228,9 @@ export interface PropertyDetailView {
 
   // Amenities presented as prettified list
   amenities: string[];
+
+  // Number of tokens in admin account
+  tokenBalanceInAdminAccount: number;
 }
 
 export const propertyTypeSchema = z.object({

@@ -16,11 +16,11 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
+  usePublicClient
 } from "wagmi";
 import marketPlaceAbi from "@/smartcontract/abi/MarketPlace.json";
 import erc20Abi from "@/smartcontract/abi/ERC20.json";
-import { formatUnits, parseUnits } from "viem";
-
+import { formatUnits, parseUnits, BaseError, ContractFunctionRevertedError } from "viem";
 interface DepositUSDCProps {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -31,10 +31,13 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
   const { isConnected, address } = useAccount();
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const publicClient = usePublicClient();
   const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
-  const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
-
+  const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;;
+  if (!MARKETPLACE || !USDC) {
+    console.error("Missing contract addresses:", { MARKETPLACE, USDC });
+    toast.error("Page setup error");
+  }
   const { data: decimalsData } = useReadContract({
     address: USDC,
     abi: erc20Abi.abi,
@@ -43,21 +46,22 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
   });
 
   const decimals =
-  typeof decimalsData === "bigint"
-    ? Number(decimalsData)
-    : Number(decimalsData ?? 6);
+    typeof decimalsData === "bigint"
+      ? Number(decimalsData)
+      : Number(decimalsData ?? 6);
 
-    const parsedAmount = useMemo(() => {
-      if (!amount || isNaN(Number(amount))) return BigInt(0);
-      try {
-        return parseUnits(amount, decimals);
-      } catch {
-        return BigInt(0);
-      }
-    }, [amount, decimals]);
-    
+  const parsedAmount = useMemo(() => {
+    if (!amount || isNaN(Number(amount))) return BigInt(0);
+    try {
+      return parseUnits(amount, decimals);
+    } catch {
+      return BigInt(0);
+    }
+  }, [amount, decimals]);
+
   const {
     writeContract: writeApprove,
+    writeContractAsync: approveAsync,
     data: approveHash,
     isPending: isApprovePending,
     reset: resetApprove,
@@ -65,32 +69,27 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
   } = useWriteContract();
   const {
     writeContract: writeDeposit,
+    writeContractAsync: depositAsync,
     data: depositHash,
     isPending: isDepositPending,
     reset: resetDeposit,
     error: depositError,
   } = useWriteContract();
 
-  const { isLoading: waitingApprove, isSuccess: approved } =
-    useWaitForTransactionReceipt({ hash: approveHash });
-  const { isLoading: waitingDeposit, isSuccess: deposited } =
-    useWaitForTransactionReceipt({ hash: depositHash });
-
+  const {
+    data: approveReceipt,
+    isLoading: waitingApprove,
+    isSuccess: approved,
+    isError: approveTxError,
+  } = useWaitForTransactionReceipt({ hash: approveHash });
+  const {
+    data: depositReceipt,
+    isLoading: waitingDeposit,
+    isSuccess: deposited,
+    isError: depositTxError,
+  } = useWaitForTransactionReceipt({ hash: depositHash });
   const busy =
     isApprovePending || isDepositPending || waitingApprove || waitingDeposit;
-
-  // Handle approval success -> trigger deposit
-  useEffect(() => {
-    if (approved && !depositHash && !isDepositPending && !waitingDeposit) {
-      console.log("✅ Approval successful, calling depositToken");
-      writeDeposit({
-        address: MARKETPLACE,
-        abi: marketPlaceAbi.abi,
-        functionName: "depositToken",
-        args: [USDC, parsedAmount],
-      });
-    }
-  }, [approved, depositHash, isDepositPending, waitingDeposit, writeDeposit, MARKETPLACE, USDC, parsedAmount]);
 
   // Handle deposit success
   useEffect(() => {
@@ -122,17 +121,59 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
       setLoading(false);
     }
   }, [depositError]);
+  useEffect(() => {
+    if (approveReceipt && approveReceipt.status === "reverted") {
+      console.error("❌ Approve reverted:", approveReceipt);
+      toast.error("Approve reverted");
+      setLoading(false);
+    }
+  }, [approveReceipt]);
 
+  useEffect(() => {
+    if (depositReceipt && depositReceipt.status === "reverted") {
+      console.error("❌ Deposit reverted:", depositReceipt);
+      toast.error("Deposit reverted");
+      setLoading(false);
+    }
+  }, [depositReceipt]);
+
+  // Handle errors from writers (decode viem errors)
+  useEffect(() => {
+    if (approveError) {
+      const msg = decodeViemError(approveError);
+      console.error("❌ Approve error:", approveError, msg);
+      toast.error(msg || "Approval failed");
+      setLoading(false);
+    }
+  }, [approveError]);
+
+  useEffect(() => {
+    if (depositError) {
+      const msg = decodeViemError(depositError);
+      console.error("❌ Deposit error:", depositError, msg);
+      toast.error(msg || "Deposit failed");
+      setLoading(false);
+    }
+  }, [depositError]);
   const handleDeposit = async () => {
     try {
-      console.log("🔍 Deposit Debug Info:", {
+      //Associate my mock usdc token to contract
+      // const results = await associateTokentoContract(USDC);
+      // if (!results.success) {
+      //   toast.error("Failed to associate USDC token to contract");
+      //   return;
+      // }
+      console.log("🔍 Deposit Debug Info Deposit USDC:", {
         isConnected,
         MARKETPLACE,
         USDC,
         amount,
         parsedAmount: parsedAmount.toString(),
       });
-
+      if (!publicClient) {
+        toast("failed to initialize public client");
+        return;
+      }
       if (!isConnected) {
         toast.error("Connect your wallet first");
         return;
@@ -146,9 +187,23 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
         toast.error("Enter a valid amount");
         return;
       }
-
+     
       setLoading(true);
-
+      try {
+        await publicClient.simulateContract({
+          account: address!,
+          address: USDC,
+          abi: erc20Abi.abi,
+          functionName: "approve",
+          args: [MARKETPLACE, parsedAmount],
+        });
+      } catch (e: any) {
+        const msg = decodeViemError(e);
+        console.error("❌ Approve simulation failed:", e, msg);
+        toast.error(msg || "Approval simulation failed");
+        setLoading(false);
+        return;
+      }
       console.log("✅ Calling writeApprove with:", {
         address: USDC,
         functionName: "approve",
@@ -156,18 +211,45 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
       });
 
       // Approve Marketplace to spend USDC
-      writeApprove({
+      const hash = await approveAsync({
         address: USDC,
         abi: erc20Abi.abi,
         functionName: "approve",
         args: [MARKETPLACE, parsedAmount],
       });
+      console.log("📝 Approve tx sent:", hash);
+      //Deposit USDC to Marketplace escrow
+      //Simulate contract call
+      // try {
+      //   await publicClient.simulateContract({
+      //     address: MARKETPLACE,
+      //     abi: marketPlaceAbi.abi,
+      //     functionName: "depositToken",
+      //     args: [USDC, parsedAmount],
+      //   });
+      // } catch (e: any) {
+      //   const msg = decodeViemError(e);
+      //   console.error("❌ Approve simulation failed:", e, msg);
+      //   toast.error(msg || "Approval simulation failed");
+      //   setLoading(false);
+      //   return;
+      // }
+      // Call depositToken function
+      depositAsync({
+        address: MARKETPLACE,
+        abi: marketPlaceAbi.abi,
+        functionName: "depositToken",
+        args: [USDC, parsedAmount],
+      })
+      console.log("📝 Deposit tx sent:", depositHash);
+      // await publicClient?.waitForTransactionReceipt({hash: approveHash!});
     } catch (e: any) {
-      console.error("❌ Approval error:", e);
-      toast.error(e?.message || "Approval failed");
-      setLoading(false); 
+      const msg = decodeViemError(e);
+      console.error("❌ Approval error:", e, msg);
+      toast.error(msg || "Approval failed");
+      setLoading(false);
     } finally {
-      //setLoading(false)
+      setLoading(false)
     }
   };
 
@@ -231,4 +313,20 @@ export default function DepositUSDC({ open, setOpen, onSuccess }: DepositUSDCPro
       </DialogContent>
     </Dialog>
   );
+}
+function decodeViemError(e: any): string {
+  try {
+    if (e instanceof BaseError) {
+      const revert = e.walk((err) => err instanceof ContractFunctionRevertedError);
+      if (revert) {
+        // Prefer decoded custom error name or reason
+        // @ts-expect-error viem typed errors carry details
+        return revert.shortMessage || revert.reason || revert.message;
+      }
+      return e.shortMessage || e.message;
+    }
+    return e?.message || String(e);
+  } catch {
+    return "Transaction failed";
+  }
 }
