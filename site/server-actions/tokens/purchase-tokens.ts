@@ -1,6 +1,8 @@
 "use server";
 
+import { AuthError, requireRole } from "@/auth/utils";
 import { MyError, Errors } from "@/constants/errors";
+import { InvestorModel } from "@/db/models/investor";
 import realEstateManagerContract from "@/smartcontract/registerContract";
 import { AccountId } from "@hashgraph/sdk";
 export type TokenPurchaseResult = {
@@ -194,8 +196,9 @@ export async function getPropertyTokenStats(propertyId: string): Promise<{
     };
   }
 }
-export async function purchaseTokensFromAdmin(tokenId: string, amount: number, accountId: string): Promise<string> {
+export async function purchaseTokensFromAdmin(tokenId: string, amount: number, accountId: string, propertyID: string): Promise<string> {
   try {
+    const payload = await requireRole("investor");
     if (amount <= 0) {
       throw new MyError("Invalid token amount");
     }
@@ -208,17 +211,23 @@ export async function purchaseTokensFromAdmin(tokenId: string, amount: number, a
     let nativeHederaAccountId;
     if(accountId.includes("0x")) {
       // Convert EVM address to Hedera account ID
-      nativeHederaAccountId = await AccountId.fromEvmAddress(0,0,accountId).toString();
+      nativeHederaAccountId = AccountId.fromEvmAddress(0,0,accountId).toString();
     }
     else{
       nativeHederaAccountId = accountId;
     }
     //TODO: User Payment handling logic here
     const txHash = await realEstateManagerContract.transferTokensFromAdminToUser(nativeHederaAccountId, tokenId, amount);
+
+    // Update property owners
+    await InvestorModel.updatePropertyOwnership(payload.userId, nativeHederaAccountId, propertyID, amount);
     return txHash;
   }
   catch (error) {
     console.error("Error purchasing tokens:", error);
+    if (error instanceof AuthError) {
+      throw new MyError(Errors.NOT_AUTHORIZED);
+    }
     throw new MyError("Failed to purchase tokens");
   }
 
