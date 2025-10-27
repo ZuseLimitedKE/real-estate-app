@@ -549,7 +549,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
                                             <div className="flex flex-col md:flex-row gap-1 md:gap-4">
                                                 <div className="flex flex-row gap-2 items-center">
                                                     <div className="font-semibold text-primary">
-                                                        {distribution.amount.toLocaleString()} USDC
+                                                        {distribution.amount.toFixed(2)} USDC
                                                     </div>
                                                     <div className="text-sm text-muted-foreground">
                                                         {distribution.investorCount} investors
@@ -580,7 +580,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
                                                                 </div>
                                                             </div>
                                                             <div className="font-semibold text-primary">
-                                                                {dist.amount.toLocaleString()} USDC
+                                                                {dist.amount.toFixed(2)} USDC
                                                             </div>
                                                         </div>
                                                     ))}
