@@ -286,7 +286,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
     const data = (raw ?? {}) as Record<string, any>;
     return {
       property_type: data.property_type ?? defaultValue.propertyType,
-      apartment_property_details: {
+      apartment_property_details: data.property_type && data.property_type === PropertyType.APARTMENT ? {
         location:
           data.apartment_property_details?.location ??
           defaultValue.apartment_property_details.location,
@@ -299,17 +299,17 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         serviceFeePercent:
           data.apartment_property_details?.serviceFeePercent ?? 0,
         floors: data.apartment_property_details?.floors ?? 0,
-      },
-      single_property_details: {
+      } : undefined,
+      single_property_details: data.property_type && data.property_type === PropertyType.SINGLE ? {
         ...data?.single_property_details,
         amenities:
           data?.single_property_details?.amenities ??
           defaultValue.single_property_details.amenities,
         createdAt: data?.single_property_details?.createdAt
-          ? new Date(data.createdAt)
+          ? new Date(data?.single_property_details?.createdAt)
           : undefined,
         updatedAt: data?.single_property_details?.updatedAt
-          ? new Date(data.updatedAt)
+          ? new Date(data?.single_property_details?.updatedAt)
           : undefined,
         tenant: data?.single_property_details?.tenant ?? undefined,
         property_owners: Array.isArray(
@@ -328,7 +328,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         documents: data?.single_property_details?.documents ?? [],
         secondary_market_listings:
           data?.single_property_details?.secondary_market_listings ?? [],
-      },
+      } : undefined,
     };
   };
 
