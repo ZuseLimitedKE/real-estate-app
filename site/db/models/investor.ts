@@ -23,34 +23,46 @@ export class InvestorModel {
         try {
             const collection = await this.getPropertiesCollection();
             const cursor = collection.find();
+            const investorObjId = new ObjectId(investorID);
             const properties: InvestorProperties[] = [];
 
-            for await (const property of cursor) {
-                if (property.type === PropertyType.SINGLE) {
-                    // Loop through property owners and get details for this investor
-                    if (property.property_owners) {
-                        const investorOwnershipDetails = property.property_owners.find((o) => o.owner_id === new ObjectId(investorID));
+            // Query for SINGLE properties owned by investor
+            const singleProperties = await collection.find({
+                type: PropertyType.SINGLE,
+                "property_owners.owner_id": investorObjId
+            }).toArray();
+
+            for (const property of singleProperties) {
+                const investorOwnershipDetails = property.property_owners?.find(
+                    (o) => o.owner_id.equals(investorObjId)
+                );
+                if (investorOwnershipDetails) {
+                    properties.push({
+                        property_name: property.name,
+                        token_address: property.token_address ?? "N/A",
+                        amount: investorOwnershipDetails.amount_owned
+                    });
+                }
+            }
+
+            // Query for APARTMENT properties with units owned by investor
+            const apartmentProperties = await collection.find({
+                type: PropertyType.APARTMENT,
+                "apartmentDetails.units.owner.owner_id": investorObjId
+            }).toArray();
+
+            for (const property of apartmentProperties) {
+                if (property.apartmentDetails) {
+                    for (const unit of property.apartmentDetails.units) {
+                        const investorOwnershipDetails = unit.owner?.find(
+                            (o) => o.owner_id.equals(investorObjId)
+                        );
                         if (investorOwnershipDetails) {
                             properties.push({
-                                property_name: property.name,
-                                token_address: property.token_address ?? "N/A",
-                                amount: investorOwnershipDetails.amount_owned
-                            })
-                        }
-                    }
-                } else if (property.type === PropertyType.APARTMENT) {
-                    if (property.apartmentDetails) {
-                        for (const unit of property.apartmentDetails.units) {
-                            if (unit.owner) {
-                                const investorOwnershipDetails = unit.owner.find((o) => o.owner_id === new ObjectId(investorID));
-                                if (investorOwnershipDetails) {
-                                    properties.push({
-                                        property_name: `${property.name} - ${unit.name}`,
-                                        token_address: unit.token_details.address,
-                                        amount: investorOwnershipDetails.fractions_owned
-                                    });
-                                }
-                            }
+                                property_name: `${property.name} - ${unit.name}`,
+                                token_address: unit.token_details.address,
+                                amount: investorOwnershipDetails.fractions_owned
+                            });
                         }
                     }
                 }
@@ -59,7 +71,7 @@ export class InvestorModel {
             return properties;
         } catch (err) {
             console.error("Error getting properties owned by investor from db", err);
-            throw new MyError("Error getting properties owned by investor from database");
+            throw new MyError("Error getting properties owned by investor from database", { cause: err });
         }
     }
 
