@@ -29,16 +29,31 @@ export class InvestorModel {
             }
 
             const oldPropertyOwners = property.property_owners ?? [];
-            const newPropertyOwners = [...oldPropertyOwners, {
-                owner_id: new ObjectId(investorID),
-                owner_address: investor_address,
-                amount_owned: amount,
-                purchase_time: new Date()
-            }];
 
-            await collection.updateOne({_id: new ObjectId(propertyID)}, {$set: {
-                property_owners: newPropertyOwners
-            }});
+            const alreadyOwner = oldPropertyOwners.find((o) => o.owner_id?.equals(new ObjectId(investorID)));
+            if (alreadyOwner) {
+                alreadyOwner.amount_owned += amount;
+                await collection.updateOne({ _id: new ObjectId(propertyID) }, {
+                    $set: {
+                        property_owners: oldPropertyOwners
+                    }
+                });
+            } else {
+                const newPropertyOwners = [...oldPropertyOwners, {
+                    owner_id: new ObjectId(investorID),
+                    owner_address: investor_address,
+                    amount_owned: amount,
+                    purchase_time: new Date()
+                }];
+
+                await collection.updateOne({ _id: new ObjectId(propertyID) }, {
+                    $set: {
+                        property_owners: newPropertyOwners
+                    }
+                });
+            }
+
+
         } catch (err) {
             console.error("Error updating property ownership in DB", err);
             if (err instanceof MyError) {
