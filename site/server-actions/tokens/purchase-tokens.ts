@@ -220,7 +220,7 @@ export async function purchaseTokensFromAdmin(tokenId: string, amount: number, a
     const txHash = await realEstateManagerContract.transferTokensFromAdminToUser(nativeHederaAccountId, tokenId, amount);
 
     // Update property owners
-    await InvestorModel.updatePropertyOwnership(payload.userId, nativeHederaAccountId, propertyID, amount);
+    await InvestorModel.updatePropertyOwnership(payload.userId, accountId, propertyID, amount);
     return txHash;
   }
   catch (error) {
