@@ -34,7 +34,7 @@ export class InvestorModel {
 
             for (const property of singleProperties) {
                 const investorOwnershipDetails = property.property_owners?.find(
-                    (o) => o.owner_id.equals(investorObjId)
+                    (o) => o.owner_id?.equals(investorObjId)
                 );
                 if (investorOwnershipDetails) {
                     properties.push({
@@ -55,7 +55,7 @@ export class InvestorModel {
                 if (property.apartmentDetails) {
                     for (const unit of property.apartmentDetails.units) {
                         const investorOwnershipDetails = unit.owner?.find(
-                            (o) => o.owner_id.equals(investorObjId)
+                            (o) => o.owner_id?.equals(investorObjId)
                         );
                         if (investorOwnershipDetails) {
                             properties.push({
