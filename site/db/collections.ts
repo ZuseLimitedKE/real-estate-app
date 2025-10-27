@@ -66,6 +66,7 @@ export interface Properties {
     garden_yard?: boolean;
   };
   property_owners?: {
+    owner_id: ObjectId;
     owner_address: string;
     amount_owned: number;
     purchase_time: Date;
@@ -113,6 +114,7 @@ export interface Properties {
         total_fractions: number;
       };
       owner?: {
+        owner_id: ObjectId;
         investor_address: string;
         fractions_owned: number;
         purchase_time: Date;

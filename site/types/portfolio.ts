@@ -104,6 +104,19 @@ export interface PortfolioStats {
   };
 }
 
+export interface InvestorTransactions {
+  time: Date,
+  amount: number,
+  property_name: string,
+  type: "purchase" | "sell"
+}
+
+export interface InvestorProperties {
+  property_name: string,
+  token_address: string,
+  amount: number
+}
+
 // Mock data for portfolio
 export const mockPortfolioData: PortfolioOverview = {
   totalInvestment: 125000,
