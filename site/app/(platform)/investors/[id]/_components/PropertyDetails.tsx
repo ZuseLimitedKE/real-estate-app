@@ -539,7 +539,6 @@ console.log("💰 Formatted Escrow Balance:", formattedBalance);
         onOpenChange={setAskWhereBuyTokens}
         tokenBalanceInAdminAccount={property.tokenBalanceInAdminAccount}
       /> */}
-  console.log("Token address", property.original.token_address);
       {/* Investment Form - collects amount and price per token */}
       <InvestmentForm
         propertyId={property.id}
