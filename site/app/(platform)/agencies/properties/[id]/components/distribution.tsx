@@ -152,7 +152,7 @@ export default function PaymentsDistribution({ propertyId, monthlyRevenue, unitI
         }
 
         distribute();
-    }, [deposited, resetDeposit, rentAmount, decimals, USDC, propertyId, unitID, distributionHistory]);
+    }, [deposited, resetDeposit, rentAmount, decimals, USDC, propertyId, unitID]);
 
     useEffect(() => {
         if (depositError) {
