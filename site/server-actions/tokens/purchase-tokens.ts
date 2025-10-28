@@ -196,7 +196,7 @@ export async function getPropertyTokenStats(propertyId: string): Promise<{
     };
   }
 }
-export async function purchaseTokensFromAdmin(tokenId: string, amount: number, accountId: string, propertyID: string): Promise<string> {
+export async function purchaseTokensFromAdmin(tokenId: string, amount: number, accountId: string, propertyID: string, pricePerToken: number): Promise<string> {
   try {
     const payload = await requireRole("investor");
     if (amount <= 0) {
@@ -220,7 +220,7 @@ export async function purchaseTokensFromAdmin(tokenId: string, amount: number, a
     const txHash = await realEstateManagerContract.transferTokensFromAdminToUser(nativeHederaAccountId, tokenId, amount);
 
     // Update property owners
-    await InvestorModel.updatePropertyOwnership(payload.userId, accountId, propertyID, amount);
+    await InvestorModel.updatePropertyOwnership(payload.userId, accountId, propertyID, amount, pricePerToken, txHash, 'primary');
     return txHash;
   }
   catch (error) {

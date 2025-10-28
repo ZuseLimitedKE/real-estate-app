@@ -24,10 +24,11 @@ const PROPERTY_TOKEN = process.env.NEXT_PUBLIC_PROPERTY_TOKEN as `0x${string}`;
 interface InitSellOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 const getNonce = () => new Date().getTime();
 const getExpiry = () => Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // 7 days from now
-export default function InitSellOrderDialog({ open, onOpenChange }: InitSellOrderDialogProps) {
+export default function InitSellOrderDialog({ open, onOpenChange, onSuccess }: InitSellOrderDialogProps) {
   const { address } = useAccount();
   const [amount, setAmount] = useState("");
   const nonce = getNonce();
@@ -121,6 +122,7 @@ export default function InitSellOrderDialog({ open, onOpenChange }: InitSellOrde
 
       toast.success("Sell order created successfully on marketplace");
       setAmount("");
+      onSuccess && onSuccess();
       onOpenChange(false);
     } catch (err: any) {
       console.error("❌ Sell order failed:", err);
