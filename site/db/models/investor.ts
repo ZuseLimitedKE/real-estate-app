@@ -128,7 +128,9 @@ export class InvestorModel {
                         const investorOwnershipDetails = unit.owner?.find(
                             (o) => o.owner_id?.equals(investorObjId)
                         );
-                        if (investorOwnershipDetails) {
+
+                        const unitTemplate = property.apartmentDetails.unitTemplates.find((t) => t.id === unit.templateId);
+                        if (investorOwnershipDetails && unitTemplate) {
                             properties.push({
                                 property_id: property._id?.toString(),
                                 property_name: `${property.name} - ${unit.name}`,
@@ -136,11 +138,11 @@ export class InvestorModel {
                                 amount: investorOwnershipDetails.fractions_owned,
                                 property_type: 'apartment',
                                 unit_id: unit.id,
-                                images: unit.images || property.images || [],
+                                images: unitTemplate.images || [],
                                 documents: this.transformDocuments(property.documents),
                                 location: property.location?.address || "Location not specified",
                                 property_value: property.property_value || 0,
-                                proposed_rent: unit.proposedRentPerMonth || 0,
+                                proposed_rent: unitTemplate.proposedRentPerMonth || 0,
                                 total_fractions: unit.token_details.total_fractions || 0,
                                 purchase_time: investorOwnershipDetails.purchase_time
                             });

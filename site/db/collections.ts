@@ -105,8 +105,6 @@ export interface Properties {
     parkingSpace: number;
     floors: number;
     units: {
-      images: string[] | undefined;
-      proposedRentPerMonth: number;
       id: string;
       templateId: string;
       name: string;
