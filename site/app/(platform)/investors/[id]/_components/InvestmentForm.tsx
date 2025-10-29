@@ -36,7 +36,6 @@ import associateABI from "@/smartcontract/abi/associate";
 import { TokenId } from "@hashgraph/sdk";
 // import { ethers } from "ethers";
 const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
-const PROPERTY_TOKEN = process.env.NEXT_PUBLIC_PROPERTY_TOKEN as `0x${string}`;
 const ADMIN_ACCOUNT = process.env.NEXT_PUBLIC_HEDERA_EVM_ADDRESS as `0x${string}`;
 interface InvestmentFormProps {
     propertyId: string;

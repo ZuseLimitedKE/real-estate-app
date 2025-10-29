@@ -43,7 +43,7 @@ import getInvestorTransactions from "@/server-actions/portfolio/getInvestorTrans
 import getPortfolioStats from "@/server-actions/portfolio/getPortfolioStats";
 import { transformPropertiesData, generatePerformanceData } from "@/lib/utils/portfolio";
 import RentDistributions from "./_components/RentDistributions";
-
+import SellForm from "./_components/SellForm";
   // const MARKETPLACE = process.env.MARKETPLACE_CONTRACT as `0x${string}`;
   // const PROPERTY_TOKEN = process.env.PROPERTY_TOKEN_TOKEN as `0x${string}`;
 
@@ -247,14 +247,7 @@ export default function PortfolioPage() {
           loadPortfolioData(true);
         }}
       />      
-      <InitSellOrderDialog
-        open={initSellOrder}
-        onOpenChange={setInitSellOrder}
-        onSuccess={() => {
-          toast.success("Sell order created successfully!");
-          loadPortfolioData(true);
-        }}
-      />
+
     </div>
   );
 }
@@ -443,6 +436,11 @@ function InvestmentPropertyCard({
   onSellTokens: () => void; 
   onDepositTokens: () => void;
 }) {
+  const [isOpenSell, setIsOpenSell] = useState(false);
+  
+  const handleSellTokens = () => {
+    setIsOpenSell(true);
+  };
   return (
     <Card className="hover:shadow-lg transition-shadow duration-300 group">
       <CardContent className="p-6">
@@ -547,7 +545,7 @@ function InvestmentPropertyCard({
 
         {/* Action Buttons */}
         <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <Button variant="outline" className="flex-1" onClick={onSellTokens}>
+          <Button variant="outline" className="flex-1" onClick={handleSellTokens}>
             <DollarSign className="w-4 h-4 mr-2" />
             Sell Tokens
           </Button>
@@ -563,6 +561,14 @@ function InvestmentPropertyCard({
           </Button>
         </div>
       </CardContent>
+      <SellForm
+        propertyId={property.propertyId}
+        propertyName={property.propertyName}
+        tokenAddress={property.tokenAddress}
+        isOpen={isOpenSell}
+        onClose={() => setIsOpenSell(false)}
+      />
+  
     </Card>
   );
 }

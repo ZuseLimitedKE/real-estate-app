@@ -1,34 +1,14 @@
-import { Order, ErrorResponse, SettleOrderSchema, type SettleOrder, SuccessResponse } from "@/types/marketplace";
+import { Order, ErrorResponse, SettleOrderSchema, type SettleOrder, SuccessResponse, SignedOrder, SignedOrderSchema } from "@/types/marketplace";
 import Web3, { Web3Account } from "web3";
 import MarketPlaceABI from "@/marketPlaceContractABI.json";
-import { AccountId, PrivateKey, Client, TokenAssociateTransaction, Status, ContractExecuteTransaction, ContractFunctionParameters, Hbar } from "@hashgraph/sdk"
-export class MarketPlaceContract {
-    async getWeb3(): Promise<Web3> {
-        try {
-            if (!process.env.HEDERA_RPC_URL) {
-                throw new Error("Invalid env setup. Set HEDERA_RPC_URL in env variables");
-            }
-            return new Web3(process.env.HEDERA_RPC_URL);
-        } catch (err) {
+import { AccountId, PrivateKey, Client, TokenAssociateTransaction, Status, ContractExecuteTransaction, ContractFunctionParameters, Hbar, TokenId } from "@hashgraph/sdk"
+import { hexToBytes } from "viem";
+import { Interface } from "@ethersproject/abi";
+import fs from "fs";
 
-            console.error("Error getting web3", err);
-            throw new Error("Error getting web3");
-        }
-    }
-    async getAccount(): Promise<Web3Account> {
-        try {
-            console.log("Env:", process.env.DEPLOYER_PRIVATE_KEY);
-            if (!process.env.DEPLOYER_PRIVATE_KEY) {
-                throw new Error("Invalid env setup. Set DEPLOYER_PRIVATE_KEY in env");
-            }
-            const web3 = await this.getWeb3();
-            const account = web3.eth.accounts.privateKeyToAccount(process.env.DEPLOYER_PRIVATE_KEY);
-            return account;
-        } catch (err) {
-            console.log("Error getting account", err);
-            throw new Error("Error getting account");
-        }
-    }
+import abiStr from "@/smartcontract/abi/MarketPlace.json";
+export class MarketPlaceContract {
+
     async getClient(): Promise<Client> {
         try {
             if (!process.env.DEPLOYER_ACCOUNT_ID || !process.env.DEPLOYER_PRIVATE_KEY) {
@@ -45,86 +25,62 @@ export class MarketPlaceContract {
             throw new Error("Error getting client");
         }
     }
-    async settleTrade(args: SettleOrder): Promise<SuccessResponse | ErrorResponse> {
+    async settleTrade(buy: SignedOrder, sell: SignedOrder): Promise<SuccessResponse | ErrorResponse> {
         try {
 
-            const parsed = SettleOrderSchema.safeParse(args);
-            if (!parsed.success) {
+            const parsedBuy = SignedOrderSchema.safeParse(buy);
+            const parsedSell = SignedOrderSchema.safeParse(sell);
+            if (!parsedBuy.success || !parsedSell.success) {
                 return { status: "INVALID_DATA", message: "Invalid order data", statusCode: 400, success: false } as ErrorResponse;
             }
-            const { buyOrder, sellOrder } = parsed.data;
+            const buyOrder = parsedBuy.data;
+            const sellOrder = parsedSell.data;
             this.assertOrderType(buyOrder.order, "BUY");
             this.assertOrderType(sellOrder.order, "SELL");
-            const web3 = await this.getWeb3();
-            const contractAddress = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT;
-            if (!contractAddress) {
-                throw new Error('MARKETPLACE_CONTRACT env variable is not set');
+            const client = await this.getClient();
+            const contractAddress = process.env.MARKETPLACE_HEDERA_ACCOUNTID!;
+            const BUYORDER = {
+                maker: buyOrder.order.maker as `0x${string}`,
+                propertyToken: `0x${TokenId.fromString(buyOrder.order.propertyToken).toEvmAddress()}` as `0x${string}`,
+                remainingAmount: Number(buyOrder.order.remainingAmount),
+                pricePerShare: Number(buyOrder.order.pricePerShare),
+                expiry: Number(buyOrder.order.expiry),
+                type: "BuyOrder",
+                nonce: Number(buyOrder.order.nonce),
+                signature: buyOrder.signature as `0x${string}`,
             }
-            const contract = new web3.eth.Contract(MarketPlaceABI.abi, contractAddress);
-            const account = await this.getAccount();
-            const block = await web3.eth.getBlock();
-            const buyRemaining = BigInt(buyOrder.order.remainingAmount);
-            const buyPrice = BigInt(buyOrder.order.pricePerShare);
-            const buyExpiry = BigInt(buyOrder.order.expiry);
-            const buyNonce = BigInt(buyOrder.order.nonce);
-
-            const sellRemaining = BigInt(sellOrder.order.remainingAmount);
-            const sellPrice = BigInt(sellOrder.order.pricePerShare);
-            const sellExpiry = BigInt(sellOrder.order.expiry);
-            const sellNonce = BigInt(sellOrder.order.nonce);
-
-            const buyStruct = {
-                maker: buyOrder.order.maker,
-                propertyToken: buyOrder.order.propertyToken,
-                buyRemaining,
-                buyPrice,
-                buyExpiry,
-                buyNonce,
-            };
-
-            const sellStruct = {
-                maker: sellOrder.order.maker,
-                propertyToken: sellOrder.order.propertyToken,
-                sellRemaining,
-                sellPrice,
-                sellExpiry,
-                sellNonce,
-            };
-
-
-            const tx = contract.methods.settle(
-                buyStruct, buyOrder.signature, sellStruct, sellOrder.signature);
-            const txData = {
-                from: account.address,
-                to: contractAddress as string,
-                data: tx.encodeABI(),
-                maxFeePerGas: block.baseFeePerGas! * BigInt(2),
-                maxPriorityFeePerGas: 100000,
-            };
-
-            // Pre-flight call to capture potential revert reason without sending the transaction
-            try {
-                await web3.eth.call({
-                    to: String(txData.to), data: txData.data, from: txData.from, maxFeePerGas: block.baseFeePerGas! * BigInt(2),
-                    maxPriorityFeePerGas: 100000,
-                });
-            } catch (callErr) {
-                // Attempt to extract revert reason and return it
-                const revertReason = await this.extractRevertReason(web3, callErr as any);
-                console.error('Preflight call reverted:', revertReason ?? callErr);
-                return { status: "ERROR", message: `Preflight revert: ${revertReason ?? String(callErr)}`, statusCode: 400, success: false } as ErrorResponse;
+            const SELLORDER = {
+                maker: sellOrder.order.maker as `0x${string}`,
+                propertyToken: `0x${TokenId.fromString(sellOrder.order.propertyToken).toEvmAddress()}` as `0x${string}`,
+                remainingAmount: Number(sellOrder.order.remainingAmount),
+                pricePerShare: Number(sellOrder.order.pricePerShare),
+                expiry: Number(sellOrder.order.expiry),
+                type: "SellOrder",
+                nonce: Number(sellOrder.order.nonce),
+                signature: sellOrder.signature as `0x${string}`,
             }
-
-            const signedTx = await web3.eth.accounts.signTransaction(txData, account.privateKey);
-            try {
-                const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction as string);
-                return { status: "SUCCESS", message: "Trade settled successfully", data: receipt, success: true } as SuccessResponse;
-            } catch (sendErr) {
-                // Try to get revert reason via a read call if possible
-                const revertReason = await this.extractRevertReason(web3, sendErr as any);
-                console.error('Transaction failed:', sendErr, 'revertReason:', revertReason);
-                return { status: "ERROR", message: `Transaction failed: ${revertReason ?? String(sendErr)}`, statusCode: 500, success: false } as ErrorResponse;
+            const { type: _bt, signature: buyOrderSignature, ...parsedBuyOrder } = BUYORDER;
+            const { type: _st, signature: sellOrderSignature, ...parsedSellOrder } = SELLORDER;
+            const params = this.encodeFunctionParameters("settle", [parsedBuyOrder, hexToBytes(buyOrderSignature), parsedSellOrder, hexToBytes(sellOrderSignature)]);
+            const txSettleTrade = await new ContractExecuteTransaction()
+                .setContractId(contractAddress)
+                .setFunctionParameters(params)
+                .setGas(5_000_000)
+                .setMaxTransactionFee(new Hbar(10))
+                .freezeWith(client);
+            const signTxSettleTrade = await txSettleTrade.sign(PrivateKey.fromStringECDSA(process.env.DEPLOYER_PRIVATE_KEY!));
+            const txSettleTradeResponse = await signTxSettleTrade.execute(client);
+            const receipt = await txSettleTradeResponse.getReceipt(client);
+            const status = receipt.status;
+            if (status.toString() !== "SUCCESS") {
+                return { status: "ERROR", message: `Trade settlement failed with status: ${status}`, statusCode: 500, success: false } as ErrorResponse;
             }
+            return {
+                status: "SUCCESS",
+                message: "Trade settled successfully",
+                data: { txHash: txSettleTradeResponse.transactionId.toString() },
+                success: true
+            } as SuccessResponse;
         }
         catch (error) {
             console.error("Error settling trade", error);
@@ -204,7 +160,7 @@ export class MarketPlaceContract {
             }
             const mp = new MarketPlaceContract();
             const client = await mp.getClient();
-            const contractAddress = process.env.MARKETPLACE_HEDERA_ACCOUNTID!;
+            const contractAddress = process.env.NEXT_PUBLIC_MARKETPLACE_HEDERA_ACCOUNTID!;
             if (!contractAddress) {
                 throw new Error('MARKETPLACE_CONTRACT env variable is not set');
             }
@@ -226,4 +182,20 @@ export class MarketPlaceContract {
             return { success: false }
         }
     }
+    /**
+ * Helper function to encode function name and parameters that can be used to invoke a contract's function
+ * @param functionName the name of the function to invoke
+ * @param parameterArray an array of parameters to pass to the function
+ */
+    private encodeFunctionParameters(functionName: string, parameterArray: any[]) {
+        const abi = abiStr as { abi: any, bytecode: string }
+        let abiInterface = new Interface(abi.abi);
+        // build the call parameters using ethers.js
+        // .slice(2) to remove leading '0x'
+        const functionCallAsHexString = abiInterface!.encodeFunctionData(functionName, parameterArray).slice(2);
+        // convert to a Uint8Array
+        return Buffer.from(functionCallAsHexString, `hex`);
+    }
 }
+export const marketPlaceContract = new MarketPlaceContract();
+

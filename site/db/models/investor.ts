@@ -200,4 +200,21 @@ private static transformDocuments(documents: any[] | undefined): any[] {
             throw new MyError("Could not get token address of property");
         }
     }
+    static async getPropertyIDByTokenID(tokenID: string): Promise<string | null> {
+        try{
+            const collection = await this.getPropertiesCollection();
+            const property = await collection.findOne({ token_address: tokenID });
+            if (!property) {
+                return null;
+            }
+            return property._id?.toString() || null;
+        }
+        catch(error){
+            console.error(`Could not get property id by token id ${tokenID}`, error);
+            if (error instanceof MyError) {
+                throw error;
+            }
+            throw new MyError("Could not get property id by token id", { cause: error });
+        }
+    }
 }

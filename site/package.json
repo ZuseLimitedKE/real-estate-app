@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ethersproject/abi": "^5.8.0",
     "@hashgraph/sdk": "^2.72.0",
     "@hookform/resolvers": "^5.2.1",
     "@mantine/hooks": "^8.2.8",

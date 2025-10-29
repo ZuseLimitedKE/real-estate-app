@@ -2,8 +2,10 @@ import { MongoClient, Collection } from 'mongodb';
 import client from '@/db/connection';
 import { type SignedOrder, type Order, type Trade, SignedOrderSchema, TradeSchema, } from '@/types/marketplace';
 import { canOrdersMatch, calculateTradeParams, generateTradeId, isOrderExpired, } from '@/lib/utils/marketplace';
-import { createTrade, cleanupExpiredOrders } from '@/server-actions/marketplace/marketplace';
-
+import { marketPlaceContract, MarketPlaceContract } from '@/smartcontract/marketplace';
+import { InvestorModel } from "@/db/models/investor";
+import { UserModel } from '@/db/models/user';
+import { createTrade } from '@/server-actions/marketplace/actions';
 interface MatchingResult {
   matches: Array<{
     buyOrder: SignedOrder;
@@ -173,23 +175,36 @@ export class MatchingEngine {
    * Execute trades for matched orders
    */
   async executeMatches(
-    matches: MatchingResult['matches'],
-    onChainSettlement: (buyOrder: SignedOrder, sellOrder: SignedOrder) => Promise<string>
+    matches: MatchingResult['matches']
   ): Promise<Array<{ success: boolean; tradeId?: any; error?: string; txHash?: string }>> {
     const results = [];
 
     for (const match of matches) {
       try {
         // Call on-chain settlement function
-        const txHash = await onChainSettlement(match.buyOrder, match.sellOrder);
+        const seller = await UserModel.findByPublicKey(match.sellOrder.order.maker);
+        const buyer = await UserModel.findByPublicKey(match.buyOrder.order.maker);
+        const property = await InvestorModel.getPropertyIDByTokenID(match.buyOrder.order.propertyToken);
+        if (!seller || !buyer || !property) {
+          console.error('Seller, buyer, or property not found');
+          continue;
+        }
+        const result = await marketPlaceContract.settleTrade(match.buyOrder, match.sellOrder);
+        if (!result.success) {
+          throw new Error(`Settlement failed: ${result}`);
+        }
 
+        const txHash = result.data?.txHash;
         // Create trade record
+        //TODO: Update user balances and property ownership here
         const tradeResult = await createTrade(
           match.buyOrder.orderHash,
           match.sellOrder.orderHash,
           txHash
         );
 
+        await InvestorModel.updatePropertyOwnership(buyer._id.toString(), match.buyOrder.order.maker, property, Number(match.buyOrder.order.remainingAmount), Number(match.buyOrder.order.pricePerShare), txHash, 'secondary');
+        //TODO: Consider updating seller's ownership too
         results.push({
           success: tradeResult.success,
           tradeId: tradeResult.tradeId,
@@ -226,8 +241,9 @@ export class MatchingEngine {
     let totalTrades = 0;
 
     try {
+      //TODO: Uncomment when cleanupExpiredOrders is implemented
       // Clean up expired orders first
-      await cleanupExpiredOrders();
+      // await cleanupExpiredOrders();
 
       // Get all unique property tokens with active orders
       const { orders: ordersCollection } = await MatchingEngine.getCollections();
@@ -250,15 +266,7 @@ export class MatchingEngine {
           if (matchResult.matches.length > 0) {
             console.log(`✨ Found ${matchResult.matches.length} matches for ${propertyToken}`);
 
-            // In a real implementation, you would call your on-chain settlement here
-            // For now, we'll simulate the settlement
-            const mockSettlement = async (buyOrder: SignedOrder, sellOrder: SignedOrder) => {
-              // Simulate blockchain transaction
-              await new Promise(resolve => setTimeout(resolve, 100));
-              return `0x${Math.random().toString(16).substr(2, 64)}`;
-            };
-
-            const executionResults = await this.executeMatches(matchResult.matches, mockSettlement);
+            const executionResults = await this.executeMatches(matchResult.matches);
             const successfulTrades = executionResults.filter(r => r.success).length;
             totalTrades += successfulTrades;
 
