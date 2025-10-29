@@ -436,7 +436,7 @@ export default function InvestmentForm({
                     return;
                 }
                 console.log("Property ID", propertyId)
-                const result = await purchaseTokensFromAdmin(tokenAddress, parsedTokenAmount, address, propertyId);
+                const result = await purchaseTokensFromAdmin(tokenAddress, parsedTokenAmount, address, propertyId, parsedPricePerToken);
 
                 if (result) {
                     setTransactionData({

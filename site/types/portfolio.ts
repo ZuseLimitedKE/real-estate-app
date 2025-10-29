@@ -42,6 +42,10 @@ export interface InvestmentProperty {
   tokenPrice: number;
   performance: PerformanceData[];
   documents: Document[];
+  // Real data fields
+  tokenAddress: string;
+  propertyType: 'single' | 'apartment';
+  unitId?: string; // For apartment units
 }
 
 export interface Transaction {
@@ -70,12 +74,13 @@ export interface Dividend {
 }
 
 export interface Document {
-  id: string;
+  id?: string;
   name: string;
   type: string;
   url: string;
-  uploadDate: string;
+  uploadDate?: string;
   size: string;
+  propertyName?: string; // Optional for grouping in UI
 }
 
 export interface WishlistItem {
@@ -105,113 +110,35 @@ export interface PortfolioStats {
 }
 
 export interface InvestorTransactions {
-  time: Date,
-  amount: number,
-  property_name: string,
-  type: "purchase" | "sell"
+  time: Date;
+  amount: number;
+  property_name: string;
+  type: "purchase" | "sell";
+  transactionHash?: string;
 }
 
 export interface InvestorProperties {
-  property_name: string,
-  token_address: string,
-  amount: number
+  property_id?: string;
+  property_name: string;
+  token_address: string;
+  amount: number;
+  property_type?: 'single' | 'apartment';
+  unit_id?: string;
+  images?: string[];
+  documents?: any[];
+  location?: string;
+  property_value?: number;
+  proposed_rent?: number;
+  total_fractions?: number;
+  purchase_time?: Date;
+  purchase_price_per_token?: number;
 }
 
-// Mock data for portfolio
-export const mockPortfolioData: PortfolioOverview = {
-  totalInvestment: 125000,
-  currentValue: 142500,
-  totalReturns: 17500,
-  annualYield: 8.2,
-  availableBalance: 2500,
-  portfolioGrowth: 14,
-  performanceChart: [
-    { date: 'Jan', value: 100000, return: 0 },
-    { date: 'Feb', value: 105000, return: 5 },
-    { date: 'Mar', value: 108000, return: 8 },
-    { date: 'Apr', value: 112000, return: 12 },
-    { date: 'May', value: 115000, return: 15 },
-    { date: 'Jun', value: 120000, return: 20 },
-    { date: 'Jul', value: 125000, return: 25 },
-    { date: 'Aug', value: 130000, return: 30 },
-    { date: 'Sep', value: 135000, return: 35 },
-    { date: 'Oct', value: 138000, return: 38 },
-    { date: 'Nov', value: 140000, return: 40 },
-    { date: 'Dec', value: 142500, return: 42.5 },
-  ],
-  quickStats: {
-    totalProperties: 8,
-    activeInvestments: 6,
-    completedInvestments: 2,
-    averageYield: 7.8,
-  },
-};
-
-export const mockInvestmentProperties: InvestmentProperty[] = [
-  {
-    id: '1',
-    propertyId: 'prop1',
-    propertyName: 'Luxury Apartment Complex - Westlands',
-    propertyImage: '/property1.jpg',
-    location: 'Westlands, Nairobi',
-    totalTokens: 10000,
-    tokensOwned: 250,
-    ownershipPercentage: 2.5,
-    initialInvestment: 25000,
-    currentValue: 28750,
-    totalReturns: 3750,
-    annualYield: 9.2,
-    investmentDate: '2024-01-15',
-    status: 'active',
-    monthlyRent: 2300,
-    nextPayout: '2024-12-30',
-    propertyValue: 1150000,
-    tokenPrice: 115,
-    performance: [
-      { date: 'Jan', value: 25000, return: 0 },
-      { date: 'Feb', value: 25500, return: 2 },
-      { date: 'Mar', value: 26200, return: 4.8 },
-      { date: 'Apr', value: 27000, return: 8 },
-      { date: 'May', value: 27500, return: 10 },
-      { date: 'Jun', value: 28000, return: 12 },
-      { date: 'Jul', value: 28200, return: 12.8 },
-      { date: 'Aug', value: 28500, return: 14 },
-      { date: 'Sep', value: 28750, return: 15 },
-    ],
-    documents: [
-      {
-        id: 'doc1',
-        name: 'Purchase Agreement',
-        type: 'contract',
-        url: '/documents/agreement1.pdf',
-        uploadDate: '2024-01-15',
-        size: '2.4 MB',
-      },
-    ],
-  },
-  // Add more mock properties as needed
-];
-
-export const mockTransactions: Transaction[] = [
-  {
-    id: 'tx1',
-    propertyId: 'prop1',
-    propertyName: 'Luxury Apartment Complex - Westlands',
-    type: 'purchase',
-    amount: 25000,
-    tokens: 250,
-    date: '2024-01-15',
-    status: 'completed',
-    transactionHash: '0x1234567890abcdef',
-  },
-  {
-    id: 'tx2',
-    propertyId: 'prop1',
-    propertyName: 'Luxury Apartment Complex - Westlands',
-    type: 'dividend',
-    amount: 2300,
-    tokens: 0,
-    date: '2024-06-30',
-    status: 'completed',
-  },
-];
+// Real data interfaces for API responses
+export interface RealTimePortfolioData {
+  stats: PortfolioStats;
+  properties: InvestmentProperty[];
+  transactions: InvestorTransactions[];
+  dividends: Dividend[];
+  performance: PerformanceData[];
+}
