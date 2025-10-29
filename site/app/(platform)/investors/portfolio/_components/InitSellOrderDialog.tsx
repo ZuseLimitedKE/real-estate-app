@@ -118,7 +118,7 @@ export default function InitSellOrderDialog({ open, onOpenChange, onSuccess }: I
         remainingAmount: amount,
         orderType: "SELL",
         pricePerShare: '1' // TODO: Implement proper price per share calculation
-      }, address, '0xDD1184EeC78eD419d948887B8793E64a62f13895');
+      }, '0xDD1184EeC78eD419d948887B8793E64a62f13895', address);
 
       toast.success("Sell order created successfully on marketplace");
       setAmount("");

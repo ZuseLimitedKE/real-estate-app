@@ -3,7 +3,7 @@ import { MongoClient, Collection, WithId } from 'mongodb';
 import client from '@/db/connection';
 import { SignedOrderSchema, TradeSchema, EscrowBalanceSchema, MarketDataSchema, CreateOrderRequestSchema, OrderQuerySchema, type SignedOrder, type Trade, type EscrowBalance, type MarketData, type Order, MatchingOrder  } from '@/types/marketplace';
 import { generateOrderHash, canOrdersMatch, calculateTradeParams, isOrderExpired, generateTradeId, calculateMarketStats, } from '@/lib/utils/marketplace';
-
+import { startMatchingEngine } from '@/lib/matching-engine';
 export class MarketplaceService {
     private static collections: {
         orders: Collection<SignedOrder>;
@@ -92,6 +92,7 @@ export class MarketplaceService {
     ) {
         try {
             console.log('Creating order for maker:', makerAddress);
+            console.log('Order data:', orderData);
             const parsed = CreateOrderRequestSchema.safeParse({ orderData, signature });
             if (!parsed.success) {
                 return { success: false, error: 'Invalid order data or signature' };
@@ -131,7 +132,7 @@ export class MarketplaceService {
 
             // Update market data
             await this.updateMarketDataForToken(completeOrder.propertyToken);
-
+            await startMatchingEngine(1); // Start matching engine if not already running
             console.log(`Order ${orderHash} created successfully`);
             return {
                 success: true,

@@ -30,10 +30,10 @@ import { TokenId } from "@hashgraph/sdk";
 import { decodeViemError } from "./decode-viem";
 import { getAssociatedTokens } from "@/server-actions/tokens/purchase-tokens";
 import { associateTokentoContract } from "@/server-actions/marketplace/actions";
+
 const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
 const MARKETPLACE_HEDERA_ACCOUNTID = process.env.NEXT_PUBLIC_MARKETPLACE_HEDERA_ACCOUNTID as string;
 const USDC = process.env.NEXT_PUBLIC_USDC_TOKEN as `0x${string}`;
-
 interface SellFormProps {
   propertyId: string;
   propertyName: string;
@@ -141,7 +141,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
     if (!publicClient || !address) return;
     try {
       setIsLoading(true);
-      const parsedAmount = BigInt(amount || "0");
+      const parsedAmount = BigInt(amount);
       if (parsedAmount <= BigInt(0)) {
         toast.error("Enter a valid token amount");
         setIsLoading(false);
@@ -185,7 +185,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
           address: tokenEvm,
           abi: erc20Abi.abi,
           functionName: "approve",
-          args: [MARKETPLACE, parsedAmount],
+          args: [MARKETPLACE, parseUnits(amount, 6)],
         });
       } catch (e: any) {
         const msg = decodeViemError(e);
@@ -199,7 +199,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         address: tokenEvm,
         abi: erc20Abi.abi,
         functionName: "approve",
-        args: [MARKETPLACE, parsedAmount],
+        args: [MARKETPLACE, parseUnits(amount, 6)],
       });
       setApproveHash(hash);
       toast.info("Step 1/3: Approve submitted. Confirm in wallet.");
@@ -215,7 +215,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
   const handleDeposit = async () => {
     if (!publicClient || !address) return;
     try {
-      const parsedAmount = BigInt(amount || "0");
+      const parsedAmount = BigInt(amount);
 
       // simulate deposit
       if (!publicClient) {
@@ -230,7 +230,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
           address: MARKETPLACE,
           abi: marketplaceAbi.abi,
           functionName: "depositToken",
-          args: [tokenEvm, parsedAmount],
+          args: [tokenEvm, parseUnits(amount, 6)],
         });
       } catch (e: any) {
         const msg = decodeViemError(e);
@@ -245,7 +245,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         address: MARKETPLACE,
         abi: marketplaceAbi.abi,
         functionName: "depositToken",
-        args: [tokenEvm, parsedAmount],
+        args: [tokenEvm, parseUnits(amount, 6)],
       });
       setDepositHash(hash);
       toast.info("Step 2/3: Deposit submitted. Confirm in wallet.");
@@ -260,7 +260,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
 
   const handleInitSellOrder = async () => {
     try {
-      const parsedAmount = BigInt(amount || "0");
+      const parsedAmount = BigInt(amount);
       if (!publicClient) {
         toast.error("Public client not available");
         setIsLoading(false);
@@ -275,7 +275,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
           address: MARKETPLACE,
           abi: marketplaceAbi.abi,
           functionName: "initSellOrder",
-          args: [BigInt(nonce), tokenEvm, parsedAmount],
+          args: [BigInt(nonce), tokenEvm, parseUnits(amount, 6)],
         });
       } catch (e: any) {
         const msg = decodeViemError(e);
@@ -289,7 +289,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         address: MARKETPLACE,
         abi: marketplaceAbi.abi,
         functionName: "initSellOrder",
-        args: [BigInt(nonce), tokenEvm, parsedAmount],
+        args: [BigInt(nonce), tokenEvm, parseUnits(amount, 6)],
       });
       setTxHash(hash);
       toast.info("Step 3/3: Init sell order submitted. Confirm in wallet.");
@@ -301,8 +301,8 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         propertyToken: tokenEvm,
         remainingAmount: parsedAmount.toString(),
         orderType: "SELL",
-        pricePerShare: (parseFloat(pricePerToken || "0") || 0).toString(),
-      }, address!, '0xDD1184EeC78eD419d948887B8793E64a62f13895');
+        pricePerShare: (parseFloat(pricePerToken)).toString(),
+      }, '0xDD1184EeC78eD419d948887B8793E64a62f13895', address!);
 
     } catch (err: any) {
       const msg = decodeViemError(err);

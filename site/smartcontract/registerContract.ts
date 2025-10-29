@@ -47,7 +47,7 @@ class RealEstateManagerContract {
                 .setTokenName(args.propertyName)
                 .setTokenSymbol(args.tokenSymbol)
                 .setTokenType(TokenType.FungibleCommon)
-                .setDecimals(0)
+                .setDecimals(6)
                 .setInitialSupply(args.numTokens)
                 .setTreasuryAccountId(operatorID)
                 .setSupplyKey(operatorKey)

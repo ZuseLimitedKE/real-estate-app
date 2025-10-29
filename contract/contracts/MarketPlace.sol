@@ -242,9 +242,7 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard, HederaTokenService {
 
     function settle(
         BuyOrder calldata buy,
-        bytes calldata buySig,
-        SellOrder calldata sell,
-        bytes calldata sellSig
+        SellOrder calldata sell
     ) external nonReentrant {
         _validateOrders(buy, sell);
         // _verifySignatures(buy, buySig, sell, sellSig);

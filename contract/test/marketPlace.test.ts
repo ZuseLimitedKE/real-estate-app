@@ -236,18 +236,9 @@ describe("MarketPlace Contract", function () {
             type: "SellOrder",
             nonce: getSellerNonce()
         }
-        //Sign the buy order
-        const buyOrderSignature = await signBuyOrder(buyOrder, USER1_KEY as `0x${string}`, contractId);
-        console.log("Buy order signature", buyOrderSignature.signature, "Buy order hash", buyOrderSignature.hash);
-        //Sign the sell order
-        const sellOrderSignature = await signSellOrder(sellOrder, USER2_KEY as `0x${string}`, contractId);
-        console.log("Sell order signature", sellOrderSignature.signature, "Sell order hash", sellOrderSignature.hash);
-        //Settle the trade
-        const buySignatureBytes = hexToBytes(buyOrderSignature.signature as `0x${string}`);
-        const sellSignatureBytes = hexToBytes(sellOrderSignature.signature as `0x${string}`);
         const { type: _bt, ...buyOrderNoType } = buyOrder;
         const { type: _st, ...sellOrderNoType } = sellOrder;
-        const params = encodeFunctionParameters("settle", [buyOrderNoType, buySignatureBytes, sellOrderNoType, sellSignatureBytes]);
+        const params = encodeFunctionParameters("settle", [buyOrderNoType,  sellOrderNoType]);
         const txSettleTrade = await new ContractExecuteTransaction()
             .setContractId(contractId)
             .setFunctionParameters(params)

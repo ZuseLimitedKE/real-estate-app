@@ -6,6 +6,8 @@ import { marketPlaceContract, MarketPlaceContract } from '@/smartcontract/market
 import { InvestorModel } from "@/db/models/investor";
 import { UserModel } from '@/db/models/user';
 import { createTrade } from '@/server-actions/marketplace/actions';
+import { TokenId } from '@hashgraph/sdk';
+import { match } from 'assert';
 interface MatchingResult {
   matches: Array<{
     buyOrder: SignedOrder;
@@ -114,10 +116,12 @@ export class MatchingEngine {
       const processedOrders = new Set<string>();
       let matchCount = 0;
 
-      // Find matches using a greedy approach
+      // Find matches using full-match policy: only match buy and sell orders
+      // whose remaining amounts are exactly equal (full matching). Also
+      // require buyer price to be >= seller price so buyer is willing to pay.
       for (const buyOrder of buyOrders) {
         if (processedOrders.has(buyOrder.orderHash) || matchCount >= maxMatches) {
-          break;
+          continue;
         }
 
         for (const sellOrder of sellOrders) {
@@ -125,32 +129,40 @@ export class MatchingEngine {
             continue;
           }
 
-          if (canOrdersMatch(buyOrder.order, sellOrder.order)) {
-            const tradeParams = calculateTradeParams(buyOrder.order, sellOrder.order);
+          try {
+            const buyRemaining = BigInt(buyOrder.order.remainingAmount);
+            const sellRemaining = BigInt(sellOrder.order.remainingAmount);
+            const buyPrice = BigInt(buyOrder.order.pricePerShare);
+            const sellPrice = BigInt(sellOrder.order.pricePerShare);
 
-            matches.push({
-              buyOrder,
-              sellOrder,
-              tradeParams,
-            });
+            // Only full-match when amounts exactly equal and buyer price >= seller price
+            if (buyRemaining > BigInt(0) && sellRemaining > BigInt(0) && buyRemaining === sellRemaining && buyPrice >= sellPrice) {
+              // Construct trade params for the full amount
+              const tradeAmount = buyRemaining.toString();
+              const pricePerShare = buyPrice >= sellPrice ? buyPrice.toString() : sellPrice.toString();
+              const totalValue = (BigInt(tradeAmount) * BigInt(pricePerShare)).toString();
 
-            // Update remaining amounts for further matching
-            const newBuyRemaining = (BigInt(buyOrder.order.remainingAmount) - BigInt(tradeParams.tradeAmount)).toString();
-            const newSellRemaining = (BigInt(sellOrder.order.remainingAmount) - BigInt(tradeParams.tradeAmount)).toString();
+              const tradeParams = {
+                tradeAmount,
+                pricePerShare,
+                totalValue,
+              };
+              console.log("Buy order", buyOrder);
+              console.log("Sell order", sellOrder);
+              matches.push({ buyOrder, sellOrder, tradeParams });
 
-            buyOrder.order.remainingAmount = newBuyRemaining;
-            sellOrder.order.remainingAmount = newSellRemaining;
-
-            // Mark as processed if fully filled
-            if (newBuyRemaining === '0') {
+              // Mark both orders as fully filled
+              // buyOrder.order.remainingAmount = '0';
+              // sellOrder.order.remainingAmount = '0';
               processedOrders.add(buyOrder.orderHash);
-            }
-            if (newSellRemaining === '0') {
               processedOrders.add(sellOrder.orderHash);
-            }
 
-            matchCount++;
-            continue; // Move to next buy order
+              matchCount++;
+              break; // move to next buy order after a full match
+            }
+          } catch (err) {
+            console.error('Error while evaluating potential match:', err);
+            continue;
           }
         }
       }
@@ -184,11 +196,14 @@ export class MatchingEngine {
         // Call on-chain settlement function
         const seller = await UserModel.findByPublicKey(match.sellOrder.order.maker);
         const buyer = await UserModel.findByPublicKey(match.buyOrder.order.maker);
-        const property = await InvestorModel.getPropertyIDByTokenID(match.buyOrder.order.propertyToken);
+        const property = await InvestorModel.getPropertyIDByTokenID(TokenId.fromEvmAddress(0,0, match.buyOrder.order.propertyToken).toString());
         if (!seller || !buyer || !property) {
           console.error('Seller, buyer, or property not found');
+          console.error('Match details:', match);
+          console.log('Seller:', seller, 'Buyer:', buyer, 'Property:', property);
           continue;
         }
+        console.log("Match", match);
         const result = await marketPlaceContract.settleTrade(match.buyOrder, match.sellOrder);
         if (!result.success) {
           throw new Error(`Settlement failed: ${result}`);
@@ -260,6 +275,7 @@ export class MatchingEngine {
           console.log(`🏠 Processing token: ${propertyToken}`);
 
           const matchResult = await this.findMatches(propertyToken);
+          console.log("Found matches", matchResult.matches);
           processedTokens++;
           totalMatches += matchResult.matches.length;
 
@@ -376,22 +392,17 @@ export class MatchingEngine {
 export const matchingEngine = new MatchingEngine();
 
 // Utility function to run matching engine periodically
-export function startMatchingEngine(intervalMinutes: number = 5) {
+export function startMatchingEngine(intervalMinutes: number = 3) {
   console.log(`🚀 Starting matching engine with ${intervalMinutes}-minute intervals`);
 
   // Run immediately
   matchingEngine.runMatchingCycle().catch(console.error);
 
   // Schedule periodic runs
-  const interval = setInterval(() => {
-    matchingEngine.runMatchingCycle().catch(console.error);
-  }, intervalMinutes * 60 * 1000);
+  // const interval = setInterval(() => {
+  //   matchingEngine.runMatchingCycle().catch(console.error);
+  // }, intervalMinutes * 60 * 1000);
 
   // Return cleanup function
-  return () => {
-    console.log('⏹️ Stopping matching engine');
-    clearInterval(interval);
-  };
+  return;
 }
-
-export default MatchingEngine;

@@ -33,15 +33,18 @@ export class MarketPlaceContract {
             if (!parsedBuy.success || !parsedSell.success) {
                 return { status: "INVALID_DATA", message: "Invalid order data", statusCode: 400, success: false } as ErrorResponse;
             }
+            console.log("Parsed Buy Order:", parsedBuy.data);
+            console.log("Parsed Sell Order:", parsedSell.data);
+            // Ensure the orders are of correct type
             const buyOrder = parsedBuy.data;
             const sellOrder = parsedSell.data;
             this.assertOrderType(buyOrder.order, "BUY");
             this.assertOrderType(sellOrder.order, "SELL");
             const client = await this.getClient();
-            const contractAddress = process.env.MARKETPLACE_HEDERA_ACCOUNTID!;
+            const contractAddress = process.env.NEXT_PUBLIC_MARKETPLACE_HEDERA_ACCOUNTID!;
             const BUYORDER = {
                 maker: buyOrder.order.maker as `0x${string}`,
-                propertyToken: `0x${TokenId.fromString(buyOrder.order.propertyToken).toEvmAddress()}` as `0x${string}`,
+                propertyToken: buyOrder.order.propertyToken as `0x${string}`,
                 remainingAmount: Number(buyOrder.order.remainingAmount),
                 pricePerShare: Number(buyOrder.order.pricePerShare),
                 expiry: Number(buyOrder.order.expiry),
@@ -51,7 +54,7 @@ export class MarketPlaceContract {
             }
             const SELLORDER = {
                 maker: sellOrder.order.maker as `0x${string}`,
-                propertyToken: `0x${TokenId.fromString(sellOrder.order.propertyToken).toEvmAddress()}` as `0x${string}`,
+                propertyToken: sellOrder.order.propertyToken as `0x${string}`,
                 remainingAmount: Number(sellOrder.order.remainingAmount),
                 pricePerShare: Number(sellOrder.order.pricePerShare),
                 expiry: Number(sellOrder.order.expiry),
@@ -61,7 +64,7 @@ export class MarketPlaceContract {
             }
             const { type: _bt, signature: buyOrderSignature, ...parsedBuyOrder } = BUYORDER;
             const { type: _st, signature: sellOrderSignature, ...parsedSellOrder } = SELLORDER;
-            const params = this.encodeFunctionParameters("settle", [parsedBuyOrder, hexToBytes(buyOrderSignature), parsedSellOrder, hexToBytes(sellOrderSignature)]);
+            const params = this.encodeFunctionParameters("settle", [parsedBuyOrder, parsedSellOrder]);
             const txSettleTrade = await new ContractExecuteTransaction()
                 .setContractId(contractAddress)
                 .setFunctionParameters(params)
@@ -95,64 +98,6 @@ export class MarketPlaceContract {
         }
     }
 
-    // Try to extract a revert reason from various error shapes and by performing a call
-    private async extractRevertReason(web3: Web3, err: any): Promise<string | undefined> {
-        try {
-            // If the error already contains data that is the revert payload, decode it
-            if (err && typeof err === 'object') {
-                // Common providers put the revert data in err.data, err.result or err.returnedData
-                const payload = err.data || err.result || err.returnedData || (err.transaction && err.transaction.data);
-                if (payload && typeof payload === 'string') {
-                    // ABI-encoded revert reason typically starts with 0x08c379a0
-                    const hex = payload.startsWith('0x') ? payload : `0x${payload}`;
-                    const reason = this.decodeRevertReasonFromHex(hex);
-                    if (reason) return reason;
-                }
-
-                // Some providers include message with 'revert reason: <reason>'
-                if (typeof err.message === 'string') {
-                    const m = err.message.match(/revert(?:ed)?[: ]+(.+)/i);
-                    if (m) return m[1].trim();
-                }
-            }
-
-            // If none of the above worked, try a raw eth_call to reproduce the revert and decode
-            if (err && err.transaction && err.transaction.to && err.transaction.data) {
-                const callResult = await web3.eth.call({ to: err.transaction.to, data: err.transaction.data, from: err.transaction.from });
-                if (callResult) {
-                    const reason = this.decodeRevertReasonFromHex(callResult);
-                    if (reason) return reason;
-                }
-            }
-
-            // Fallback to generic error message
-            if (err && err.message) return String(err.message);
-        } catch (e) {
-            console.error('Failed to extract revert reason', e);
-        }
-        return undefined;
-    }
-
-    // Decode a typical solidity revert reason from hex (0x08c379a0...)
-    private decodeRevertReasonFromHex(hex: string): string | undefined {
-        try {
-            if (!hex || typeof hex !== 'string') return undefined;
-            const clean = hex.startsWith('0x') ? hex.slice(2) : hex;
-            // If not the standard selector, skip
-            if (!clean.startsWith('08c379a0')) return undefined;
-            // The rest is ABI encoded: offset (32) + string length + string bytes
-            // Remove selector (4 bytes => 8 hex chars)
-            const data = clean.slice(8);
-            // Skip the first 32 bytes (offset)
-            const lenHex = data.slice(64, 128);
-            const len = parseInt(lenHex, 16);
-            const strHex = data.slice(128, 128 + len * 2);
-            const buf = Buffer.from(strHex, 'hex');
-            return buf.toString('utf8');
-        } catch (e) {
-            return undefined;
-        }
-    }
     static async associateTokentoContract(tokenId: `0x${string}`) {
         try {
             if (!tokenId) {

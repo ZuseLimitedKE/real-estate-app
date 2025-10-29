@@ -26,7 +26,7 @@ import {
 import { toast } from "sonner";
 import { useWriteContract, useAccount, useTransactionReceipt, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
 import marketplaceAbi from "@/smartcontract/abi/MarketPlace.json";
-import { createOrder } from "@/server-actions/marketplace/actions";
+import { associateTokentoContract, createOrder } from "@/server-actions/marketplace/actions";
 import { getTokenPrice, purchaseTokensFromAdmin } from "@/server-actions/tokens/purchase-tokens";
 import erc20Abi from "@/smartcontract/abi/ERC20.json";
 import { decodeViemError } from "../../portfolio/_components/decode-viem";
@@ -37,6 +37,8 @@ import { TokenId } from "@hashgraph/sdk";
 // import { ethers } from "ethers";
 const MARKETPLACE = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT as `0x${string}`;
 const ADMIN_ACCOUNT = process.env.NEXT_PUBLIC_HEDERA_EVM_ADDRESS as `0x${string}`;
+const MARKETPLACE_HEDERA_ACCOUNTID = process.env.NEXT_PUBLIC_MARKETPLACE_HEDERA_ACCOUNTID as string;
+
 interface InvestmentFormProps {
     propertyId: string;
     propertyName: string;
@@ -60,7 +62,7 @@ export default function InvestmentForm({
 }: InvestmentFormProps) {
     const [tokenAmount, setTokenAmount] = useState<string>("");
     const [pricePerToken, setPricePerToken] = useState<string>("");
-    const [actualPricePerToken, setActualPricePerToken] = useState<number>(1);
+    const [actualPricePerToken, setActualPricePerToken] = useState<number>(2);
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [transactionData, setTransactionData] = useState<{
@@ -69,12 +71,12 @@ export default function InvestmentForm({
         type?: "instant" | "marketplace";
     }>({});
     const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
-    
+
     // Marketplace order flow states
     const [currentStep, setCurrentStep] = useState<"form" | "approve" | "deposit" | "init-order" | "complete">("form");
     const [approveHash, setApproveHash] = useState<`0x${string}` | undefined>();
     const [depositHash, setDepositHash] = useState<`0x${string}` | undefined>();
-    
+
     const publicClient = usePublicClient();
     const { address } = useAccount();
     const { writeContractAsync } = useWriteContract();
@@ -92,14 +94,14 @@ export default function InvestmentForm({
     const expiry = getExpiry();
 
     // Calculate totals
-    const parsedTokenAmount = tokenAmount ? parseFloat(tokenAmount) : 0;
-    const parsedPricePerToken = pricePerToken ? parseFloat(pricePerToken) : 0;
+    const parsedTokenAmount = parseFloat(tokenAmount);
+    const parsedPricePerToken = parseFloat(pricePerToken);
     const totalAmount = parsedTokenAmount * parsedPricePerToken;
 
     // Determine if this is instant purchase or marketplace order
     const isInstantPurchase = parsedPricePerToken >= actualPricePerToken && parsedPricePerToken > 0;
     const isMarketplaceOrder = parsedPricePerToken < actualPricePerToken && parsedPricePerToken > 0;
-    
+
     // For instant purchase - token transfer and association
     const {
         writeContractAsync: transferAsync,
@@ -188,34 +190,61 @@ export default function InvestmentForm({
             }
         }
     }, [isConfirmed, receipt, currentStep, txHash, totalAmount]);
-
+console.log("Current step", currentStep);
+console.log("Approve receipt status", approveReceipt?.status);
+console.log("Deposit receipt status", depositReceipt?.status);
+console.log("Buy order receipt status", receipt?.status);
     // Step 1: Approve USDC spending by marketplace
     const handleApproveUSDC = async () => {
         try {
-            const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 0); // USDC has 6 decimals
-            
+            // try {
+
+            //     //check if token is associated to contract
+            //     const associatedTokens = await getAssociatedTokens(MARKETPLACE_HEDERA_ACCOUNTID);
+            //     if (!associatedTokens.includes("0.0.429274")) {
+            //         console.log("Token not associated, associating now:", "0.0.429274");
+            //         // if not associated, associate it
+            //         const result = await associateTokentoContract(USDC);
+            //         if (result.success === false) {
+            //             console.error("Failed to associate token:",);
+            //             toast.error("Failed to associate token, try again later");
+            //             setIsLoading(false);
+            //             setCurrentStep("form");
+            //             return;
+            //         }
+            //     }
+            // }
+            // catch (error: any) {
+            //     console.error("Error fetching associated tokens:", error);
+            //     toast.error("An error occured, try again later");
+            //     setIsLoading(false);
+            //     setCurrentStep("form");
+            //     return;
+            // }
+            const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 6); // USDC has 6 decimals
+
             console.log("📝 Step 1: Approving USDC...", {
                 amount: totalAmount,
                 parsedAmount: PARSED_AMOUNT.toString(),
             });
 
             // Simulate approval
-            try {
-                await publicClient!.simulateContract({
-                    account: address!,
-                    address: USDC,
-                    abi: erc20Abi.abi,
-                    functionName: "approve",
-                    args: [MARKETPLACE, PARSED_AMOUNT],
-                });
-            } catch (e: any) {
-                const msg = decodeViemError(e);
-                console.error("❌ Approve simulation failed:", e, msg);
-                toast.error(msg || "Approval simulation failed");
-                setIsLoading(false);
-                setCurrentStep("form");
-                return;
-            }
+            // try {
+            //     await publicClient!.simulateContract({
+            //         account: address!,
+            //         address: USDC,
+            //         abi: erc20Abi.abi,
+            //         functionName: "approve",
+            //         args: [MARKETPLACE, PARSED_AMOUNT],
+            //     });
+            // } catch (e: any) {
+            //     const msg = decodeViemError(e);
+            //     console.error("❌ Approve simulation failed:", e, msg);
+            //     toast.error(msg || "Approval simulation failed");
+            //     setIsLoading(false);
+            //     setCurrentStep("form");
+            //     return;
+            // }
 
             const hash = await writeContractAsync({
                 address: USDC,
@@ -226,6 +255,7 @@ export default function InvestmentForm({
 
             console.log("✅ Approve TX submitted:", hash);
             setApproveHash(hash);
+            
             toast.info("Step 1/3: Approving USDC...");
         } catch (err: any) {
             console.error("❌ Approve error:", err);
@@ -239,8 +269,8 @@ export default function InvestmentForm({
     // Step 2: Deposit USDC to marketplace escrow
     const handleDepositUSDC = async () => {
         try {
-            const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 0); // USDC has 6 decimals
-            
+            const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 6); // USDC has 6 decimals
+
             console.log("📝 Step 2: Depositing USDC to escrow...", {
                 amount: totalAmount,
                 parsedAmount: PARSED_AMOUNT.toString(),
@@ -337,7 +367,7 @@ export default function InvestmentForm({
                 remainingAmount: parsedTokenAmount.toString(),
                 orderType: "BUY",
                 pricePerShare: parsedPricePerToken.toString()
-            }, address!, '0xDD1184EeC78eD419d948887B8793E64a62f13895');
+            }, '0xDD1184EeC78eD419d948887B8793E64a62f13895', address!);
 
         } catch (err: any) {
             console.error("❌ Init buy order error:", err);
@@ -402,7 +432,7 @@ export default function InvestmentForm({
                 }
                 //First, the user sends usdc to the admin account
                 //TODO: Update the decimals you are using to actual usdc decimals
-                const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 0);
+                const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 6);
                 try {
                     await publicClient.simulateContract({
                         account: address!,
@@ -458,7 +488,7 @@ export default function InvestmentForm({
                 console.log("  1. Approve USDC spending");
                 console.log("  2. Deposit USDC to escrow");
                 console.log("  3. Initialize buy order");
-                
+
                 setCurrentStep("approve");
                 await handleApproveUSDC();
             } else {
@@ -728,12 +758,11 @@ export default function InvestmentForm({
                             {isLoading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                                    {isMarketplaceOrder && currentStep !== "form" 
-                                        ? `Processing (Step ${
-                                            currentStep === "approve" ? "1" : 
-                                            currentStep === "deposit" ? "2" : 
-                                            currentStep === "init-order" ? "3" : "1"
-                                          }/3)...`
+                                    {isMarketplaceOrder && currentStep !== "form"
+                                        ? `Processing (Step ${currentStep === "approve" ? "1" :
+                                            currentStep === "deposit" ? "2" :
+                                                currentStep === "init-order" ? "3" : "1"
+                                        }/3)...`
                                         : "Processing..."}
                                 </>
                             ) : (
