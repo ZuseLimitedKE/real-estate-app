@@ -19,30 +19,17 @@ interface InvestorDistribution {
   investorCount: number;
 }
 
-export default async function getInvestorDistributions(): Promise<InvestorDistribution[]> {
-  try {
-    const payload = await requireRole("investor");
-    // For now, let's modify to accept wallet address as parameter
-    
-    throw new MyError("This function needs wallet address parameter. Please use the client-side version.");
-  } catch (err) {
-    console.error("Error getting investor distributions:", err);
-    if (err instanceof AuthError) {
-      throw new MyError(Errors.UNAUTHORIZED);
-    }
-    throw new MyError("Could not get investor distributions", { cause: err });
-  }
-}
-
-// New function that accepts wallet address as parameter
 export async function getInvestorDistributionsByAddress(walletAddress: string): Promise<InvestorDistribution[]> {
   try {
     if (!walletAddress) {
       throw new MyError("Wallet address is required");
     }
 
-    // Get all properties (we'll filter in code since MongoDB query might be complex)
+    console.log("🔍 Fetching distributions for wallet:", walletAddress);
+
+    // Get all properties
     const properties = await PROPERTIES_COLLECTION.find({}).toArray();
+    console.log(`📊 Found ${properties.length} properties to search`);
 
     const distributions: InvestorDistribution[] = [];
 
@@ -57,6 +44,12 @@ export async function getInvestorDistributionsByAddress(walletAddress: string): 
             );
 
             if (investorDistribution) {
+              console.log("✅ Found distribution for investor:", {
+                property: property.name,
+                amount: investorDistribution.amount,
+                wallet: investorDistribution.walletAddress
+              });
+
               distributions.push({
                 id: distTx.id || `dist-${property._id}-${distTx.date.getTime()}`,
                 propertyId: property._id!.toString(),
@@ -84,6 +77,13 @@ export async function getInvestorDistributionsByAddress(walletAddress: string): 
                 );
 
                 if (investorDistribution) {
+                  console.log("✅ Found unit distribution for investor:", {
+                    property: property.name,
+                    unit: unit.name,
+                    amount: investorDistribution.amount,
+                    wallet: investorDistribution.walletAddress
+                  });
+
                   distributions.push({
                     id: distTx.id || `unit-dist-${property._id}-${unit.id}-${distTx.date.getTime()}`,
                     propertyId: property._id!.toString(),
@@ -104,6 +104,8 @@ export async function getInvestorDistributionsByAddress(walletAddress: string): 
       }
     });
 
+    console.log(`🎯 Total distributions found: ${distributions.length}`);
+    
     // Sort by date, most recent first
     return distributions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch (err) {
