@@ -29,6 +29,7 @@ function transformProperty(p: Properties) {
   const baseTransform = {
     id: p._id?.toString?.() ?? "",
     image: (p.images && p.images[0]) || "/logo.png",
+    gallery: p.images || [], // Pass all images as gallery
     title: p.name ?? "Property",
     location: p.location?.address ?? "—",
     value: p.property_value
