@@ -147,16 +147,16 @@ const singlePropertySteps: Steps[] = [
     icon: MapIcon,
     fields: ["single_property_details.location"],
   },
+  // {
+  //   num: 4,
+  //   item: <Step3 />,
+  //   title: "Tenant Information",
+  //   validationSchema: stepSchemas.step3,
+  //   icon: User,
+  //   fields: ["single_property_details.tenant"],
+  // },
   {
     num: 4,
-    item: <Step3 />,
-    title: "Tenant Information",
-    validationSchema: stepSchemas.step3,
-    icon: User,
-    fields: ["single_property_details.tenant"],
-  },
-  {
-    num: 5,
     item: <Step4 />,
     title: "Financial Information",
     validationSchema: stepSchemas.step4,
@@ -168,7 +168,7 @@ const singlePropertySteps: Steps[] = [
     ],
   },
   {
-    num: 6,
+    num: 5,
     item: <Step5 />,
     title: "Property Images",
     validationSchema: stepSchemas.step5,
@@ -176,7 +176,7 @@ const singlePropertySteps: Steps[] = [
     fields: ["single_property_details.images"],
   },
   {
-    num: 7,
+    num: 6,
     item: <Step6 />,
     title: "Legal Documents",
     validationSchema: stepSchemas.step6,
@@ -231,7 +231,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
       serviceFeePercent: 10,
       property_value: 0,
       gross_property_size: 0,
-      tenant: undefined,
+      tenant: null,
       time_listed_on_site: Date.now(),
       property_owners: [],
       secondary_market_listings: [],
@@ -311,7 +311,7 @@ export default function MultiStepForm({ userID }: MultiStepFormProps) {
         updatedAt: data?.single_property_details?.updatedAt
           ? new Date(data?.single_property_details?.updatedAt)
           : undefined,
-        tenant: data?.single_property_details?.tenant ?? undefined,
+        tenant: data?.single_property_details?.tenant ?? null,
         property_owners: Array.isArray(
           data?.single_property_details?.property_owners,
         )

@@ -1,4 +1,4 @@
-import { AddPropertyFormData, CreatePropertyType } from "@/types/property";
+import { CreatePropertyType } from "@/types/property";
 import { useFormContext, Controller } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -43,7 +43,7 @@ export const Step3 = () => {
           <Label htmlFor="tenant.name">Tenant Name</Label>
           <Input
             id="tenant.name"
-            {...register("single_property_details.tenant.name")}
+            {...register("single_property_details.tenant.name", {})}
             placeholder="Tenant name"
           />
           {errors.single_property_details?.tenant?.name && (

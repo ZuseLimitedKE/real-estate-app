@@ -96,7 +96,7 @@ const step3Schema = z.object({
         }),
       ).optional(),
     })
-    .optional(),
+    .optional().nullable(),
 });
 const step4Schema = z.object({
   // STEP 4: financial info
