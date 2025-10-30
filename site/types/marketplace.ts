@@ -71,14 +71,14 @@ export const OrderQuerySchema = z.object({
 });
 
 export const MarketDataSchema = z.object({
-  propertyToken: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
-  lastPrice: z.string().regex(/^\d+$/).optional(),
-  volume24h: z.string().regex(/^\d+$/).default('0'),
-  priceChange24h: z.string().regex(/^-?\d+$/).default('0'),
-  highestBid: z.string().regex(/^\d+$/).optional(),
-  lowestAsk: z.string().regex(/^\d+$/).optional(),
-  totalBuyVolume: z.string().regex(/^\d+$/).default('0'),
-  totalSellVolume: z.string().regex(/^\d+$/).default('0'),
+  propertyToken: z.string(),
+  lastPrice: z.string(),
+  volume24h: z.string(),
+  priceChange24h: z.string(),
+  highestBid: z.string(),
+  lowestAsk: z.string(),
+  totalBuyVolume: z.string(),
+  totalSellVolume: z.string(),
   updatedAt: z.date().default(() => new Date()),
 });
 export interface WithId<T> {

@@ -62,7 +62,7 @@ export default function InvestmentForm({
 }: InvestmentFormProps) {
     const [tokenAmount, setTokenAmount] = useState<string>("");
     const [pricePerToken, setPricePerToken] = useState<string>("");
-    const [actualPricePerToken, setActualPricePerToken] = useState<number>(2);
+    const [actualPricePerToken, setActualPricePerToken] = useState<number>(1);
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [transactionData, setTransactionData] = useState<{
@@ -97,7 +97,7 @@ export default function InvestmentForm({
     const parsedTokenAmount = parseFloat(tokenAmount);
     const parsedPricePerToken = parseFloat(pricePerToken);
     const totalAmount = parsedTokenAmount * parsedPricePerToken;
-
+    console.log("Total amount:", parsedTokenAmount);
     // Determine if this is instant purchase or marketplace order
     const isInstantPurchase = parsedPricePerToken >= actualPricePerToken && parsedPricePerToken > 0;
     const isMarketplaceOrder = parsedPricePerToken < actualPricePerToken && parsedPricePerToken > 0;
@@ -337,7 +337,7 @@ console.log("Buy order receipt status", receipt?.status);
                     address: MARKETPLACE,
                     abi: marketplaceAbi.abi,
                     functionName: "initBuyOrder",
-                    args: [BigInt(nonce), `0x${evmToken}`, BigInt(parsedTokenAmount)],
+                    args: [BigInt(nonce), `0x${evmToken}`, parseUnits(totalAmount.toString(), 6)],
                 });
             } catch (e: any) {
                 const msg = decodeViemError(e);
@@ -352,7 +352,7 @@ console.log("Buy order receipt status", receipt?.status);
                 address: MARKETPLACE,
                 abi: marketplaceAbi.abi,
                 functionName: "initBuyOrder",
-                args: [BigInt(nonce), `0x${evmToken}`, BigInt(parsedTokenAmount)],
+                args: [BigInt(nonce), `0x${evmToken}`, parseUnits(totalAmount.toString(), 6)],
             });
 
             console.log("✅ Buy order TX submitted:", hash);
@@ -794,7 +794,7 @@ console.log("Buy order receipt status", receipt?.status);
                     <div className="space-y-4">
                         <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
+                                {/* <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">
                                         Tokens
                                     </span>
@@ -811,7 +811,7 @@ console.log("Buy order receipt status", receipt?.status);
                                         Total Amount
                                     </span>
                                     <span className="font-medium">${totalAmount.toFixed(2)}</span>
-                                </div>
+                                </div> */}
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">
                                         Property

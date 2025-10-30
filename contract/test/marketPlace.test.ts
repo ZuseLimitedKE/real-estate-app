@@ -132,8 +132,8 @@ describe("MarketPlace Contract", function () {
         const tokenId = getTokenId();
         const usdcToken = getUSDCAddress();
         const contractId = getContractId();
-        const usdcAllowanceReceipt = await allowanceApproval(usdcToken, BUYER.accountId.toString(), contractId, 100, BUYER.privateKey, BUYER.client);
-        const allowanceReceipt = await allowanceApproval(tokenId, SELLER.accountId.toString(), contractId, 100, SELLER.privateKey, SELLER.client);
+        const usdcAllowanceReceipt = await allowanceApproval(usdcToken, BUYER.accountId.toString(), contractId, 100* 10 ** 6, BUYER.privateKey, BUYER.client);
+        const allowanceReceipt = await allowanceApproval(tokenId, SELLER.accountId.toString(), contractId, 100* 10 ** 6, SELLER.privateKey, SELLER.client);
         expect(allowanceReceipt.status.toString()).to.equal("SUCCESS");
         expect(usdcAllowanceReceipt.status.toString()).to.equal("SUCCESS");
     })
@@ -149,7 +149,7 @@ describe("MarketPlace Contract", function () {
         const txDeposit = await new ContractExecuteTransaction()
             .setContractId(contractId)
             .setGas(4_000_000)
-            .setFunction("depositToken", new ContractFunctionParameters().addAddress(evmTokenAddress).addUint256(100))
+            .setFunction("depositToken", new ContractFunctionParameters().addAddress(evmTokenAddress).addUint256(100* 10 ** 6))
             .setMaxTransactionFee(new Hbar(5))
             .freezeWith(SELLER.client);
         const signTxDeposit = await txDeposit.sign(SELLER.privateKey);
@@ -160,7 +160,7 @@ describe("MarketPlace Contract", function () {
         const txUSDCDeposit = await new ContractExecuteTransaction()
             .setContractId(contractId)
             .setGas(4_000_000)
-            .setFunction("depositToken", new ContractFunctionParameters().addAddress(evmUSDCAddress).addUint256(100))
+            .setFunction("depositToken", new ContractFunctionParameters().addAddress(evmUSDCAddress).addUint256(100* 10 ** 6))
             .setMaxTransactionFee(new Hbar(5))
             .freezeWith(BUYER.client);
         const signTxUSDCDeposit = await txUSDCDeposit.sign(BUYER.privateKey);
@@ -183,7 +183,7 @@ describe("MarketPlace Contract", function () {
             .setFunction("initBuyOrder", new ContractFunctionParameters()
                 .addUint64(nonce)
                 .addAddress(evmTokenAddress)
-                .addUint64(50)
+                .addUint64(50* 10 ** 6)
             )
             .setMaxTransactionFee(new Hbar(5))
             .freezeWith(BUYER.client);
@@ -204,7 +204,7 @@ describe("MarketPlace Contract", function () {
             .setFunction("initSellOrder", new ContractFunctionParameters()
                 .addUint64(nonce)
                 .addAddress(evmTokenAddress)
-                .addUint64(50)
+                .addUint64(50* 10 ** 6)
             )
             .setMaxTransactionFee(new Hbar(5))
             .freezeWith(SELLER.client);
@@ -221,7 +221,7 @@ describe("MarketPlace Contract", function () {
             maker: `0x${BUYER.accountId.toEvmAddress()}` as `0x${string}`,
             propertyToken: `0x${TokenId.fromString(getTokenId()).toEvmAddress()}` as `0x${string}`,
             remainingAmount: 50,
-            pricePerShare: 1,
+            pricePerShare: 0.5 * 10 ** 6, //accounting for USDC decimals
             expiry: generateExpiry(),
             type: "BuyOrder",
             nonce: getBuyerNonce()
@@ -231,7 +231,7 @@ describe("MarketPlace Contract", function () {
             maker: `0x${SELLER.accountId.toEvmAddress()}` as `0x${string}`,
             propertyToken: `0x${TokenId.fromString(getTokenId()).toEvmAddress()}` as `0x${string}`,
             remainingAmount: 50,
-            pricePerShare: 1,
+            pricePerShare: 0.5 * 10 ** 6, //accounting for USDC decimals
             expiry: generateExpiry(),
             type: "SellOrder",
             nonce: getSellerNonce()

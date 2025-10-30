@@ -33,8 +33,6 @@ export class MarketPlaceContract {
             if (!parsedBuy.success || !parsedSell.success) {
                 return { status: "INVALID_DATA", message: "Invalid order data", statusCode: 400, success: false } as ErrorResponse;
             }
-            console.log("Parsed Buy Order:", parsedBuy.data);
-            console.log("Parsed Sell Order:", parsedSell.data);
             // Ensure the orders are of correct type
             const buyOrder = parsedBuy.data;
             const sellOrder = parsedSell.data;
@@ -46,7 +44,7 @@ export class MarketPlaceContract {
                 maker: buyOrder.order.maker as `0x${string}`,
                 propertyToken: buyOrder.order.propertyToken as `0x${string}`,
                 remainingAmount: Number(buyOrder.order.remainingAmount)*10**6,
-                pricePerShare: Number(buyOrder.order.pricePerShare),
+                pricePerShare: Number(buyOrder.order.pricePerShare)*10**6,
                 expiry: Number(buyOrder.order.expiry),
                 type: "BuyOrder",
                 nonce: Number(buyOrder.order.nonce),
@@ -55,13 +53,15 @@ export class MarketPlaceContract {
             const SELLORDER = {
                 maker: sellOrder.order.maker as `0x${string}`,
                 propertyToken: sellOrder.order.propertyToken as `0x${string}`,
-                remainingAmount: Number(sellOrder.order.remainingAmount) *10**6,
-                pricePerShare: Number(sellOrder.order.pricePerShare),
+                remainingAmount: Number(sellOrder.order.remainingAmount),
+                pricePerShare: Number(sellOrder.order.pricePerShare) *10**6,
                 expiry: Number(sellOrder.order.expiry),
                 type: "SellOrder",
                 nonce: Number(sellOrder.order.nonce),
                 signature: sellOrder.signature as `0x${string}`,
             }
+            console.log("BUYORDER", BUYORDER);
+            console.log("SELLORDER", SELLORDER);
             const { type: _bt, signature: buyOrderSignature, ...parsedBuyOrder } = BUYORDER;
             const { type: _st, signature: sellOrderSignature, ...parsedSellOrder } = SELLORDER;
             const params = this.encodeFunctionParameters("settle", [parsedBuyOrder, parsedSellOrder]);
@@ -78,6 +78,7 @@ export class MarketPlaceContract {
             if (status.toString() !== "SUCCESS") {
                 return { status: "ERROR", message: `Trade settlement failed with status: ${status}`, statusCode: 500, success: false } as ErrorResponse;
             }
+            console.log("Trade settled successfully", txSettleTradeResponse.transactionId.toString());
             return {
                 status: "SUCCESS",
                 message: "Trade settled successfully",

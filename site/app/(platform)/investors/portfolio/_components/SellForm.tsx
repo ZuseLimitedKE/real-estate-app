@@ -147,7 +147,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         setIsLoading(false);
         return;
       }
-
+      const totalAmount = parseFloat(amount) * parseFloat(pricePerToken);
       // simulate approve
       if (!publicClient) {
         toast.error("Public client not available");
@@ -159,6 +159,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         
         //check if token is associated to contract
         const associatedTokens = await getAssociatedTokens(MARKETPLACE_HEDERA_ACCOUNTID);
+        console.log("Associated tokens:", associatedTokens);
         if (!associatedTokens.includes(tokenAddress)) {
           console.log("Token not associated, associating now:", tokenAddress);  
           // if not associated, associate it
@@ -185,7 +186,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
           address: tokenEvm,
           abi: erc20Abi.abi,
           functionName: "approve",
-          args: [MARKETPLACE, parseUnits(amount, 6)],
+          args: [MARKETPLACE, parseUnits(amount.toString(), 6)],
         });
       } catch (e: any) {
         const msg = decodeViemError(e);
@@ -199,7 +200,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         address: tokenEvm,
         abi: erc20Abi.abi,
         functionName: "approve",
-        args: [MARKETPLACE, parseUnits(amount, 6)],
+        args: [MARKETPLACE, parseUnits(amount.toString(), 6)],
       });
       setApproveHash(hash);
       toast.info("Step 1/3: Approve submitted. Confirm in wallet.");
@@ -216,7 +217,11 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
     if (!publicClient || !address) return;
     try {
       const parsedAmount = BigInt(amount);
-
+      if (parsedAmount <= BigInt(0)) {
+        toast.error("Enter a valid token amount");
+        setIsLoading(false);
+        return;
+      }
       // simulate deposit
       if (!publicClient) {
         toast.error("Public client not available");
@@ -230,7 +235,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
           address: MARKETPLACE,
           abi: marketplaceAbi.abi,
           functionName: "depositToken",
-          args: [tokenEvm, parseUnits(amount, 6)],
+          args: [tokenEvm, parseUnits(amount.toString(), 6)],
         });
       } catch (e: any) {
         const msg = decodeViemError(e);
@@ -245,7 +250,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         address: MARKETPLACE,
         abi: marketplaceAbi.abi,
         functionName: "depositToken",
-        args: [tokenEvm, parseUnits(amount, 6)],
+        args: [tokenEvm, parseUnits(amount.toString(), 6)],
       });
       setDepositHash(hash);
       toast.info("Step 2/3: Deposit submitted. Confirm in wallet.");
@@ -267,7 +272,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         setCurrentStep("form");
         return;
       }
-
+      const totalAmount = parseFloat(amount) * parseFloat(pricePerToken);
       // simulate initSellOrder
       try {
         await publicClient.simulateContract({
@@ -275,7 +280,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
           address: MARKETPLACE,
           abi: marketplaceAbi.abi,
           functionName: "initSellOrder",
-          args: [BigInt(nonce), tokenEvm, parseUnits(amount, 6)],
+          args: [BigInt(nonce), tokenEvm, parseUnits(amount.toString(), 6)],
         });
       } catch (e: any) {
         const msg = decodeViemError(e);
@@ -289,7 +294,7 @@ export default function SellForm({ propertyId, propertyName, tokenAddress, isOpe
         address: MARKETPLACE,
         abi: marketplaceAbi.abi,
         functionName: "initSellOrder",
-        args: [BigInt(nonce), tokenEvm, parseUnits(amount, 6)],
+        args: [BigInt(nonce), tokenEvm, parseUnits(amount.toString(), 6)],
       });
       setTxHash(hash);
       toast.info("Step 3/3: Init sell order submitted. Confirm in wallet.");

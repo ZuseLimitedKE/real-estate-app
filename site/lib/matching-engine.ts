@@ -101,14 +101,14 @@ export class MatchingEngine {
 
       // Sort orders by price (buy orders desc, sell orders asc for optimal matching)
       buyOrders.sort((a: SignedOrder, b: SignedOrder) => {
-        const priceA = BigInt(a.order.pricePerShare);
-        const priceB = BigInt(b.order.pricePerShare);
+        const priceA = parseFloat(a.order.pricePerShare);
+        const priceB = parseFloat(b.order.pricePerShare);
         return priceA > priceB ? -1 : priceA < priceB ? 1 : 0;
       });
 
       sellOrders.sort((a: SignedOrder, b: SignedOrder) => {
-        const priceA = BigInt(a.order.pricePerShare);
-        const priceB = BigInt(b.order.pricePerShare);
+        const priceA = parseFloat(a.order.pricePerShare);
+        const priceB = parseFloat(b.order.pricePerShare);
         return priceA < priceB ? -1 : priceA > priceB ? 1 : 0;
       });
 
@@ -130,17 +130,17 @@ export class MatchingEngine {
           }
 
           try {
-            const buyRemaining = BigInt(buyOrder.order.remainingAmount);
-            const sellRemaining = BigInt(sellOrder.order.remainingAmount);
-            const buyPrice = BigInt(buyOrder.order.pricePerShare);
-            const sellPrice = BigInt(sellOrder.order.pricePerShare);
+            const buyRemaining = parseFloat(buyOrder.order.remainingAmount);
+            const sellRemaining = parseFloat(sellOrder.order.remainingAmount);
+            const buyPrice = parseFloat(buyOrder.order.pricePerShare);
+            const sellPrice = parseFloat(sellOrder.order.pricePerShare);
 
             // Only full-match when amounts exactly equal and buyer price >= seller price
-            if (buyRemaining > BigInt(0) && sellRemaining > BigInt(0) && buyRemaining === sellRemaining && buyPrice >= sellPrice) {
+            if (buyRemaining > 0 && sellRemaining > 0 && buyRemaining === sellRemaining && buyPrice >= sellPrice) {
               // Construct trade params for the full amount
               const tradeAmount = buyRemaining.toString();
               const pricePerShare = buyPrice >= sellPrice ? buyPrice.toString() : sellPrice.toString();
-              const totalValue = (BigInt(tradeAmount) * BigInt(pricePerShare)).toString();
+              const totalValue = (parseFloat(tradeAmount) * parseFloat(pricePerShare)).toString();
 
               const tradeParams = {
                 tradeAmount,
@@ -203,7 +203,6 @@ export class MatchingEngine {
           console.log('Seller:', seller, 'Buyer:', buyer, 'Property:', property);
           continue;
         }
-        console.log("Match", match);
         const result = await marketPlaceContract.settleTrade(match.buyOrder, match.sellOrder);
         if (!result.success) {
           throw new Error(`Settlement failed: ${result}`);
