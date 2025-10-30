@@ -124,7 +124,8 @@ async function mintToken(name: string, symbol: string, ACCOUNT_ID: AccountId, cl
         .setTokenSymbol(symbol)
         .setTokenType(TokenType.FungibleCommon)
         .setTreasuryAccountId(ACCOUNT_ID)
-        .setInitialSupply(500)
+        .setInitialSupply(5000000*10**6)
+        .setDecimals(6)
         .freezeWith(client);
     const signTxTokenCreate = await txTokenCreate.sign(PRIVATE_KEY);
     const txTokenCreateResponse = await signTxTokenCreate.execute(client);

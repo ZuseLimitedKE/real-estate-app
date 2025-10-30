@@ -47,8 +47,8 @@ class RealEstateManagerContract {
                 .setTokenName(args.propertyName)
                 .setTokenSymbol(args.tokenSymbol)
                 .setTokenType(TokenType.FungibleCommon)
-                .setDecimals(0)
-                .setInitialSupply(args.numTokens)
+                .setDecimals(6)
+                .setInitialSupply(args.numTokens*10**6)
                 .setTreasuryAccountId(operatorID)
                 .setSupplyKey(operatorKey)
                 .execute(client);
@@ -155,8 +155,8 @@ class RealEstateManagerContract {
             }
 
             const transferTx = await new TransferTransaction()
-                .addTokenTransfer(tokenId, operatorID, -amount)
-                .addTokenTransfer(tokenId, accountId, amount)
+                .addTokenTransfer(tokenId, operatorID, -amount * 10**6)
+                .addTokenTransfer(tokenId, accountId, amount * 10**6)
                 .freezeWith(client);
 
             const signTx = await transferTx.sign(operatorKey);

@@ -3,7 +3,7 @@ import { MongoClient, Collection, WithId } from 'mongodb';
 import client from '@/db/connection';
 import { SignedOrderSchema, TradeSchema, EscrowBalanceSchema, MarketDataSchema, CreateOrderRequestSchema, OrderQuerySchema, type SignedOrder, type Trade, type EscrowBalance, type MarketData, type Order, MatchingOrder  } from '@/types/marketplace';
 import { generateOrderHash, canOrdersMatch, calculateTradeParams, isOrderExpired, generateTradeId, calculateMarketStats, } from '@/lib/utils/marketplace';
-
+import { startMatchingEngine } from '@/lib/matching-engine';
 export class MarketplaceService {
     private static collections: {
         orders: Collection<SignedOrder>;
@@ -92,6 +92,7 @@ export class MarketplaceService {
     ) {
         try {
             console.log('Creating order for maker:', makerAddress);
+            console.log('Order data:', orderData);
             const parsed = CreateOrderRequestSchema.safeParse({ orderData, signature });
             if (!parsed.success) {
                 return { success: false, error: 'Invalid order data or signature' };
@@ -130,8 +131,8 @@ export class MarketplaceService {
             const result = await orders.insertOne(validatedOrder);
 
             // Update market data
-            await this.updateMarketDataForToken(completeOrder.propertyToken);
-
+            // await this.updateMarketDataForToken(completeOrder.propertyToken);
+            await startMatchingEngine(1); // Start matching engine if not already running
             console.log(`Order ${orderHash} created successfully`);
             return {
                 success: true,
@@ -242,7 +243,7 @@ export class MarketplaceService {
                     bids: buyOrders,
                     asks: sellOrders,
                     spread: sellOrders.length > 0 && buyOrders.length > 0
-                        ? (BigInt(sellOrders[0].order.pricePerShare) - BigInt(buyOrders[0].order.pricePerShare)).toString()
+                        ? (parseFloat(sellOrders[0].order.pricePerShare) - parseFloat(buyOrders[0].order.pricePerShare)).toString()
                         : '0'
                 }
             };
@@ -320,8 +321,8 @@ export class MarketplaceService {
 
             // Sort matches by best price
             matches.sort((a: SignedOrder, b: SignedOrder) => {
-                const priceA = BigInt(a.order.pricePerShare);
-                const priceB = BigInt(b.order.pricePerShare);
+                const priceA = parseFloat(a.order.pricePerShare);
+                const priceB = parseFloat(b.order.pricePerShare);
 
                 if (oppositeType === 'SELL') {
                     // For sell orders, lower price is better
@@ -398,7 +399,7 @@ export class MarketplaceService {
                         { orderHash: buyOrderHash },
                         {
                             $set: {
-                                'order.remainingAmount': (BigInt(buyOrder.order.remainingAmount) - BigInt(tradeAmount)).toString(),
+                                'order.remainingAmount': (parseFloat(buyOrder.order.remainingAmount) - parseFloat(tradeAmount)).toString(),
                                 updatedAt: new Date()
                             }
                         }
@@ -407,7 +408,7 @@ export class MarketplaceService {
                         { orderHash: sellOrderHash },
                         {
                             $set: {
-                                'order.remainingAmount': (BigInt(sellOrder.order.remainingAmount) - BigInt(tradeAmount)).toString(),
+                                'order.remainingAmount': (parseFloat(sellOrder.order.remainingAmount) - parseFloat(tradeAmount)).toString(),
                                 updatedAt: new Date()
                             }
                         }
@@ -415,14 +416,14 @@ export class MarketplaceService {
                 ]);
 
                 // Mark orders as filled if no remaining amount
-                if (BigInt(buyOrder.order.remainingAmount) === BigInt(tradeAmount)) {
+                if (parseFloat(buyOrder.order.remainingAmount) === parseFloat(tradeAmount)) {
                     await orders.updateOne(
                         { orderHash: buyOrderHash },
                         { $set: { status: 'FILLED' } }
                     );
                 }
 
-                if (BigInt(sellOrder.order.remainingAmount) === BigInt(tradeAmount)) {
+                if (parseFloat(sellOrder.order.remainingAmount) === parseFloat(tradeAmount)) {
                     await orders.updateOne(
                         { orderHash: sellOrderHash },
                         { $set: { status: 'FILLED' } }
@@ -431,7 +432,7 @@ export class MarketplaceService {
             }
 
             // Update market data
-            await this.updateMarketDataForToken(buyOrder.order.propertyToken);
+            // await this.updateMarketDataForToken(buyOrder.order.propertyToken);
 
 
             return { success: true, tradeId: result.insertedId };
@@ -578,14 +579,14 @@ export class MarketplaceService {
                 lastPrice: recentTrades[0]?.pricePerShare,
                 volume24h: stats.volume,
                 priceChange24h: stats.priceChange,
-                highestBid: bestBid?.order.pricePerShare,
-                lowestAsk: bestAsk?.order.pricePerShare,
+                highestBid: '9',
+                lowestAsk: '9',
                 totalBuyVolume: recentTrades
                     .filter((t: Trade) => t.buyer !== t.seller)
-                    .reduce((sum: string, t: Trade) => (BigInt(sum) + BigInt(t.totalValue)).toString(), '0'),
+                    .reduce((sum: string, t: Trade) => (parseFloat(sum) + parseFloat(t.totalValue)).toString(), '0'),
                 totalSellVolume: recentTrades
                     .filter((t: Trade) => t.buyer !== t.seller)
-                    .reduce((sum: string, t: Trade) => (BigInt(sum) + BigInt(t.totalValue)).toString(), '0'),
+                    .reduce((sum: string, t: Trade) => (parseFloat(sum) + parseFloat(t.totalValue)).toString(), '0'),
                 updatedAt: new Date(),
             };
 
@@ -700,18 +701,18 @@ export class MarketplaceService {
             }).toArray();
 
             const totalVolume = userTrades.reduce((sum: string, trade: Trade) =>
-                (BigInt(sum) + BigInt(trade.totalValue)).toString(), '0'
+                (parseFloat(sum) + parseFloat(trade.totalValue)).toString(), '0'
             );
 
             const buyTrades = userTrades.filter((t: Trade) => t.buyer === userAddress);
             const sellTrades = userTrades.filter((t: Trade) => t.seller === userAddress);
 
             const buyVolume = buyTrades.reduce((sum: string, trade: Trade) =>
-                (BigInt(sum) + BigInt(trade.totalValue)).toString(), '0'
+                (parseFloat(sum) + parseFloat(trade.totalValue)).toString(), '0'
             );
 
             const sellVolume = sellTrades.reduce((sum: string, trade: Trade) =>
-                (BigInt(sum) + BigInt(trade.totalValue)).toString(), '0'
+                (parseFloat(sum) + parseFloat(trade.totalValue)).toString(), '0'
             );
 
             return {

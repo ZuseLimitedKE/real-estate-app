@@ -242,34 +242,32 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard, HederaTokenService {
 
     function settle(
         BuyOrder calldata buy,
-        bytes calldata buySig,
-        SellOrder calldata sell,
-        bytes calldata sellSig
+        SellOrder calldata sell
     ) external nonReentrant {
         _validateOrders(buy, sell);
         // _verifySignatures(buy, buySig, sell, sellSig);
+        _performTransfers2(buy, sell);
+        // (
+        //     uint256 fill,
+        //     uint256 executionPrice,
+        //     uint256 totalNotional,
+        //     uint256 fee,
+        //     uint256 sellerProceeds
+        // ) = _determineTrade(buy, sell);
 
-        (
-            uint256 fill,
-            uint256 executionPrice,
-            uint256 totalNotional,
-            uint256 fee,
-            uint256 sellerProceeds
-        ) = _determineTrade(buy, sell);
+        // _checkEscrow(buy, sell, fill, totalNotional);
 
-        _checkEscrow(buy, sell, fill, totalNotional);
+        // _updateBalances(buy, sell, fill, totalNotional, fee, sellerProceeds);
 
-        _updateBalances(buy, sell, fill, totalNotional, fee, sellerProceeds);
-
-        _performTransfers(
-            buy,
-            sell,
-            fill,
-            executionPrice,
-            totalNotional,
-            fee,
-            sellerProceeds
-        );
+        // _performTransfers(
+        //     buy,
+        //     sell,
+        //     fill,
+        //     executionPrice,
+        //     totalNotional,
+        //     fee,
+        //     sellerProceeds
+        // );
     }
 
     function _validateOrders(
@@ -377,6 +375,27 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard, HederaTokenService {
         if (fee > 0) {
             escrowBalances[usdcToken][feeCollector] += fee;
         }
+    }
+
+    function _performTransfers2(
+        BuyOrder calldata buy,
+        SellOrder calldata sell
+    ) internal {
+        //Transfer property token to buyer
+        int256 rc1 = HederaTokenService.transferToken(
+            buy.propertyToken,
+            address(this),
+            buy.maker,
+            int64(uint64(buy.remainingAmount))
+        );
+        require(rc1 == 22 || rc1 == 0, "property transfer failed");
+        int256 rc2 = HederaTokenService.transferToken(
+            usdcToken,
+            address(this),
+            sell.maker,
+            int64(uint64(sell.remainingAmount * sell.pricePerShare))
+        );
+        require(rc2 == 22 || rc2 == 0, "USDC transfer to seller failed");
     }
 
     function _performTransfers(

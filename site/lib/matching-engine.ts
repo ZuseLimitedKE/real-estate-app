@@ -2,8 +2,12 @@ import { MongoClient, Collection } from 'mongodb';
 import client from '@/db/connection';
 import { type SignedOrder, type Order, type Trade, SignedOrderSchema, TradeSchema, } from '@/types/marketplace';
 import { canOrdersMatch, calculateTradeParams, generateTradeId, isOrderExpired, } from '@/lib/utils/marketplace';
-import { createTrade, cleanupExpiredOrders } from '@/server-actions/marketplace/marketplace';
-
+import { marketPlaceContract, MarketPlaceContract } from '@/smartcontract/marketplace';
+import { InvestorModel } from "@/db/models/investor";
+import { UserModel } from '@/db/models/user';
+import { createTrade } from '@/server-actions/marketplace/actions';
+import { TokenId } from '@hashgraph/sdk';
+import { match } from 'assert';
 interface MatchingResult {
   matches: Array<{
     buyOrder: SignedOrder;
@@ -97,14 +101,14 @@ export class MatchingEngine {
 
       // Sort orders by price (buy orders desc, sell orders asc for optimal matching)
       buyOrders.sort((a: SignedOrder, b: SignedOrder) => {
-        const priceA = BigInt(a.order.pricePerShare);
-        const priceB = BigInt(b.order.pricePerShare);
+        const priceA = parseFloat(a.order.pricePerShare);
+        const priceB = parseFloat(b.order.pricePerShare);
         return priceA > priceB ? -1 : priceA < priceB ? 1 : 0;
       });
 
       sellOrders.sort((a: SignedOrder, b: SignedOrder) => {
-        const priceA = BigInt(a.order.pricePerShare);
-        const priceB = BigInt(b.order.pricePerShare);
+        const priceA = parseFloat(a.order.pricePerShare);
+        const priceB = parseFloat(b.order.pricePerShare);
         return priceA < priceB ? -1 : priceA > priceB ? 1 : 0;
       });
 
@@ -112,10 +116,12 @@ export class MatchingEngine {
       const processedOrders = new Set<string>();
       let matchCount = 0;
 
-      // Find matches using a greedy approach
+      // Find matches using full-match policy: only match buy and sell orders
+      // whose remaining amounts are exactly equal (full matching). Also
+      // require buyer price to be >= seller price so buyer is willing to pay.
       for (const buyOrder of buyOrders) {
         if (processedOrders.has(buyOrder.orderHash) || matchCount >= maxMatches) {
-          break;
+          continue;
         }
 
         for (const sellOrder of sellOrders) {
@@ -123,32 +129,40 @@ export class MatchingEngine {
             continue;
           }
 
-          if (canOrdersMatch(buyOrder.order, sellOrder.order)) {
-            const tradeParams = calculateTradeParams(buyOrder.order, sellOrder.order);
+          try {
+            const buyRemaining = parseFloat(buyOrder.order.remainingAmount);
+            const sellRemaining = parseFloat(sellOrder.order.remainingAmount);
+            const buyPrice = parseFloat(buyOrder.order.pricePerShare);
+            const sellPrice = parseFloat(sellOrder.order.pricePerShare);
 
-            matches.push({
-              buyOrder,
-              sellOrder,
-              tradeParams,
-            });
+            // Only full-match when amounts exactly equal and buyer price >= seller price
+            if (buyRemaining > 0 && sellRemaining > 0 && buyRemaining === sellRemaining && buyPrice >= sellPrice) {
+              // Construct trade params for the full amount
+              const tradeAmount = buyRemaining.toString();
+              const pricePerShare = buyPrice >= sellPrice ? buyPrice.toString() : sellPrice.toString();
+              const totalValue = (parseFloat(tradeAmount) * parseFloat(pricePerShare)).toString();
 
-            // Update remaining amounts for further matching
-            const newBuyRemaining = (BigInt(buyOrder.order.remainingAmount) - BigInt(tradeParams.tradeAmount)).toString();
-            const newSellRemaining = (BigInt(sellOrder.order.remainingAmount) - BigInt(tradeParams.tradeAmount)).toString();
+              const tradeParams = {
+                tradeAmount,
+                pricePerShare,
+                totalValue,
+              };
+              console.log("Buy order", buyOrder);
+              console.log("Sell order", sellOrder);
+              matches.push({ buyOrder, sellOrder, tradeParams });
 
-            buyOrder.order.remainingAmount = newBuyRemaining;
-            sellOrder.order.remainingAmount = newSellRemaining;
-
-            // Mark as processed if fully filled
-            if (newBuyRemaining === '0') {
+              // Mark both orders as fully filled
+              // buyOrder.order.remainingAmount = '0';
+              // sellOrder.order.remainingAmount = '0';
               processedOrders.add(buyOrder.orderHash);
-            }
-            if (newSellRemaining === '0') {
               processedOrders.add(sellOrder.orderHash);
-            }
 
-            matchCount++;
-            continue; // Move to next buy order
+              matchCount++;
+              break; // move to next buy order after a full match
+            }
+          } catch (err) {
+            console.error('Error while evaluating potential match:', err);
+            continue;
           }
         }
       }
@@ -173,23 +187,38 @@ export class MatchingEngine {
    * Execute trades for matched orders
    */
   async executeMatches(
-    matches: MatchingResult['matches'],
-    onChainSettlement: (buyOrder: SignedOrder, sellOrder: SignedOrder) => Promise<string>
+    matches: MatchingResult['matches']
   ): Promise<Array<{ success: boolean; tradeId?: any; error?: string; txHash?: string }>> {
     const results = [];
 
     for (const match of matches) {
       try {
         // Call on-chain settlement function
-        const txHash = await onChainSettlement(match.buyOrder, match.sellOrder);
+        const seller = await UserModel.findByPublicKey(match.sellOrder.order.maker);
+        const buyer = await UserModel.findByPublicKey(match.buyOrder.order.maker);
+        const property = await InvestorModel.getPropertyIDByTokenID(TokenId.fromEvmAddress(0,0, match.buyOrder.order.propertyToken).toString());
+        if (!seller || !buyer || !property) {
+          console.error('Seller, buyer, or property not found');
+          console.error('Match details:', match);
+          console.log('Seller:', seller, 'Buyer:', buyer, 'Property:', property);
+          continue;
+        }
+        const result = await marketPlaceContract.settleTrade(match.buyOrder, match.sellOrder);
+        if (!result.success) {
+          throw new Error(`Settlement failed: ${result}`);
+        }
 
+        const txHash = result.data?.txHash;
         // Create trade record
+        //TODO: Update user balances and property ownership here
         const tradeResult = await createTrade(
           match.buyOrder.orderHash,
           match.sellOrder.orderHash,
           txHash
         );
 
+        await InvestorModel.updatePropertyOwnership(buyer._id.toString(), match.buyOrder.order.maker, property, Number(match.buyOrder.order.remainingAmount), Number(match.buyOrder.order.pricePerShare), txHash, 'secondary');
+        //TODO: Consider updating seller's ownership too
         results.push({
           success: tradeResult.success,
           tradeId: tradeResult.tradeId,
@@ -226,8 +255,9 @@ export class MatchingEngine {
     let totalTrades = 0;
 
     try {
+      //TODO: Uncomment when cleanupExpiredOrders is implemented
       // Clean up expired orders first
-      await cleanupExpiredOrders();
+      // await cleanupExpiredOrders();
 
       // Get all unique property tokens with active orders
       const { orders: ordersCollection } = await MatchingEngine.getCollections();
@@ -244,21 +274,14 @@ export class MatchingEngine {
           console.log(`🏠 Processing token: ${propertyToken}`);
 
           const matchResult = await this.findMatches(propertyToken);
+          console.log("Found matches", matchResult.matches);
           processedTokens++;
           totalMatches += matchResult.matches.length;
 
           if (matchResult.matches.length > 0) {
             console.log(`✨ Found ${matchResult.matches.length} matches for ${propertyToken}`);
 
-            // In a real implementation, you would call your on-chain settlement here
-            // For now, we'll simulate the settlement
-            const mockSettlement = async (buyOrder: SignedOrder, sellOrder: SignedOrder) => {
-              // Simulate blockchain transaction
-              await new Promise(resolve => setTimeout(resolve, 100));
-              return `0x${Math.random().toString(16).substr(2, 64)}`;
-            };
-
-            const executionResults = await this.executeMatches(matchResult.matches, mockSettlement);
+            const executionResults = await this.executeMatches(matchResult.matches);
             const successfulTrades = executionResults.filter(r => r.success).length;
             totalTrades += successfulTrades;
 
@@ -368,22 +391,17 @@ export class MatchingEngine {
 export const matchingEngine = new MatchingEngine();
 
 // Utility function to run matching engine periodically
-export function startMatchingEngine(intervalMinutes: number = 5) {
+export function startMatchingEngine(intervalMinutes: number = 3) {
   console.log(`🚀 Starting matching engine with ${intervalMinutes}-minute intervals`);
 
   // Run immediately
   matchingEngine.runMatchingCycle().catch(console.error);
 
   // Schedule periodic runs
-  const interval = setInterval(() => {
-    matchingEngine.runMatchingCycle().catch(console.error);
-  }, intervalMinutes * 60 * 1000);
+  // const interval = setInterval(() => {
+  //   matchingEngine.runMatchingCycle().catch(console.error);
+  // }, intervalMinutes * 60 * 1000);
 
   // Return cleanup function
-  return () => {
-    console.log('⏹️ Stopping matching engine');
-    clearInterval(interval);
-  };
+  return;
 }
-
-export default MatchingEngine;

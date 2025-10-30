@@ -45,8 +45,8 @@ export function generateOrderHash(order: Order): string {
             [
                 order.maker as `0x${string}`,
                 order.propertyToken as `0x${string}`,
-                BigInt(order.remainingAmount),
-                BigInt(order.pricePerShare),
+                BigInt(Number(order.remainingAmount)),
+                BigInt(Number(order.pricePerShare) * 10**6),
                 BigInt(order.expiry),
                 BigInt(order.nonce),
                 order.orderType,
@@ -82,12 +82,12 @@ export function canOrdersMatch(buyOrder: Order, sellOrder: Order): boolean {
     }
 
     // Check if buy price >= sell price (economic condition for match)
-    if (BigInt(buyOrder.pricePerShare) < BigInt(sellOrder.pricePerShare)) {
+    if (parseFloat(buyOrder.pricePerShare) < parseFloat(sellOrder.pricePerShare)) {
         return false;
     }
 
     // Check if both orders have remaining amount
-    if (BigInt(buyOrder.remainingAmount) === BigInt(0) || BigInt(sellOrder.remainingAmount) === BigInt(0)) {
+    if (parseFloat(buyOrder.remainingAmount) === 0 || parseFloat(sellOrder.remainingAmount) === 0) {
         return false;
     }
 
@@ -108,8 +108,8 @@ export function calculateTradeParams(buyOrder: Order, sellOrder: Order): {
     }
 
     // Trade amount is minimum of both remaining amounts
-    const buyAmount = BigInt(buyOrder.remainingAmount);
-    const sellAmount = BigInt(sellOrder.remainingAmount);
+    const buyAmount = parseFloat(buyOrder.remainingAmount);
+    const sellAmount = parseFloat(sellOrder.remainingAmount);
     const tradeAmount = buyAmount < sellAmount ? buyAmount : sellAmount;
 
     // Price is typically the maker's price (seller's price in this case)
@@ -117,7 +117,7 @@ export function calculateTradeParams(buyOrder: Order, sellOrder: Order): {
     const pricePerShare = sellOrder.pricePerShare;
 
     // Total value calculation
-    const totalValue = (tradeAmount * BigInt(pricePerShare)).toString();
+    const totalValue = (tradeAmount * parseFloat(pricePerShare)).toString();
 
     return {
         tradeAmount: tradeAmount.toString(),
@@ -141,13 +141,13 @@ export function getOrderFulfillmentPercentage(
     originalAmount: string,
     remainingAmount: string
 ): number {
-    const original = BigInt(originalAmount);
-    const remaining = BigInt(remainingAmount);
+    const original = parseFloat(originalAmount);
+    const remaining = parseFloat(remainingAmount);
 
-    if (original === BigInt(0)) return 0;
+    if (original === 0) return 0;
 
     const filled = original - remaining;
-    return Number((filled * BigInt(10000)) / original);
+    return Number((filled * (10000)) / original);
 }
 
 /**
@@ -185,12 +185,12 @@ export function getOrderTypeDisplay(orderType: 'BUY' | 'SELL'): string {
  * Format price for display (converts from wei-like representation)
  */
 export function formatPrice(pricePerShare: string, decimals: number = 6): string {
-    const price = BigInt(pricePerShare);
-    const divisor = BigInt(10 ** decimals);
+    const price = parseFloat(pricePerShare);
+    const divisor = (10 ** decimals);
     const wholePart = price / divisor;
     const fractionalPart = price % divisor;
 
-    if (fractionalPart === BigInt(0)) {
+    if (fractionalPart === 0) {
         return wholePart.toString();
     }
 
@@ -205,15 +205,15 @@ export function formatPrice(pricePerShare: string, decimals: number = 6): string
  */
 export function parsePrice(displayPrice: string, decimals: number = 6): string {
     const parts = displayPrice.split('.');
-    const wholePart = BigInt(parts[0] || '0');
+    const wholePart = parseFloat(parts[0] || '0');
 
-    let fractionalPart = BigInt(0);
+    let fractionalPart = 0;
     if (parts[1]) {
         const fractionalStr = parts[1].padEnd(decimals, '0').slice(0, decimals);
-        fractionalPart = BigInt(fractionalStr);
+        fractionalPart = parseFloat(fractionalStr);
     }
 
-    const divisor = BigInt(10 ** decimals);
+    const divisor = (10 ** decimals);
     return (wholePart * divisor + fractionalPart).toString();
 }
 
@@ -242,22 +242,22 @@ export function calculateMarketStats(trades: Trade[], timeframe: number = 24 * 6
     }
 
     // Calculate total volume
-    const volumes = recentTrades.map(t => BigInt(t.totalValue));
-    const totalVolume = volumes.reduce((sum, vol) => sum + vol, BigInt(0));
+    const volumes = recentTrades.map(t => parseFloat(t.totalValue));
+    const totalVolume = volumes.reduce((sum, vol) => sum + vol, 0);
 
     // Calculate price statistics
-    const prices = recentTrades.map(t => BigInt(t.pricePerShare));
-    const highPrice = prices.reduce((max, price) => price > max ? price : max, BigInt(0));
+    const prices = recentTrades.map(t => parseFloat(t.pricePerShare));
+    const highPrice = prices.reduce((max, price) => price > max ? price : max, 0);
     const lowPrice = prices.reduce((min, price) => price < min ? price : min, prices[0]);
-    const avgPrice = prices.reduce((sum, price) => sum + price, BigInt(0)) / BigInt(prices.length);
+    const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
 
     // Calculate price change (first vs last trade in timeframe)
     // Sort by timestamp to get chronological order
     const sortedTrades = [...recentTrades].sort((a, b) =>
         a.createdAt.getTime() - b.createdAt.getTime()
     );
-    const firstPrice = BigInt(sortedTrades[0].pricePerShare);
-    const lastPrice = BigInt(sortedTrades[sortedTrades.length - 1].pricePerShare);
+    const firstPrice = parseFloat(sortedTrades[0].pricePerShare);
+    const lastPrice = parseFloat(sortedTrades[sortedTrades.length - 1].pricePerShare);
     const priceChange = lastPrice - firstPrice;
 
     return {
@@ -274,12 +274,12 @@ export function calculateMarketStats(trades: Trade[], timeframe: number = 24 * 6
  * Calculate percentage change
  */
 export function calculatePercentageChange(oldValue: string, newValue: string): number {
-    const oldVal = BigInt(oldValue);
-    const newVal = BigInt(newValue);
+    const oldVal = parseFloat(oldValue);
+    const newVal = parseFloat(newValue);
 
-    if (oldVal === BigInt(0)) return 0;
+    if (oldVal === 0) return 0;
 
-    const change = ((newVal - oldVal) * BigInt(10000)) / oldVal;
+    const change = ((newVal - oldVal) * (10000)) / oldVal;
     return Number(change) / 100;
 }
 
@@ -287,7 +287,7 @@ export function calculatePercentageChange(oldValue: string, newValue: string): n
  * Format volume for display (with K, M, B suffixes)
  */
 export function formatVolume(volume: string, decimals: number = 6): string {
-    const val = Number(BigInt(volume)) / (10 ** decimals);
+    const val = Number(parseFloat(volume)) / (10 ** decimals);
 
     if (val >= 1_000_000_000) {
         return `${(val / 1_000_000_000).toFixed(2)}B`;
