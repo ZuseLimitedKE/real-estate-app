@@ -29,10 +29,10 @@ export default function CreatePropertyStep1Form() {
                                 <RadioGroupItem value={PropertyType.SINGLE} id="r1" />
                                 <Label htmlFor="r1">Single</Label>
                             </div>
-                            <div className="flex items-center gap-3">
+                            {/* <div className="flex items-center gap-3">
                                 <RadioGroupItem value={PropertyType.APARTMENT} id="r2" />
                                 <Label htmlFor="r2">Apartment</Label>
-                            </div>
+                            </div> */}
                         </RadioGroup>
                         {errors.property_type && (
                             <p className="text-sm text-red-500 mt-1">
