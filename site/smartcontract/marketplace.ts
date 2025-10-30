@@ -45,7 +45,7 @@ export class MarketPlaceContract {
             const BUYORDER = {
                 maker: buyOrder.order.maker as `0x${string}`,
                 propertyToken: buyOrder.order.propertyToken as `0x${string}`,
-                remainingAmount: Number(buyOrder.order.remainingAmount),
+                remainingAmount: Number(buyOrder.order.remainingAmount)*10**6,
                 pricePerShare: Number(buyOrder.order.pricePerShare),
                 expiry: Number(buyOrder.order.expiry),
                 type: "BuyOrder",
@@ -55,7 +55,7 @@ export class MarketPlaceContract {
             const SELLORDER = {
                 maker: sellOrder.order.maker as `0x${string}`,
                 propertyToken: sellOrder.order.propertyToken as `0x${string}`,
-                remainingAmount: Number(sellOrder.order.remainingAmount),
+                remainingAmount: Number(sellOrder.order.remainingAmount) *10**6,
                 pricePerShare: Number(sellOrder.order.pricePerShare),
                 expiry: Number(sellOrder.order.expiry),
                 type: "SellOrder",

@@ -197,30 +197,30 @@ console.log("Buy order receipt status", receipt?.status);
     // Step 1: Approve USDC spending by marketplace
     const handleApproveUSDC = async () => {
         try {
-            // try {
+            try {
 
-            //     //check if token is associated to contract
-            //     const associatedTokens = await getAssociatedTokens(MARKETPLACE_HEDERA_ACCOUNTID);
-            //     if (!associatedTokens.includes("0.0.429274")) {
-            //         console.log("Token not associated, associating now:", "0.0.429274");
-            //         // if not associated, associate it
-            //         const result = await associateTokentoContract(USDC);
-            //         if (result.success === false) {
-            //             console.error("Failed to associate token:",);
-            //             toast.error("Failed to associate token, try again later");
-            //             setIsLoading(false);
-            //             setCurrentStep("form");
-            //             return;
-            //         }
-            //     }
-            // }
-            // catch (error: any) {
-            //     console.error("Error fetching associated tokens:", error);
-            //     toast.error("An error occured, try again later");
-            //     setIsLoading(false);
-            //     setCurrentStep("form");
-            //     return;
-            // }
+                //check if token is associated to contract
+                const associatedTokens = await getAssociatedTokens(MARKETPLACE_HEDERA_ACCOUNTID);
+                if (!associatedTokens.includes("0.0.7159440")) {
+                    console.log("Token not associated, associating now:", "0.0.429274");
+                    // if not associated, associate it
+                    const result = await associateTokentoContract(USDC);
+                    if (result.success === false) {
+                        console.error("Failed to associate token:",);
+                        toast.error("Failed to associate token, try again later");
+                        setIsLoading(false);
+                        setCurrentStep("form");
+                        return;
+                    }
+                }
+            }
+            catch (error: any) {
+                console.error("Error fetching associated tokens:", error);
+                toast.error("An error occured, try again later");
+                setIsLoading(false);
+                setCurrentStep("form");
+                return;
+            }
             const PARSED_AMOUNT = parseUnits(totalAmount.toString(), 6); // USDC has 6 decimals
 
             console.log("📝 Step 1: Approving USDC...", {
