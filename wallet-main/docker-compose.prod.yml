@@ -1,0 +1,67 @@
+services:
+  db:
+    container_name: "nhx-wallet-prod-db"
+    image: postgres:12.4-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nhx-wallet-network
+
+  backend:
+    container_name: "nhx-wallet-prod-backend"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      # Database connection
+      DB_URL: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}?sslmode=disable"
+      PORT: 8080
+      # Hiero configuration
+      OPERATOR_ACCOUNT_ID: ${OPERATOR_ACCOUNT_ID}
+      OPERATOR_KEY: ${OPERATOR_KEY}
+      OPERATOR_PUBLIC_KEY: ${OPERATOR_PUBLIC_KEY}
+      OPERATOR_HEX_KEY: ${OPERATOR_HEX_KEY}
+      # Token configuration
+      KSH_TOKEN_ID: ${KSH_TOKEN_ID}
+      # Exchange rate
+      EXCHANGE_RATE_URL: ${EXCHANGE_RATE_URL}
+      # Stripe credentials
+      STRIPE_SECRET: ${STRIPE_SECRET}
+      SUCCESS_URL: ${SUCCESS_URL_PROD}
+      CANCEL_URL: ${CANCEL_URL_PROD}
+      # Daraja credentials
+      CONSUMER_KEY: ${CONSUMER_KEY}
+      CONSUMER_SECRET: ${CONSUMER_SECRET}
+      PASS_KEY: ${PASS_KEY}
+      STK_PUSH_URL: ${STK_PUSH_URL}
+      AUTHORIZATION_URL: ${AUTHORIZATION_URL}
+      BUSINESS_SHORT_CODE: ${BUSINESS_SHORT_CODE}
+      CALLBACK_URL: ${CALLBACK_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - nhx-wallet-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  nhx-wallet-network:
+    driver: bridge
