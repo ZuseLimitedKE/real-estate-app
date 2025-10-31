@@ -91,7 +91,7 @@ This cost-efficiency ensures that agencies and property managers can confidently
 
 The code for the demo is found in the contract and site directories. The contract directory contains the MarketPlace contract that was incharge of buy and sell orders that were in our marketplace. The site directory has code for the NextJS application that interacts with the contract and the other Hedera services.
 
-The ![.env.example](./contract/.env.example) of the contract is found in the contract/ folder. To setup the Marketplace contract do the following, run all these commands in the contract/ folder unless stated otherwise:
+The [.env.example](./contract/.env.example) of the contract is found in the contract/ folder. To setup the Marketplace contract do the following, run all these commands in the contract/ folder unless stated otherwise:
 
 1. Install pnpm:
 
@@ -123,7 +123,7 @@ pnpm tsx deploy.ts
 next hardhat test
 ```
 
-The ![.env.example](./site/.env.example) of the NextJS application is found in the site/ folder. To set up the NextJS application do the following:
+The [.env.example](./site/.env.example) of the NextJS application is found in the site/ folder. To set up the NextJS application do the following:
 
 1. Install pnpm:
 
