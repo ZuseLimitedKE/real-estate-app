@@ -1,8 +1,0 @@
-.env
-.git
-.gitignore
-database/
-*.md
-.DS_Store
-*.log
-
