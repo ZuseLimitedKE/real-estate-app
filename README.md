@@ -32,6 +32,7 @@
 - **Pitch Deck URL:** [https://pitch.com/v/atria-pitch-mwmnrv](https://pitch.com/v/atria-pitch-mwmnrv)
 - **Certification Links:**
   - [Patrick Ojiambo](https://certs.hashgraphdev.com/64b80932-d3f7-4e98-a6a1-2e2356238bf5.pdf)
+  - [Roman Njoroge](https://certs.hashgraphdev.com/0b2f1b48-6726-433e-9beb-055fcd888fc1.pdf)
 
 ---
 
@@ -88,8 +89,59 @@ This cost-efficiency ensures that agencies and property managers can confidently
 
 ## Deployment & Setup Instructions
 
-_(To be filled in with specific setup steps.)_
+The code for the demo is found in the contract and site directories. The contract directory contains the MarketPlace contract that was incharge of buy and sell orders that were in our marketplace. The site directory has code for the NextJS application that interacts with the contract and the other Hedera services.
 
+The [![.env.example](./contract/.env.example)](./contract/.env.example) of the contract is found in the contract/ folder. To setup the Marketplace contract do the following, run all these commands in the contract/ folder unless stated otherwise:
+
+1. Install pnpm:
+
+```bash
+npm install -g pnpm
+```
+
+2. Install dependencies of the application:
+
+```bash
+pnpm install
+```
+
+3. To combile the contract run the command:
+
+```bash
+npx hardhat compile
+```
+
+4. Run the command below at the root of the project:
+
+```bash 
+pnpm tsx deploy.ts
+```
+
+5. To test the contract run the command from the root of contract/ directory:
+
+```bash
+next hardhat test
+```
+
+The [![.env.example](./site/.env.example)](./site/.env.example) of the NextJS application is found in the site/ folder. To set up the NextJS application do the following:
+
+1. Install pnpm:
+
+```bash
+npm install -g pnpm
+```
+
+2. Install dependencies of the application:
+
+```bash
+pnpm install
+```
+
+3. Run application in dev mode
+
+```bash
+pnpm dev
+```
 ---
 
 ## Architecture Diagram
