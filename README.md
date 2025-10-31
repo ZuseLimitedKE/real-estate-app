@@ -154,6 +154,11 @@ pnpm dev
 
 1. Marketplace contract - 0.0.7170451
 
+### Deployed tokens
+1. Menengai Heights Property token - 0.0.7162406
+2. Bemmasam Heights Property token - 0.0.7162429
+3. Royal Suites Property token - 0.0.7167766
+
 ---
 
 ## Problem
