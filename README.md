@@ -152,7 +152,7 @@ pnpm dev
 
 ## Deployed Hedera IDs
 
-_(List deployed IDs here.)_
+1. Marketplace contract - 0.0.7170451
 
 ---
 
