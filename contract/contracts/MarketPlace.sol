@@ -247,27 +247,27 @@ contract MarketPlace is EIP712, Ownable, ReentrancyGuard, HederaTokenService {
         _validateOrders(buy, sell);
         // _verifySignatures(buy, buySig, sell, sellSig);
         _performTransfers2(buy, sell);
-        // (
-        //     uint256 fill,
-        //     uint256 executionPrice,
-        //     uint256 totalNotional,
-        //     uint256 fee,
-        //     uint256 sellerProceeds
-        // ) = _determineTrade(buy, sell);
+        (
+            uint256 fill,
+            uint256 executionPrice,
+            uint256 totalNotional,
+            uint256 fee,
+            uint256 sellerProceeds
+        ) = _determineTrade(buy, sell);
 
-        // _checkEscrow(buy, sell, fill, totalNotional);
+        _checkEscrow(buy, sell, fill, totalNotional);
 
-        // _updateBalances(buy, sell, fill, totalNotional, fee, sellerProceeds);
+        _updateBalances(buy, sell, fill, totalNotional, fee, sellerProceeds);
 
-        // _performTransfers(
-        //     buy,
-        //     sell,
-        //     fill,
-        //     executionPrice,
-        //     totalNotional,
-        //     fee,
-        //     sellerProceeds
-        // );
+        _performTransfers(
+            buy,
+            sell,
+            fill,
+            executionPrice,
+            totalNotional,
+            fee,
+            sellerProceeds
+        );
     }
 
     function _validateOrders(
