@@ -201,7 +201,7 @@ console.log("Buy order receipt status", receipt?.status);
 
                 //check if token is associated to contract
                 const associatedTokens = await getAssociatedTokens(MARKETPLACE_HEDERA_ACCOUNTID);
-                if (!associatedTokens.includes("0.0.7159440")) {
+                if (!associatedTokens.includes("0.0.429274")) {
                     console.log("Token not associated, associating now:", "0.0.429274");
                     // if not associated, associate it
                     const result = await associateTokentoContract(USDC);
